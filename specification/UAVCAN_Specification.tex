@@ -4,7 +4,7 @@
 
 \documentclass{uavcandoc}
 
-\title{UAVCAN Protocol Specification v1.0}
+\title{Specification v1.0}
 
 \hbadness=10000
 
@@ -14,6 +14,35 @@
 \begin{titlepage}
 
 \section*{Overview}
+
+UAVCAN is an open lightweight protocol designed for reliable communication in aerospace and robotic applications via CAN bus.
+
+Features:
+
+\begin{itemize}
+    \item Democratic network - no bus master, no single point of failure.
+    \item Publish/subscribe and request/response (RPC\footnote{Remote procedure call}) exchange semantics.
+    \item Efficient exchange of large data structures with automatic decomposition and reassembly.
+    \item Lightweight, deterministic, easy to implement, and easy to validate.
+    \item Suitable for deeply embedded, resource constrained, hard real-time systems.
+    \item Doubly- or triply- redundant CAN bus support.
+    \item Supports high-precision network-wide time synchronization.
+    \item The specification and high quality reference implementations in popular programming languages are free and open source.
+\end{itemize}
+
+\BeginRightColumn
+
+\section*{Documentation and support}
+
+Information, documentation, and discussions related to UAVCAN are available via the official website at
+\href{http://uavcan.org}{uavcan.org}.
+
+\section*{Legal statement}
+
+UAVCAN is an interface standard open to everyone.
+No copyrights are reserved and no licensing is necessary for its implementation, distribution, or use.
+
+In no event shall the authors of the standard be liable for any damage arising, directly or indirectly, from its use.
 
 \end{titlepage}
 

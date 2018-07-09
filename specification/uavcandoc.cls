@@ -40,7 +40,7 @@
 %
 % Minor definitions.
 %
-\definecolor{colorhyperlink}{RGB}{100,0,0}
+\definecolor{colorhyperlink}{RGB}{0,0,200}
 
 \renewcommand{\dateseparator}{.}
 
@@ -329,11 +329,9 @@ autogobble
 
 \newcommand{\RenderTitlePageHeader}{%
     \renewcommand{\baselinestretch}{1}
+    \UAVCANLogo[\textwidth]\hfill\vspace{10mm}
     \begin{flushleft}\begin{Huge}\@title\end{Huge}\end{flushleft}
-    Revision \today\\
-    % Without \hfill here, TeX complains that hbox is underfull,
-    % despite the fact that the rule spans for \textwidth here. I have no idea why.
-    \rule{\textwidth}{.4pt}\hfill\vspace{3mm}
+    Revision \today\\[10mm]
     }
 
 \renewenvironment{titlepage}{%
