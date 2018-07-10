@@ -1,5 +1,8 @@
+% !TEX root
 %
-% Copyright (c) 2018  Pavel Kirienko <pavel.kirienko@zubax.com>
+% Copyright (c) 2018  UAVCAN Development Team
+% Authors:
+%   Pavel Kirienko <pavel.kirienko@zubax.com>
 %
 
 \documentclass{uavcandoc}
@@ -27,12 +30,13 @@ Features:
     \item Suitable for deeply embedded, resource constrained, hard real-time systems.
     \item Doubly- or triply- redundant CAN bus support.
     \item Supports high-precision network-wide time synchronization.
-    \item The specification and high quality reference implementations in popular programming languages are free and open source.
+    \item The specification and high quality reference implementations in popular programming languages are free and
+    open source.
 \end{itemize}
 
 \BeginRightColumn
 
-\section*{Documentation and support}
+\section*{Support and feedback}
 
 Information, documentation, and discussions related to UAVCAN are available via the official website at
 \href{http://uavcan.org}{uavcan.org}.
@@ -40,19 +44,21 @@ Information, documentation, and discussions related to UAVCAN are available via 
 \section*{Legal statement}
 
 UAVCAN is an interface standard open to everyone.
-No copyrights are reserved and no licensing is necessary for its implementation, distribution, or use.
+No licensing or approval of any kind is necessary for its implementation, distribution, or use.
 
 In no event shall the authors of the standard be liable for any damage arising, directly or indirectly, from its use.
 
 \end{titlepage}
 
 \tableofcontents
-\BeginRightColumn
+\clearpage
 \listoffigures
+\BeginRightColumn
 \listoftables
 
 \mainmatter
 
-\chapter{Overview}
+\input{introduction/introduction.tex}
+\input{dsdl/dsdl.tex}
 
 \end{document}

@@ -1,0 +1,89 @@
+\chapter{Introduction}
+
+This chapter covers the basic concepts that govern development and maintenance of the specification.
+The actual specification is contained in the following chapters.
+
+The reader should have a solid understanding of the main concepts and operating principles of the CAN bus.
+
+\section{Core design goals}
+
+UAVCAN is designed to adhere to the following set of basic principles.
+
+\begin{itemize}
+    \item \textbf{Democratic network} - There should be no master node.
+    All nodes in the network should have the same communication rights; there should be no single point of failure.
+
+    \item \textbf{Nodes can exchange long payloads} - Nodes must be provided with a simple way to exchange large
+    data structures that cannot fit into a single CAN\footnote{Or CAN FD.}
+    frame (such as GNSS solutions, 3D vectors, etc.).
+    UAVCAN should perform automatic transfer decomposition and reassembly at the protocol level,
+    hiding the related complexity from the application.
+
+    \item \textbf{Support for redundant interfaces and redundant nodes} - This is a common requirement for
+    safety-critical applications.
+
+    \item \textbf{High throughput, low latency communication} - Applications that are dependent on high-frequency,
+    hard real-time control loops, require a low-latency, high-throughput communication method.
+
+    \item \textbf{Simple logic, low computational requirements} - UAVCAN targets a wide variety of embedded systems,
+    from high-performance embedded on-board computers for intensive data processing
+    (e.g., a high-performance GNU/Linux-powered machine) to extremely resource-constrained microcontrollers.
+    The latter imposes severe restrictions on the amount of logic needed to implement the protocol.
+
+    \item \textbf{Common high-level functions should be clearly defined} - UAVCAN defines standard services
+    and messages for common high-level functions, such as network discovery, node configuration,
+    node software update, node status monitoring (which naturally grows into a vehicle-wide health monitoring),
+    network-wide time synchronization, dynamic node ID allocation (a.k.a. plug-and-play node support), etc.
+
+    \item \textbf{Open specification and reference implementations} - The UAVCAN specification is open and
+    freely available; the reference implementations are distributed under the terms of the permissive MIT License.
+\end{itemize}
+
+\section{Specification update and approval process}
+
+The UAVCAN development team is charged with advancing the specification based on the input from adopters.
+This feedback is gathered via the official discussion
+forum\footnote{Please refer to \href{http://uavcan.org}{uavcan.org}.},
+which is open to everyone.
+
+The set of standard data type definitions is one of the cornerstone concepts of the specification
+(the data structure description language (DSDL) and related concepts are described in section \ref{sec:dsdl}).
+Within the same major version, the specification can be extended only in the following ways:
+
+\begin{itemize}
+    \item A new data type can be added, possibly with default data type ID,
+    as long as the default data type ID doesn't conflict with one of the existing data types.
+
+    \item An existing data type can be modified, as long as the modification doesn't break backward compatibility.
+
+    \item A new version of an existing data type can be added.
+
+    \item An existing data type can be declared deprecated.
+    \begin{itemize}
+        \item Once declared deprecated, the data type will be maintained for at least two more years.
+        After this period its default data type ID may be reused for an incompatible data type.
+
+        \item Deprecation will be announced via the discussion forum, and indicated in the form of a comment
+        in its DSDL definition.
+    \end{itemize}
+\end{itemize}
+
+A link to the repository containing the set of default DSDL definitions can be found on the official
+website\footnote{\href{http://uavcan.org}{uavcan.org}}.
+
+\section{Referenced sources}
+
+The UAVCAN specification contains references to the following sources:
+
+\begin{itemize}
+    \item CiA 801 - Application note - Automatic bit rate detection.
+    \item CiA 103 - Intrinsically safe capable physical layer.
+    \item CiA 303 - Recommendation - Part 1: Cabling and connector pin assignment.
+    \item IEEE 754 - Standard for binary floating-point arithmetic.
+    \item ISO 11898-1 - Controller area network (CAN) - Part 1: Data link layer and physical signaling.
+    \item ISO 11898-2 - Controller area network (CAN) - Part 2: High-speed medium access unit.
+    \item ISO/IEC 10646 - Universal Coded Character Set (UCS).
+    \item ISO/IEC 14882 - Programming Language C++.
+    \item "Implementing a Distributed High-Resolution Real-Time Clock using the CAN-Bus", M. Gergeleit and H. Streich.
+    \item "In Search of an Understandable Consensus Algorithm (Extended Version)", Diego Ongaro and John Ousterhout.
+\end{itemize}

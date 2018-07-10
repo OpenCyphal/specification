@@ -9,10 +9,9 @@ cp -fP *.bib out/ &> /dev/null
 rm out/$SRC.pdf
 
 pdflatex --halt-on-error --shell-escape -output-directory=out ../$SRC.tex
-cd out
-bibtex $SRC
-#biber $SRC
-cd ..
+#cd out
+#bibtex $SRC
+#cd ..
 pdflatex --halt-on-error --shell-escape -output-directory=out ../$SRC.tex
 pdflatex --halt-on-error --shell-escape -output-directory=out ../$SRC.tex
 
