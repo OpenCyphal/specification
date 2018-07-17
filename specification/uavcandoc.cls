@@ -254,6 +254,10 @@ autogobble
 
 % This is a shortcut that places a table within the wrapper environment.
 % Use it in all cases unless you need to define table notes, or if you need to customize something.
+% Arguments:
+%   {Table caption}{format}
+% Example:
+%   \begin{UAVCANSimpleTable}{Firmware status indication via RGB LED}{|l l|X|}
 \newenvironment{UAVCANSimpleTable}[2]{
     \begin{UAVCANTableWrapper}{#1}
         \begin{UAVCANWrappedTable}{#2}

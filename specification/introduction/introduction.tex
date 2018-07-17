@@ -9,35 +9,36 @@ The reader should have a solid understanding of the main concepts and operating 
 
 UAVCAN is designed to adhere to the following set of basic principles.
 
-\begin{itemize}
-    \item \textbf{Democratic network} - There should be no master node.
+\begin{description}
+    \item[Democratic network] - There should be no master node.
     All nodes in the network should have the same communication rights; there should be no single point of failure.
 
-    \item \textbf{Nodes can exchange long payloads} - Nodes must be provided with a simple way to exchange large
-    data structures that cannot fit into a single CAN\footnote{Or CAN FD.}
+    \item[Nodes can exchange long payloads] - Nodes must be provided with a simple way to exchange large
+    data structures that cannot fit into a single CAN\footnote{Or CAN FD. Here and in the following parts of the
+    specification, CAN also implies CAN FD, unless specifically noted otherwise.}
     frame (such as GNSS solutions, 3D vectors, etc.).
     UAVCAN should perform automatic transfer decomposition and reassembly at the protocol level,
     hiding the related complexity from the application.
 
-    \item \textbf{Support for redundant interfaces and redundant nodes} - This is a common requirement for
+    \item[Support for redundant interfaces and redundant nodes] - This is a common requirement for
     safety-critical applications.
 
-    \item \textbf{High throughput, low latency communication} - Applications that are dependent on high-frequency,
+    \item[High throughput, low latency communication] - Applications that are dependent on high-frequency,
     hard real-time control loops, require a low-latency, high-throughput communication method.
 
-    \item \textbf{Simple logic, low computational requirements} - UAVCAN targets a wide variety of embedded systems,
+    \item[Simple logic, low computational requirements] - UAVCAN targets a wide variety of embedded systems,
     from high-performance embedded on-board computers for intensive data processing
     (e.g., a high-performance GNU/Linux-powered machine) to extremely resource-constrained microcontrollers.
     The latter imposes severe restrictions on the amount of logic needed to implement the protocol.
 
-    \item \textbf{Common high-level functions should be clearly defined} - UAVCAN defines standard services
+    \item[Common high-level functions should be clearly defined] - UAVCAN defines standard services
     and messages for common high-level functions, such as network discovery, node configuration,
     node software update, node status monitoring (which naturally grows into a vehicle-wide health monitoring),
     network-wide time synchronization, dynamic node ID allocation (a.k.a. plug-and-play node support), etc.
 
-    \item \textbf{Open specification and reference implementations} - The UAVCAN specification is open and
+    \item[Open specification and reference implementations] - The UAVCAN specification is open and
     freely available; the reference implementations are distributed under the terms of the permissive MIT License.
-\end{itemize}
+\end{description}
 
 \section{Specification update and approval process}
 
@@ -86,4 +87,5 @@ The UAVCAN specification contains references to the following sources:
     \item ISO/IEC 14882 - Programming Language C++.
     \item "Implementing a Distributed High-Resolution Real-Time Clock using the CAN-Bus", M. Gergeleit and H. Streich.
     \item "In Search of an Understandable Consensus Algorithm (Extended Version)", Diego Ongaro and John Ousterhout.
+    \item \href{http://semver.org}{semver.org} - Semantic versioning specification.
 \end{itemize}
