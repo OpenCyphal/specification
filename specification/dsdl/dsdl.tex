@@ -1,6 +1,356 @@
 \chapter{Data structure description language}\label{sec:dsdl}
 
 The data structure description language (DSDL) is used to define data structures for exchange via the CAN bus.
-The DSDL definitions are used to automatically generate the message serialization/deserialization code
-for the given programming language.
-The tool that generates source code from a DSDL definition files is called a \emph{DSDL compiler}.
+DSDL definitions are used to automatically (or manually) generate the message serialization/deserialization code
+in a particular programming language.
+A tool that automatically generates source code from DSDL definition files is called a \emph{DSDL compiler}.
+
+\section{File hierarchy}
+
+Each DSDL definition file specifies exactly one data structure that can be used for message broadcasting,
+or a pair of structures that can be used for service invocation (request and response).
+
+A DSDL source file is named using the \emph{short data type name},
+the semantic version number pair (major and minor),
+and the \emph{default data type ID} (if needed) as shown
+below\footnote{Mandatory parts are surrounded with angle brackets, optional parts are surrounded with square brackets.}:
+
+\verb|[default DTID.]<short name>.<major version number>.<minor version number>.uavcan|
+
+Every defined data structure is contained in a namespace,
+which may in turn be \emph{nested} within another namespace.
+A namespace that is not nested in another namespace is called a \emph{root namespace}.
+For example, all standard data types are contained in the root namespace \verb|uavcan|,
+which contains nested namespaces, such as \verb|protocol|.
+
+The namespace hierarchy is mapped directly to the file system directory structure,
+as shown in the example below:
+
+\begin{minted}[linenos=false]{text}
+uavcan/                       <- Root namespace
+    equipment/                <- Nested namespace
+        ...
+    protocol/                 <- Nested namespace
+        341.NodeStatus.uavcan <- Definition of data type "uavcan.protocol.NodeStatus" with default DTID 341
+        ...
+    Timestamp.uavcan          <- Definition of data type "uavcan.Timestamp", default DTID is not assigned
+\end{minted}
+
+Notes:
+
+\begin{itemize}
+    \item It is not necessary to explicitly define a default data type ID for non-standard data types
+          (i.e., for vendor-specific or application-specific data types).
+    \begin{itemize}
+        \item If the default data type ID is not defined by the DSDL definition,
+              it will need to be assigned by the application at run time.
+        \item All standard data types have default data type ID values defined.
+    \end{itemize}
+
+    \item Data type names are case sensitive, i.e., names \verb|foo.Bar| and \verb|foo.bar| are considered different.
+          Names that differ only in case should be avoided, because it may cause problems on file systems that are not
+          case-sensitive.
+
+    \item Data types may contain nested data structures.
+    \begin{itemize}
+        \item Some data structures may be designed for such nesting only,
+              in which case they are not required to have a dedicated data type ID.
+    \end{itemize}
+
+    \item \emph{Full data type name} is a unique identifier of a data type constructed from the root namespace,
+          all nested namespaces (if any), and the short data type name, joined via the dot symbol (\verb|.|),
+          e.g., \verb|uavcan.protocol.file.Read|.
+    \begin{itemize}
+        \item The total length of the full data type name must not exceed 80 characters.
+        \item Refer to the naming rules below for the limitations imposed on the character set.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Service data types}
+
+Since a service invocation consists of two independent network data exchange operations,
+the DSDL definition for a service must define two structures:
+
+\begin{description}
+    \item[Request part] - for the request transfer (client to server).
+    \item[Response part] - for the response transfer (server to client).
+\end{description}
+
+Both request and response structures are contained within the same DSDL definition file,
+separated by a special statement as defined in the section \ref{sec:dsdl_syntax}.
+
+Service invocation data structures cannot be nested into other structures.
+
+\section{Syntax}\label{sec:dsdl_syntax}
+
+A data structure definition is a collection of statements.
+Each statement is located in a separate line.
+Lines must be separated with an ASCII line feed character (\verb|\n|, code 10).
+Vendor-specific data type definitions are also allowed to use either \verb|\r\n| or \verb|\r|
+as line endings.
+
+The following types of statements are defined:
+
+\begin{description}
+    \item[Attribute] - used to define entities of the data type, such as data fields and constants.
+    \item[Directive] - directives provide instructions to the DSDL compiler.
+    \item[Service response marker] - separates the request and response parts of a service data type definition.
+\end{description}
+
+An attribute can be either of the following:
+
+\begin{description}
+    \item[Field] - a variable that can be modified by the application and exchanged via the network.
+    \item[Constant] - an immutable value that does not participate in network exchange.
+\end{description}
+
+DSDL source files may also contain human-readable comments, which are ignored by the compiler.
+
+A message data type definition may contain the following entities:
+
+\begin{itemize}
+    \item Attribute definitions
+    \item Directives
+    \item Comments
+\end{itemize}
+
+A service data type definition contains the following entities:
+
+\begin{itemize}
+    \item Request part attribute definitions
+    \item Response part attribute definitions
+    \item Request part directives
+    \item Response part directives
+    \item Comments
+    \item Service response marker (always exactly one marker) (section \ref{sec:dsdl_service_response_marker})
+\end{itemize}
+
+Unless specifically stated otherwise,
+directives apply only to the part of the service type definition where they are defined,
+not crossing the boundary of the service response marker.
+
+\subsection{Attribute definition}
+
+Field definitions follow one of the below specified declaration patterns:
+
+\begin{itemize}
+    \item \verb|cast_mode field_type field_name|
+    \item \verb|cast_mode field_type[X] field_name|
+    \item \verb|cast_mode field_type[<X] field_name|
+    \item \verb|cast_mode field_type[<=X] field_name|
+    \item \verb|void_type|
+\end{itemize}
+
+Constant definitions are formed using the following declaration patterns:
+
+\begin{itemize}
+    \item \verb|cast_mode constant_type constant_name = constant_initializer|
+\end{itemize}
+
+Each component of the specified patterns is reviewed in detail below.
+
+\subsubsection{Field type}
+
+A field type declaration can be either a primitive data type
+(primitive data types are defined later) or a nested data structure.
+
+A primitive data type is referred simply by its name, e.g., \verb|float16|, \verb|bool|.
+
+A nested data structure is referred by its name and the version number,
+separated by the ASCII dot (full stop) character.
+The name can be either the full name or the short name.
+The latter option is permitted only if the referred data type is located in the same namespace as
+the referring data type.
+The version number can be either the major version number, or both the major and the minor version
+numbers separated by the ASCII dot (full stop) character.
+In the former case, the highest available minor version number is implied.
+Consider the following examples,
+where all of the declarations refer to the same nested data type, assuming that the referring definition is
+located in the namespace \verb|uavcan.protocol|:
+
+\begin{minted}{text}
+NodeStatus.1
+NodeStatus.1.0
+uavcan.protocol.NodeStatus.1
+uavcan.protocol.NodeStatus.1.0
+\end{minted}
+
+A field type name can be appended with a statement in square brackets to define an array:
+
+\begin{itemize}
+    \item Syntax \verb|[X]| is used to define a static array of size exactly X items.
+    \item Syntax \verb|[<X]| is used to define a dynamic array of size from 0 to X-1 items, inclusively.
+    \item Syntax \verb|[<=X]| is used to define a dynamic array of size from 0 to X items, inclusively.
+\end{itemize}
+
+In the array definition statements above, \verb|X| must be a valid
+integer literal according to the rules defined in the section \ref{sec:dsdl_constant_definition}.
+
+Observe that the maximum size of dynamic arrays is always bounded,
+this ensures that the worst case memory footprint and associated computational complexity are predictable.
+
+\subsubsection{Field name and constant name}
+
+For a message data type, all attributes must have a unique name within the data type definition.
+
+For a service data type, all attributes must have a unique name within the same part (request/response) of
+the data type definition.
+In other words, service type attributes can have the same name as long as they are separated by
+the service response marker (section \ref{sec:dsdl_service_response_marker}).
+
+Restrictions on the character set and further information are provided in the section \ref{sec:dsdl_naming_rules}.
+
+\subsubsection{Cast mode}
+
+Cast mode defines the rules of conversion from native values of a particular programming language
+to serialized field values.
+Cast mode may be left undefined, in which case the default will be used.
+The possible cast modes are defined below.
+
+\begin{itemize}
+    \item \verb|saturated| - this is the default cast mode,
+          which will be used if the attribute definition does not specify the cast mode explicitly.
+          For integers, it prevents an integer overflow, replacing it with saturation -
+          for example, an attempt to write 0x44 to a 4-bit field
+          will result in a bit field value of 0x0F.
+          For floating point values, it prevents overflow when casting to a lower precision floating point
+          representation - for example, 65536.0 will be converted to a \verb|float16| as 65504.0;
+          infinity will be preserved.
+    \item \verb|truncated| - for integers, discards the excessive most significant bits;
+          for example, an attempt to write 0x44 to a 4-bit field will produce 0x04.
+          For floating point values, overflow during downcasting will produce an infinity.
+\end{itemize}
+
+\subsubsection{Constant definition}\label{sec:dsdl_constant_definition}
+
+A constant must be of a primitive (section \ref{sec:dsdl_primitive_data_types}) scalar type.
+Arrays and nested data structures are not allowed as constant types.
+
+A constant must be assigned with a constant initializer, which must be one of the following:
+
+\begin{itemize}
+    \item Integer zero (0).
+    \item Integer literal in base 10, starting with a non-zero character. E.g., \verb|123|, \verb|-12|.
+    \item Integer literal in base 16 prefixed with \verb|0x|. E.g., \verb|0x123|, \verb|-0x12|, \verb|+0x123|.
+    \item Integer literal in base 2 prefixed with \verb|0b|. E.g., \verb|0b1101|, \verb|-0b101101|, \verb|+0b101101|.
+    \item Integer literal in base 8 prefixed with \verb|0o|. E.g., \verb|0o123|, \verb|-0o777|, \verb|+0o777|.
+    \item Floating point literal. Fractional part with an optional exponent part,
+          e.g., \verb|15.75|, \verb|1.575E1|, \verb|1575e-2|, \verb|-2.5e-3|, \verb|+25E-4|.
+          Not-a-number (NaN), positive infinity, and negative infinity are intentionally not supported
+          in order to maximize cross-platform compatibility.
+    \item Boolean \verb|true| or \verb|false|.
+    \item Single ASCII character, ASCII escape sequence, or ASCII hex literal in single quotes. E.g.,
+          \verb|'a'|, \verb|'\x61'|, \verb|'\n'|.
+\end{itemize}
+
+The DSDL compiler must convert the initializer expression to its constant type
+if the target type can allocate the value with no data loss.
+If a data loss occurs (e.g., integer overflow, floating point number decays to infinity, etc.),
+the DSDL compiler must refuse to compile such data type.
+
+Note that constants do not affect the serialized data layout as they are never exchanged via the network.
+
+\subsubsection{Void type}
+
+Void type is a special field type that is intended for data alignment purposes.
+The specification defines 64 distinct void types as follows:
+
+\begin{itemize}
+    \item \verb|void1| - 1 padding bit;
+    \item \verb|void2| - 2 padding bits;
+    \item \ldots
+    \item \verb|void63| - 63 padding bits;
+    \item \verb|void64| - 64 padding bits.
+\end{itemize}
+
+A field of a void type does not have a name and its cast mode cannot be specified.
+During message serialization, all void fields must be populated with zero bits;
+during deserialization, contents of the void fields should be ignored.
+
+\subsection{Directives}
+
+A directive is a single case-sensitive word starting with an "at sign" (\verb|@|),
+possibly followed by space-separated arguments:
+
+\begin{minted}[linenos=false]{text}
+@directive
+@directive arg1 arg2
+\end{minted}
+
+All valid directives are documented in this section.
+
+\subsubsection{Union}
+
+Keyword: \verb|@union|.
+
+This directive instructs the DSDL compiler that the current message or the current part of a service data type
+(request or response) is a \emph{tagged union}.
+A tagged union is a data structure that may encode any one of its fields at a time.
+Such a data structure contains one implicit field - the \emph{union tag} - that indicates which particular
+field the data structure is holding at the moment.
+Unions are required to have at least two fields.
+
+This directive must be placed before the first attribute definition.
+
+\subsection{Comments}
+
+A DSDL description may contain comments starting from the ASCII number sign (\verb|#|)
+up until the end of the current line.
+Comments are ignored by DSDL compilers.
+
+\subsection{Service response marker}\label{sec:dsdl_service_response_marker}
+
+A service response marker separates the request and response parts of a service data type definition.
+The marker consists of three ASCII minus symbols (\verb|-|) in a row on a dedicated line:
+
+\begin{minted}[linenos=false]{text}
+---
+\end{minted}
+
+\section{Primitive data types}\label{sec:dsdl_primitive_data_types}
+
+These types are assumed to be built-in.
+They can be directly referenced from any data type of any namespace.
+The DSDL compiler should implement these types using the native types of the target programming language.
+An example mapping to native types is given here for C/C++.
+
+\begin{UAVCANSimpleTable}{Primitive data types}{|l l X l l|}\label{table:dsdl_primitive_data_types}
+    Name                    & Bit length    & Possible representation in C/C++  & Value range   & Binary format \\
+    \texttt{bool}           & $1$
+                            & \texttt{bool} (can be optimized for bit arrays)
+                            & $\{0, 1\}$
+                            & One bit
+                            \\
+    \texttt{int\textbf{X}}  & $2 \le{} \text{X} \le 64$
+                            & \texttt{int8\_t}, \texttt{int16\_t}, \texttt{int32\_t}, \texttt{int64\_t}
+                            & $\lbrack -\frac{2^\text{X}}{2}, \frac{2^\text{X}}{2} - 1\rbrack$
+                            & Two's complement
+                            \\
+    \texttt{uint\textbf{X}} & $2 \le{} \text{X} \le 64$
+                            & \texttt{uint8\_t}, \texttt{uint16\_t}, \texttt{uint32\_t}, \texttt{uint64\_t}
+                            & $\lbrack 0, 2^\text{X} - 1\rbrack$
+                            &
+                            \\
+    \texttt{float16}        & $16$
+                            & \texttt{float}
+                            & $\pm{}65504$
+                            & IEEE 754 binary16
+                            \\
+    \texttt{float32}        & $32$
+                            & \texttt{float}
+                            & Approx. $\pm{}10^{39}$
+                            & IEEE 754 binary32
+                            \\
+    \texttt{float64}        & $64$
+                            & \texttt{double}
+                            & Approx. $\pm{}10^{308}$
+                            & IEEE 754 binary64
+                            \\
+    \texttt{void\textbf{X}} & $1 \le{} \text{X} \le 64$
+                            & N/A
+                            & N/A
+                            & \textbf{X} zero/ignored bits
+                            \\
+\end{UAVCANSimpleTable}
+
+\section{Naming rules}\label{sec:dsdl_naming_rules}
