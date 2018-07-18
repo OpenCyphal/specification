@@ -55,7 +55,8 @@ Notes:
     \item Data types may contain nested data structures.
     \begin{itemize}
         \item Some data structures may be designed for such nesting only,
-              in which case they are not required to have a dedicated data type ID.
+              in which case they are not required to have a dedicated data type ID at all
+              (neither default nor runtime-assigned).
     \end{itemize}
 
     \item \emph{Full data type name} is a unique identifier of a data type constructed from the root namespace,
@@ -115,7 +116,7 @@ A message data type definition may contain the following entities:
     \item Comments
 \end{itemize}
 
-A service data type definition contains the following entities:
+A service data type definition may contain the following entities:
 
 \begin{itemize}
     \item Request part attribute definitions
@@ -153,7 +154,7 @@ Each component of the specified patterns is reviewed in detail below.
 \subsubsection{Field type}
 
 A field type declaration can be either a primitive data type
-(primitive data types are defined later) or a nested data structure.
+(primitive data types are defined in section \ref{sec:dsdl_primitive_data_types}) or a nested data structure.
 
 A primitive data type is referred simply by its name, e.g., \verb|float16|, \verb|bool|.
 
@@ -169,7 +170,7 @@ Consider the following examples,
 where all of the declarations refer to the same nested data type, assuming that the referring definition is
 located in the namespace \verb|uavcan.protocol|:
 
-\begin{minted}{text}
+\begin{minted}[linenos=false]{text}
 NodeStatus.1
 NodeStatus.1.0
 uavcan.protocol.NodeStatus.1
@@ -265,12 +266,12 @@ The specification defines 64 distinct void types as follows:
 \end{itemize}
 
 A field of a void type does not have a name and its cast mode cannot be specified.
-During message serialization, all void fields must be populated with zero bits;
-during deserialization, contents of the void fields should be ignored.
+During message serialization, all void fields are filled with zero bits;
+during deserialization, the contents of void fields should be ignored.
 
 \subsection{Directives}
 
-A directive is a single case-sensitive word starting with an "at sign" (\verb|@|),
+A directive is a single case-sensitive word starting with an ASCII "at sign" character (\verb|@|),
 possibly followed by space-separated arguments:
 
 \begin{minted}[linenos=false]{text}
@@ -309,8 +310,8 @@ The marker consists of three ASCII minus symbols (\verb|-|) in a row on a dedica
 \end{minted}
 
 The request part precedes the marker, and the response part follows the marker.
-The service response marker is used by the DSDL compiler to detect whether the current definition is a
-message type definition or a service type definition.
+The presence of a service response marker indicates that the current definition is a
+service type definition rather than a message type definition.
 
 \section{Primitive data types}\label{sec:dsdl_primitive_data_types}
 
@@ -374,18 +375,18 @@ their violation should not be treated as a fatal error:
 
 \begin{itemize}
     \item Field and namespace names should be all-lowercase words separated with underscores,
-          and may include numbers, (e.g.: \verb|field_name|, \verb|my_namespace_7|).
+          and may include numbers, (e.g.: \verb|field_name_123|).
 
     \item Constant names should be all-uppercase words separated with underscores,
-          and may include numbers (e.g.: \verb|CONSTANT_NAME|).
+          and may include numbers (e.g.: \verb|CONSTANT_NAME_123|).
 
-    \item Data type names should be in camel case (first letter of all words in the upper case),
-          and may include numbers (e.g.: \verb|TypeName|, \verb|TypeName2|).
+    \item Data type names should be in camel case (first letter of each word is uppercase),
+          and may include numbers (e.g.: \verb|TypeName123|).
 \end{itemize}
 
 \subsection{Advisory}
 
-The following rules should be considered by the application designer, but should not be enforced:
+The following advisory rules should be considered by the data type designer:
 
 \begin{itemize}
     \item Message names should be nouns and/or adjectives (e.g., \verb|BatteryStatus|);
