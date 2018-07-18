@@ -1,8 +1,8 @@
 \chapter{Data structure description language}\label{sec:dsdl}
 
 The data structure description language (DSDL) is used to define data structures for exchange via the CAN bus.
-DSDL definitions are used to automatically (or manually) generate the message serialization/deserialization code
-in a particular programming language.
+DSDL definitions are used to automatically (or manually) generate the message or service
+serialization/deserialization code in a particular programming language.
 A tool that automatically generates source code from DSDL definition files is called a \emph{DSDL compiler}.
 
 \section{File hierarchy}
@@ -13,7 +13,8 @@ or a pair of structures that can be used for service invocation (request and res
 A DSDL source file is named using the \emph{short data type name},
 the semantic version number pair (major and minor),
 and the \emph{default data type ID} (if needed) as shown
-below\footnote{Mandatory parts are surrounded with angle brackets, optional parts are surrounded with square brackets.}:
+below\footnote{In this declaration, the mandatory parts are surrounded with angle brackets,
+and the optional parts are surrounded with square brackets.}:
 
 \verb|[default DTID.]<short name>.<major version number>.<minor version number>.uavcan|
 
@@ -84,10 +85,10 @@ Service invocation data structures cannot be nested into other structures.
 \section{Syntax}\label{sec:dsdl_syntax}
 
 A data structure definition is a collection of statements.
-Each statement is located in a separate line.
-Lines must be separated with an ASCII line feed character (\verb|\n|, code 10).
-Vendor-specific data type definitions are also allowed to use either \verb|\r\n| or \verb|\r|
-as line endings.
+Each statement is located on a separate line.
+Lines are separated with the ASCII line feed character (\verb|\n|, code 10),
+or with a sequence consisting of the ASCII carriage return character followed by the ASCII line feed character
+(\verb|\r\n|, code 13 and 10, respectively).
 
 The following types of statements are defined:
 
@@ -307,6 +308,10 @@ The marker consists of three ASCII minus symbols (\verb|-|) in a row on a dedica
 ---
 \end{minted}
 
+The request part precedes the marker, and the response part follows the marker.
+The service response marker is used by the DSDL compiler to detect whether the current definition is a
+message type definition or a service type definition.
+
 \section{Primitive data types}\label{sec:dsdl_primitive_data_types}
 
 These types are assumed to be built-in.
@@ -349,8 +354,51 @@ An example mapping to native types is given here for C/C++.
     \texttt{void\textbf{X}} & $1 \le{} \text{X} \le 64$
                             & N/A
                             & N/A
-                            & \textbf{X} zero/ignored bits
+                            & X zero/ignored bits
                             \\
 \end{UAVCANSimpleTable}
 
 \section{Naming rules}\label{sec:dsdl_naming_rules}
+
+\subsection{Mandatory}
+
+Field names, constant names, and type names must contain only ASCII alphanumeric characters and underscores
+\verb|[A-Za-z0-9_]|,
+and must begin with an ASCII alphabetic character \verb|[A-Za-z]|.
+Violation of this rule must be detected by the DSDL compiler and treated as a fatal error.
+
+\subsection{Optional}
+
+The following rules should be checked by the DSDL compiler, but are not mandatory;
+their violation should not be treated as a fatal error:
+
+\begin{itemize}
+    \item Field and namespace names should be all-lowercase words separated with underscores,
+          and may include numbers, (e.g.: \verb|field_name|, \verb|my_namespace_7|).
+
+    \item Constant names should be all-uppercase words separated with underscores,
+          and may include numbers (e.g.: \verb|CONSTANT_NAME|).
+
+    \item Data type names should be in camel case (first letter of all words in the upper case),
+          and may include numbers (e.g.: \verb|TypeName|, \verb|TypeName2|).
+\end{itemize}
+
+\subsection{Advisory}
+
+The following rules should be considered by the application designer, but should not be enforced:
+
+\begin{itemize}
+    \item Message names should be nouns and/or adjectives (e.g., \verb|BatteryStatus|);
+    service names should be imperatives (e.g., \verb|Restart|, \verb|GetNodeInfo|).
+
+    \item The name of a message that carries a command should end with the word "Command";
+          the name of a message that carries status information should end with the word "Status".
+
+    \item The name of a service that is designed to obtain or to store data should begin with the word
+          "Get" or "Set", respectively.
+\end{itemize}
+
+\section{Data type compatibility and versioning}
+
+
+
