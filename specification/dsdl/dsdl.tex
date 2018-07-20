@@ -11,7 +11,8 @@ Each DSDL definition file specifies exactly one data structure that can be used 
 or a pair of structures that can be used for service invocation (request and response).
 
 A DSDL source file is named using the \emph{short data type name},
-the semantic version number pair (major and minor),
+the semantic version number pair (major and minor; see the section \ref{sec:dsdl_versioning}
+for more information on data type versioning),
 and the \emph{default data type ID} (if needed) as shown
 below\footnote{In this declaration, the mandatory parts are surrounded with angle brackets,
 and the optional parts are surrounded with square brackets.}:
@@ -28,13 +29,13 @@ The namespace hierarchy is mapped directly to the file system directory structur
 as shown in the example below:
 
 \begin{minted}[linenos=false]{text}
-uavcan/                       <- Root namespace
-    equipment/                <- Nested namespace
+uavcan/                           <- Root namespace
+    equipment/                    <- Nested namespace
         ...
-    protocol/                 <- Nested namespace
-        341.NodeStatus.uavcan <- Definition of data type "uavcan.protocol.NodeStatus" with default DTID 341
+    protocol/                     <- Nested namespace
+        341.NodeStatus.1.0.uavcan <- Data type "uavcan.protocol.NodeStatus" v1.0 with default DTID 341
         ...
-    Timestamp.uavcan          <- Definition of data type "uavcan.Timestamp", default DTID is not assigned
+    Timestamp.uavcan              <- Data type "uavcan.Timestamp", default DTID is not assigned
 \end{minted}
 
 Notes:
@@ -399,7 +400,190 @@ The following advisory rules should be considered by the data type designer:
           "Get" or "Set", respectively.
 \end{itemize}
 
-\section{Data type compatibility and versioning}
+\section{Data type compatibility and versioning}\label{sec:dsdl_versioning}
+
+\subsection{Rationale}
+
+As can be seen from the preceding sections,
+the concept of \emph{data type} is a cornerstone feature of UAVCAN,
+which sets it apart from many competing solutions.
+
+In order to be able to interoperate successfully,
+all nodes connected to the same bus must use compatible definitions of all employed data types.
+This section is dedicated to the concepts of \emph{data type compatibility}
+and \emph{data type versioning}.
+
+A \emph{data type} is a named set of data structures defined in DSDL.
+As has been explained above, in the case of message data types,
+the set consists of just one data structure, whereas in the case of service data types
+the set is a pair of request and response data structures.
+
+Data type definitions may evolve over time as they are refined to better address the needs of their applications.
+In order to formalize the data type evolution process with respect to the data type compatibility concerns,
+UAVCAN introduces two concepts: \emph{bit compatibility} and \emph{semantic compatibility},
+which are discussed below.
+
+\subsection{Bit compatibility}
+
+\subsubsection{Definition}
+
+For the purposes of the definition that follows, an \emph{encoded representation of $A$}
+is a sequence of data fields joined into a bit string according to the DSDL definition
+of the data structure $A$.
+
+A structure definition $A$ is bit-compatible with a structure definition $B$
+if any valid encoded representation of $B$ is also a valid encoded representation of $A$.
+$A$ and $B$ are said to be \emph{mutually compatible} if the sets of all possible valid encoded representations of
+$A$ and $B$ are identical.
+
+\subsubsection{Examples}
+
+A \emph{fixed-size data structure} is a structure that does not contain dynamic arrays
+or other structures that contain dynamic arrays within themselves.
+As such, the bit length of an encoded representation of a fixed-size structure is constant,
+regardless of the data contained in the structure.
+Conversely, any data structure that is not fixed-size is called a \emph{variable-size data structure}.
+
+It stands to reason that any data structure definition is compatible with itself.
+The following two definitions are bit-compatible as well:
+
+\begin{minted}{python}
+uint32 a
+uint32 b
+\end{minted}
+
+\begin{minted}{python}
+uint64 c
+\end{minted}
+
+It should be observed that bit-compatibility is invariant to the complexity and the level of nesting
+of the data structure.
+From the above provided definitions follows that two fixed-size data structures are bit-compatible if the
+bit lengths of their respective encoded representations are equal.
+
+Consider the following example data type definition; assume that its full data type name is
+\verb|demo.Pair|:
+
+\begin{minted}{python}
+# demo.Pair
+float16 first
+float16 second
+\end{minted}
+
+Further, let the following be description of the data type \verb|demo.PairVector|:
+
+\begin{minted}{python}
+# demo.PairVector
+demo.Pair[3] vector
+\end{minted}
+
+Then the following two definitions are bit-compatible:
+
+\begin{minted}{python}
+demo.PairVector pair_vector
+\end{minted}
+
+\begin{minted}{python}
+float16 first_0     # pair_vector.vector[0].first
+float16 second_0    # pair_vector.vector[0].second
+float16 first_1     # pair_vector.vector[1].first
+float16 second_1    # pair_vector.vector[1].second
+float16 first_2     # pair_vector.vector[2].first
+float16 second_2    # pair_vector.vector[2].second
+\end{minted}
+
+The latter definition in the example above is a flattened unrolled form of the former definition.
+As such, in that particular example, both definitions can be used interchangeably;
+data serialized using one definition can still be meaningful if deserialized using the other definition.
+However, it is also possible to construct bit-compatible definitions that are not interchangeable:
+
+\begin{minted}{python}
+float16 a
+float32 b
+\end{minted}
+
+\begin{minted}{python}
+float32 a
+float16 b
+\end{minted}
+
+Even though the above definitions are bit-compatible, one cannot be substituted with the other.
+
+The examples above were focused on fixed-size structures.
+In the case of fixed-size structures, if $A$ is compatible with $B$, the reverse is also true.
+This does not hold for variable-size structures.
+Consider the following example:
+
+\begin{minted}{python}
+uint8[<=10] a
+\end{minted}
+
+\begin{minted}{python}
+void1           # The maximum array length is twice lower, so the length prefix is one bit shorter.
+uint16[<=5] a   # The 1-bit void field is needed to ensure identical bit offset of the array.
+\end{minted}
+
+For the first definition, it is evident that since it contains one dynamic array with
+11 possible length values\footnote{Which are 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, and 10.},
+and the array type is a fixed-size
+structure\footnote{Built-in types can be considered a special case of fixed-size data structures.},
+there are 11 possible bit length values for the first definition.
+
+Likewise, for the second definition, there are 6 possible bit length values.
+
+Since both arrays have the same bit offset from the beginning of the bit string,
+and taking into account the fact that the element sizes differ by an integral factor,
+the set of valid encoded representations of the second definition is a subset of those of the first definition.
+Possible encoded representations are summarized in the table \ref{table:dsdl_variable_size_compat},
+where the columns labeled "First definition" and "Second definition" contain the number of elements in the
+respective arrays.
+
+\begin{minipage}{0.7\textwidth}
+\begin{UAVCANSimpleTable}{Variable-size data type compatibility example}{|lll|}\label{table:dsdl_variable_size_compat}
+    Bit length  & First definition  & Second definition \\
+    4           & 0                 & 0 \\
+    12          & 1                 & \emph{invalid} \\
+    20          & 2                 & 1 \\
+    28          & 3                 & \emph{invalid} \\
+    36          & 4                 & 2 \\
+    44          & 5                 & \emph{invalid} \\
+    52          & 6                 & 3 \\
+    60          & 7                 & \emph{invalid} \\
+    68          & 8                 & 4 \\
+    76          & 9                 & \emph{invalid} \\
+    84          & 10                & 5 \\
+\end{UAVCANSimpleTable}
+\end{minipage}
+
+The table illustrates the fact that the first definition is compatible with the second definition,
+but the reverse is not true.
+
+\subsection{Semantic compatibility}
+
+\subsubsection{Definition}
+
+A data structure definition $A$ is semantically compatible with a data structure definition $B$
+if an application that correctly uses $A$ exhibits a functionally equivalent behavior to an application
+that correctly uses $B$.
+
+\subsubsection{Examples}
+
+Despite using different binary layouts, the following two definitions are semantically compatible:
+
+\begin{minted}{python}
+uint16 FLAG_A = 1
+uint16 FLAG_B = 256
+uint16 flags
+\end{minted}
+
+\begin{minted}{python}
+uint8 FLAG_A = 1
+uint8 FLAG_B = 1
+uint8 flags_a
+uint8 flags_b
+\end{minted}
+
+
 
 
 
