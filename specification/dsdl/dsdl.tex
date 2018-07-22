@@ -564,7 +564,10 @@ but the reverse is not true.
 
 A data structure definition $A$ is semantically compatible with a data structure definition $B$
 if an application that correctly uses $A$ exhibits a functionally equivalent behavior to an application
-that correctly uses $B$, and if $A$ is bit-compatible with $B$.
+that correctly uses $B$,
+and $A$ is bit-compatible with $B$.
+
+Because of the dependency on bit compatibility, the property of semantic compatibility is non-commutative.
 
 \subsubsection{Examples}
 
@@ -583,7 +586,177 @@ uint8 flags_a
 uint8 flags_b
 \end{minted}
 
+Therefore, the definitions can be used
+interchangeably\footnote{It should be noted here that due to different set of fields and constants,
+the source code auto-generated from the provided definitions may be not drop-in replaceable,
+requiring changes in the application. However, application compatibility is orthogonal to
+data type compatibility.}.
+
+\subsection{Data type versioning}
+
+\subsubsection{Principles}
+
+Every data type definition has a pair of version numbers -
+a major version number and a minor version number, following the principles of semantic versioning.
+
+For the purposes of the following definitions, a \emph{release} of a data type definition stands for
+the disclosure of the data type definition to the intended users or to the public,
+or for the commencement of usage of the data type definition in a production system.
+
+In order to ensure a deterministic application behavior and ensure a robust migration path
+as data type definitions evolve, UAVCAN requires that all data types that share the same major version number
+greater than zero must be mutually semantically compatible with each other.
+
+In order to ensure predictable and repeatable behavior of applications that leverage UAVCAN,
+the standard requires that once a data type definition is released, it cannot undergo any modifications to
+its attributes or directives anymore.
+Essentially, released data type definitions are to be considered immutable excepting
+comments and whitespace formatting.
+
+Therefore, substantial modifications of released data types are only possible by releasing
+new definitions of the same data type.
+If it is desired and possible to keep the same major version number for a new definition of the data type,
+the minor version number shall be one greater than the newest existing minor version
+number before the new definition is introduced.
+Otherwise, the major version number shall be incremented by one and the minor version shall be set to zero.
+
+An exception to the above rules applies when the major version number is zero.
+Data type definitions bearing the major version number of zero are not subjected to any compatibility requirements.
+Released data type definitions with the major version number of zero are permitted to change in arbitrary
+ways without any regard for compatibility.
+It is recommended, however, to follow the principles of immutability, releasing every subsequent definition
+with the minor version number one greater than the newest existing definition.
+
+\subsubsection{Example}
+
+Suppose a vendor \emph{Sirius Cybernetics Corporation} was contracted to design a cryopod management data bus for a
+colonial spaceship \emph{Golgafrincham B-Ark}.
+Having consulted with applicable specifications and standards, an engineer came up with the following
+definition of a cryopod status message type (named \verb|sirius_cyber_corp.golgafrincham_b_ark.cryopod.Status|):
+
+\begin{minted}{python}
+# sirius_cyber_corp.golgafrincham_b_ark.cryopod.Status.0.1
+
+float16 internal_temperature    # [kelvin]
+float16 coolant_temperature     # [kelvin]
+
+# Status flags in the low byte
+uint16 FLAG_COOLING_SYSTEM_A_ACTIVE = 1
+uint16 FLAG_COOLING_SYSTEM_B_ACTIVE = 2
+# Error flags in the high byte
+uint16 FLAG_PSU_MALFUNCTION = 8192
+uint16 FLAG_OVERHEATING     = 16384
+uint16 FLAG_CRYOBOX_BREACH  = 35768
+# Storage for the above defined flags
+uint16 flags
+\end{minted}
+
+The definition has been deployed to the first prototype for initial lab tests.
+Since the definition was experimental, the major version number was set to zero, to signify the
+tentative nature of the definition.
+Suppose that upon completion of the first trials it was identified that the units must track their power consumption
+in real time, for each of the three redundant power supplies independently.
+The definition has been amended appropriately.
+
+It is easy to see that the amended definition shown below is neither semantically compatible nor bit-compatible
+with the original definition; however, it shares the same major version number of zero, because the backward
+compatibility rules do not apply to zero-versioned data types to allow for low-overhead experimentation
+before the system is fully deployed and fielded.
+
+\begin{minted}{python}
+# sirius_cyber_corp.golgafrincham_b_ark.cryopod.Status.0.2
+
+float16 internal_temperature    # [kelvin]
+float16 coolant_temperature     # [kelvin]
+
+float32 power_consumption_0     # Power consumption by the redundant PSU 0 [watt]
+float32 power_consumption_1     # likewise for PSU 1
+float32 power_consumption_2     # likewise for PSU 2
+
+# Status flags in the low byte
+uint16 FLAG_COOLING_SYSTEM_A_ACTIVE = 1
+uint16 FLAG_COOLING_SYSTEM_B_ACTIVE = 2
+# Error flags in the high byte
+uint16 FLAG_PSU_MALFUNCTION = 8192
+uint16 FLAG_OVERHEATING     = 16384
+uint16 FLAG_CRYOBOX_BREACH  = 35768
+# Storage for the above defined flags
+uint16 flags
+\end{minted}
+
+The last definition was deemed sufficient and deployed to the production system
+under the version number of 1.0: \verb|sirius_cyber_corp.golgafrincham_b_ark.cryopod.Status.1.0|.
+
+Having collected empirical data from the fielded systems, the Sirius Cybernetics Corporation has
+identified a shortcoming in the v1.0 definition, which was corrected in an updated definition.
+Since the updated definition, which is shown below, is mutually semantically
+compatible\footnote{The topic of data serialization is explored in detail in the section
+\ref{sec:dsdl_data_serialization}.}
+with v1.0, the major version number was kept the same and the minor version number was incremented by one:
+
+\begin{minted}{python}
+# sirius_cyber_corp.golgafrincham_b_ark.cryopod.Status.1.1
+
+float16 internal_temperature    # [kelvin]
+float16 coolant_temperature     # [kelvin]
+
+float32[3] power_consumption    # Power consumption by the PSU
+
+# Status flags
+uint8 STATUS_FLAG_COOLING_SYSTEM_A_ACTIVE = 1
+uint8 STATUS_FLAG_COOLING_SYSTEM_B_ACTIVE = 2
+uint8 status_flags
+
+# Error flags
+uint8 ERROR_FLAG_PSU_MALFUNCTION = 5
+uint8 ERROR_FLAG_OVERHEATING     = 6
+uint8 ERROR_FLAG_CRYOBOX_BREACH  = 7
+uint8 error_flags
+\end{minted}
+
+Since the definitions v1.0 and v1.1 are mutually semantically compatible,
+UAVCAN nodes using either of them can successfully interoperate on the same bus.
+
+Suppose further that at some point a newer version of the cryopod module was released,
+with higher precision temperature sensors.
+The definition has to be updated accordingly to use \verb|float32| for the temperature fields
+instead of \verb|float16|.
+Seeing as that change breaks the binary compatibility,
+the major version number has to be incremented by one, and the minor version number has to be reset back to zero:
+
+\begin{minted}{python}
+# sirius_cyber_corp.golgafrincham_b_ark.cryopod.Status.2.0
+
+float32 internal_temperature    # [kelvin]
+float32 coolant_temperature     # [kelvin]
+
+float32[3] power_consumption    # Power consumption by the PSU
+
+# Status flags
+uint8 STATUS_FLAG_COOLING_SYSTEM_A_ACTIVE = 1
+uint8 STATUS_FLAG_COOLING_SYSTEM_B_ACTIVE = 2
+uint8 status_flags
+
+# Error flags
+uint8 ERROR_FLAG_PSU_MALFUNCTION = 5
+uint8 ERROR_FLAG_OVERHEATING     = 6
+uint8 ERROR_FLAG_CRYOBOX_BREACH  = 7
+uint8 error_flags
+\end{minted}
+
+Now, nodes using v1.0, v1.1, and v2.0 definitions can still coexist on the same network,
+but they are not guaranteed to understand each other unless they support all of the used data type definitions.
+
+In practice, nodes that need to maximize their compatibility are likely to employ all existing major versions of
+each used data type.
+If there are more than one minor versions available, the highest minor version within the major version should
+be used, to take advantage of the latest changes in the data type definition.
+It is also expected that in certain scenarios some nodes may resort to publishing the same message type
+using different major versions concurrently to circumvent compatibility issues (in the
+example reviewed here that would be v1.1 and v2.0).
+
+\section{Data type ID}
 
 
 
-
+\section{Data serialization}\label{sec:dsdl_data_serialization}
