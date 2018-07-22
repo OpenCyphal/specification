@@ -400,6 +400,10 @@ The following advisory rules should be considered by the data type designer:
           "Get" or "Set", respectively.
 \end{itemize}
 
+\section{Data serialization}\label{sec:dsdl_data_serialization}
+
+TODO
+
 \section{Data type compatibility and versioning}\label{sec:dsdl_versioning}
 
 \subsection{Rationale}
@@ -508,6 +512,8 @@ float16 b
 \end{minted}
 
 Even though the above definitions are bit-compatible, one cannot be substituted with the other.
+The problem of functional equivalency is addressed by the concept of semantic compatibility,
+explored in the section \ref{sec:dsdl_semantic_compatibility}.
 
 The examples above were focused on fixed-size structures.
 In the case of fixed-size structures, if $A$ is compatible with $B$, the reverse is also true.
@@ -558,7 +564,7 @@ respective arrays.
 The table illustrates the fact that the first definition is compatible with the second definition,
 but the reverse is not true.
 
-\subsection{Semantic compatibility}
+\subsection{Semantic compatibility}\label{sec:dsdl_semantic_compatibility}
 
 \subsubsection{Definition}
 
@@ -790,4 +796,33 @@ Vendors of UAVCAN equipment must provide the integrator with a way to change the
 of any vendor-specific data type leveraged by the node\footnote{Nodes that fail to provide a way of
 altering the data type ID mapping for vendor-specific data types cannot be considered standard-compliant}.
 
-\section{Data serialization}\label{sec:dsdl_data_serialization}
+\section{Standard and vendor-specific data types}
+
+\subsection{Standard data type repository}
+
+The DSDL definitions of the standard data types are available in the official DSDL repository,
+which is linked from the project homepage at \href{http://uavcan.org}{uavcan.org}.
+
+Information concerning development and maintenance of the standard DSDL definitions is available
+in the chapter \ref{sec:introduction}.
+
+\subsection{Vendor-specific data types}
+
+Vendors must define their specific data types in a separate namespace,
+which should typically be named to match their company name.
+Separation of the vendor's definitions into a dedicated namespace ensures that no name conflicts will occur
+in systems that utilize vendor-specific data types from different providers.
+Note that, according to the naming requirements, the name of a DSDL namespace must start
+with an alphabetic character; therefore, a company whose name starts with a digit will have to resort to
+a mangled name, e.g. by moving the digits towards the end of the name,
+or by spelling the digits in English (e.g. 42 - \verb|fortytwo|).
+
+Defining vendor-specific data types within the standard namespace (\verb|uavcan.|) is explicitly prohibited.
+The standard namespace will always be used only for standard data types.
+
+Generally speaking, it is desirable for "generic" data types to be included into the standard set.
+Vendors should strive to design their data types as generic and as independent of their specific use
+cases as possible.
+The SI system of measurement units should be preferred;
+data type definitions that make unnecessary deviations from SI will not be accepted into the standard set.
+
