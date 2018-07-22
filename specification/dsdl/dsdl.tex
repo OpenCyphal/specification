@@ -597,9 +597,9 @@ uint8 b                 # The actual data
 
 If the value of \verb|b| was 7, the resulting encoded byte sequence would be (in binary):
 $$%
-\underbrace{\texttt{01}}_{tag}%
+\underbrace{\texttt{01}}_{\text{tag}}%
 \overbrace{\texttt{000001 11}}^{\text{field }\texttt{b}}%
-\underbrace{\texttt{000000}}_{padding}%
+\underbrace{\texttt{000000}}_{\text{padding}}%
 $$
 
 \section{Data type compatibility and versioning}\label{sec:dsdl_versioning}
