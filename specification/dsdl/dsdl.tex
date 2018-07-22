@@ -757,6 +757,37 @@ example reviewed here that would be v1.1 and v2.0).
 
 \section{Data type ID}
 
+Whenever a data structure is transferred over the bus, it is accompanied by a non-negative integer
+- a \emph{data type ID}.
+The data type ID (together with the major version number, which is also exchanged over the bus together with the
+data type ID) is used by receiving nodes to determine which data type definition to use
+to process the received data structure.
+The data type ID value does not affect data type compatibility.
 
+It stands to reason that in order to be able to interoperate successfully,
+every node connected to the bus must use identical mapping between data types and their identifiers.
+
+There are two independent sets of data type identifiers:
+one for message data types and the other for service data types.
+Each has a reserved subset which is used for standard data type definitions,
+and a dedicated subset for vendor-specific data type definitions.
+More info on the reserved subsets is provided in the chapter \ref{sec:application_layer}.
+
+All UAVCAN nodes must use the same data type ID mapping for the standard data types,
+as defined by the default data type ID values provided for each of the standard data types.
+Since the standard data type ID mapping is immutable, all standard-compliant nodes can always
+use standard data types conflict-free.
+
+Vendor-specific data types, however, do not enjoy the lack of conflict guarantee,
+because by virtue of being vendor-specific, such data types cannot use a global
+fixed agreed upon mapping like the standard data types do.
+As such, whenever vendor-specific data types are used, there is always a risk that
+different nodes may map different data types to the same data type ID.
+
+It is the responsibility of the system integrator to ensure that if vendor-specific data types are
+used, the data type ID mappings are configured on all nodes identically.
+Vendors of UAVCAN equipment must provide the integrator with a way to change the data type ID
+of any vendor-specific data type leveraged by the node\footnote{Nodes that fail to provide a way of
+altering the data type ID mapping for vendor-specific data types cannot be considered standard-compliant}.
 
 \section{Data serialization}\label{sec:dsdl_data_serialization}
