@@ -58,12 +58,12 @@ Information contained in a broadcast message is summarized in the table \ref{tab
 
 \begin{UAVCANSimpleTable}{Broadcast message properties}{|l X|}\label{table:broadcast_message_info}
     Property        & Description \\
-    Payload         & The serialized message data structure \\
-    Data type ID    & Numerical identifier that indicates how the data structure should be interpreted \\
-    Data type major version number & Semantic major version number of the data type description \\
-    Source node ID  & The node ID of the transmitting node (excepting anonymous messages) \\
+    Payload         & The serialized message data structure. \\
+    Data type ID    & Numerical identifier that indicates how the data structure should be interpreted. \\
+    Data type major version number & Semantic major version number of the data type description. \\
+    Source node ID  & The node ID of the transmitting node (excepting anonymous messages). \\
     Transfer ID     & A small overflowing integer that increments with every transfer
-                      of this type of message from a given node \\
+                      of this type of message from a given node. \\
 \end{UAVCANSimpleTable}
 
 \subsection{Anonymous message broadcasting}
@@ -97,12 +97,12 @@ table \ref{table:service_req_resp_info}.
 
 \begin{UAVCANSimpleTable}{Service request/response properties}{|l X|}\label{table:service_req_resp_info}
     Property        & Description \\
-    Payload         & The serialized request/response data structure \\
-    Data type ID    & Numerical identifier that indicates how the data structure should be interpreted \\
-    Data type major version number & Semantic major version number of the data type description \\
-    Client node ID  & Source node ID during request transfer, destination node ID during response transfer \\
-    Server node ID  & Destination node ID during request transfer, source node ID during response transfer \\
-    Transfer ID     & A small overflowing integer that increments with every call to this service from a given node \\
+    Payload         & The serialized request/response data structure. \\
+    Data type ID    & Numerical identifier that indicates how the data structure should be interpreted. \\
+    Data type major version number & Semantic major version number of the data type definition. \\
+    Client node ID  & Source node ID during request transfer, destination node ID during response transfer. \\
+    Server node ID  & Destination node ID during request transfer, source node ID during response transfer. \\
+    Transfer ID     & A small overflowing integer that increments with every call to this service from a given node. \\
 \end{UAVCANSimpleTable}
 
 Both request and response contain exactly the same values for all fields except payload,

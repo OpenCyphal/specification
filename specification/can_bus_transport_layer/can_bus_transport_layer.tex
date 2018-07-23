@@ -1,1 +1,200 @@
 \chapter{CAN bus transport layer}\label{sec:can_bus_transport_layer}
+
+This chapter defines the CAN bus based transport layer of UAVCAN,
+both for the legacy CAN 2.0 and for CAN FD.
+The differences between the two transports are minor,
+so by default all of the information provided in this chapter applies to both,
+unless specifically stated otherwise.
+
+\section{The concept of transfer}
+
+A \emph{transfer} is an act of data transmission between nodes.
+A transfer that is addressed to all nodes except the source node is a \emph{broadcast transfer}.
+A transfer that is addressed to one particular node is a \emph{unicast transfer}.
+UAVCAN defines the following types of transfers:
+
+\begin{description}
+    \item[Message transfer] - a broadcast transfer that contains a serialized message.
+    \item[Service transfer] - a unicast transfer that contains either a service request or a service response.
+\end{description}
+
+Both message and service transfers can be further distinguished between:
+
+\begin{description}
+    \item[Single-frame transfer] - a transfer that is entirely contained in a single CAN frame.
+    \item[Multi-frame transfer] - a transfer that has its payload distributed over multiple CAN frames.
+    The UAVCAN protocol stack handles transfer decomposition and reassembly automatically.
+\end{description}
+
+The following properties are common to all types of transfers:
+
+\begin{UAVCANSimpleTable}{Common transfer properties}{|l X|}\label{table:common_transfer_properties}
+    Property        & Description \\
+    Payload         & The serialized data structure. \\
+    Data type ID    & A numerical identifier that indicates how the data structure should be interpreted. \\
+    Data type major version number & Semantic major version number of the data type definition. \\
+    Source node ID  & The node ID of the transmitting node (excepting anonymous message transfers). \\
+    Priority        & A non-negative integer value that defines the message urgency (0 is the highest priority).
+                      Higher priority transfers can preempt lower priority transfers. \\
+    Transfer ID     & A small overflowing integer that increments with every transfer
+                      of this type of message from a given node. \\
+\end{UAVCANSimpleTable}
+
+\subsection{Message broadcasting}
+
+\subsubsection{Regular message broadcasting}
+
+Message broadcasting is the main method of communication between UAVCAN nodes.
+
+A broadcast message is carried by a single message transfer that contains the serialized message data structure.
+A broadcast message does not contain any additional fields besides those listed in the table
+\ref{table:common_transfer_properties}.
+
+In order to broadcast a message, the broadcasting node must have a node ID that is unique within the network.
+An exception applies to \emph{anonymous message broadcasts}.
+
+\subsubsection{Anonymous message broadcasting}
+
+An anonymous message transfer is a transfer that originates from a node that does not have a node ID.
+This sort of message transfer is especially useful for \emph{dynamic node ID allocation}
+(a high-level concept that is reviewed in detail in the chapter \ref{sec:application_layer}).
+
+A node that does not have a node ID is said to be in \emph{passive mode}.
+Passive nodes are unable to initiate regular data exchanges,
+but they can listen to the data exchanged over the bus,
+and they can emit anonymous message transfers.
+
+An anonymous message has the same properties as a regular message, except for the source node ID,
+which in the case of anonymous message transfers is always assumed to be zero.
+
+An anonymous transfer can only be a single-frame transfer. Multi-frame anonymous message transfers are not allowed.
+
+Note that anonymous messages require specific arbitration rules and have restrictions on the acceptable
+data type ID values. The details are explained later in this chapter.
+
+\subsubsection{Message timing requirements}
+
+Generally, a message transmission should be aborted if it cannot be completed in 1 second.
+Applications are allowed to deviate from this recommendation,
+provided that every such deviation is explicitly documented.
+It is expected that high-frequency high-priority messages may opt for lower timeout values,
+whereas low-priority data may opt for higher timeout values to account for CAN bus congestion.
+
+\subsection{Service invocation}
+
+A service invocation sequence consists of two related service transfers:
+
+\begin{description}
+    \item[Service request transfer] - from the node that invokes the service - the \emph{client} - to the node that
+    provides the service - the \emph{server}.
+
+    \item[Service response transfer] - once the \emph{server node} receives the service request and processes it,
+    it sends a response transfer back to the \emph{client node}.
+\end{description}
+
+The tables \ref{table:service_request_transfer_properties} and \ref{table:service_response_transfer_properties}
+describe the properties of service request and service response transfers, respectively.
+
+Both the client and the server must have node ID values that are unique within the network;
+service invocation is not available to passive nodes.
+
+\begin{UAVCANSimpleTable}{Service request transfer properties}{|l X|}\label{table:service_request_transfer_properties}
+    Property                        & Description \\
+    Payload                         & The serialized service request data structure. \\
+    Data type ID                    & See the table \ref{table:common_transfer_properties}. \\
+    Data type major version number  & See the table \ref{table:common_transfer_properties}. \\
+    Source node ID                  & The node ID of the client (the invoking node). \\
+    Destination node ID             & The node ID of the server (the invoked node). \\
+    Priority                        & See the table \ref{table:common_transfer_properties}. \\
+    Transfer ID                     & An integer value that:
+        \begin{enumerate}
+            \item allows the server to distinguish the request from other requests from the same client;
+            \item allows the client to match the response with its request.
+        \end{enumerate} \\
+\end{UAVCANSimpleTable}
+
+\begin{UAVCANSimpleTable}{Service response transfer properties}{|l X|}\label{table:service_response_transfer_properties}
+    Property                        & Description \\
+    Payload                         & The serialized service response data structure. \\
+    Data type ID                    & Same value as in the request transfer. \\
+    Data type major version number  & Same value as in the request transfer. \\
+    Source node ID                  & The node ID of the server (the invoked node). \\
+    Destination node ID             & The node ID of the client (the invoking node). \\
+    Priority                        & Same value as in the request transfer. \\
+    Transfer ID                     & Same value as in the request transfer. \\
+\end{UAVCANSimpleTable}
+
+\subsubsection{Service timing requirements}
+
+Applications should follow the service invocation timing recommendations specified below.
+Applications are allowed to deviate from these recommendations,
+provided that every such deviation is explicitly documented.
+
+\begin{itemize}
+    \item Service transfer transmission should be aborted if does not complete in 1 second.
+    \item The client should stop waiting for a response from the server if one has not arrived within 1 second.
+    \item The server should be able to process any request in under 0.5 seconds.
+\end{itemize}
+
+\subsection{Transfer prioritization}
+
+UAVCAN transfers are prioritized by means of the transfer priority property,
+which allows eight different priority levels for all types of transfers.
+The priority levels and the corresponding numerical identifiers are specified
+in the table \ref{table:transfer_priority_levels}.
+Observe that due to the specifics of the CAN bus,
+lower numerical values correspond to higher priority levels.
+The human-friendly mnemonics are introduced in order to prevent confusion due to the inverted nature of the
+priority level identifiers.
+
+\begin{minipage}{0.6\textwidth}
+\begin{UAVCANSimpleTable}{Transfer priority levels}{|l X|}\label{table:transfer_priority_levels}
+    Numerical ID            & Mnemonic \\
+    0 (highest priority)    & Emergency \\
+    1                       & Critical \\
+    2                       & Urgent \\
+    3                       & High \\
+    4                       & Normal \\
+    5                       & Low \\
+    6                       & Diagnostic \\
+    7 (lowest priority)     & Background \\
+\end{UAVCANSimpleTable}
+\end{minipage}
+
+Transfers with higher priority levels (i.e., numerically lower priority ID)
+preempt transfers with lower priority levels, delaying their transmission
+until there are no more higher priority transfers to exchange.
+
+Shall there be multiple transfers of different types at the same priority level contesting for the bus access,
+UAVCAN ensures the following precedence, from higher priority to lower priority:
+
+\begin{enumerate}
+    \item Message transfers.
+    \item Service response transfers.
+    \item Service request transfers.
+\end{enumerate}
+
+Message transfers take precedence over service transfers because message broadcasting is the primary method of
+communication in UAVCAN networks.
+Service responses take precedence over service requests in order to make service invocations more atomic
+and reduce the number of pending states in the system.
+
+Within the same type and the same priority level,
+transfers are prioritized according to the data type ID:
+transfers with lower data type ID values preempt those with higher data type ID values.
+
+\section{Transfer emission}
+
+\subsection{Transfer ID computation}
+
+
+
+
+\section{CAN frame format}
+
+\section{Transfer reception}
+
+\section{CAN bus requirements}
+
+
+
