@@ -208,6 +208,7 @@ Restrictions on the character set and further information are provided in the se
 Cast mode defines the rules of conversion from native values of a particular programming language
 to serialized field values.
 Cast mode may be left undefined, in which case the default will be used.
+Cast mode cannot be specified for nested data structures and void field types.
 The possible cast modes are defined below.
 
 \begin{itemize}
@@ -321,42 +322,35 @@ They can be directly referenced from any data type of any namespace.
 The DSDL compiler should implement these types using the native types of the target programming language.
 An example mapping to native types is given here for C/C++.
 
-\begin{UAVCANSimpleTable}{Primitive data types}{|l l X l l|}\label{table:dsdl_primitive_data_types}
-    Name                    & Bit length    & Possible representation in C/C++  & Value range   & Binary format \\
+\begin{UAVCANSimpleTable}{Primitive data types}{|l l l X|}\label{table:dsdl_primitive_data_types}
+    Name                    & Bit length    & Possible representation in C/C++  & Value range \\
     \texttt{bool}           & $1$
                             & \texttt{bool} (can be optimized for bit arrays)
                             & $\{0, 1\}$
-                            & One bit
                             \\
     \texttt{int\textbf{X}}  & $2 \le{} \text{X} \le 64$
                             & \texttt{int8\_t}, \texttt{int16\_t}, \texttt{int32\_t}, \texttt{int64\_t}
                             & $\lbrack -\frac{2^\text{X}}{2}, \frac{2^\text{X}}{2} - 1\rbrack$
-                            & Two's complement
                             \\
     \texttt{uint\textbf{X}} & $2 \le{} \text{X} \le 64$
                             & \texttt{uint8\_t}, \texttt{uint16\_t}, \texttt{uint32\_t}, \texttt{uint64\_t}
                             & $\lbrack 0, 2^\text{X} - 1\rbrack$
-                            &
                             \\
     \texttt{float16}        & $16$
                             & \texttt{float}
                             & $\pm{}65504$
-                            & IEEE 754 binary16
                             \\
     \texttt{float32}        & $32$
                             & \texttt{float}
                             & Approx. $\pm{}10^{39}$
-                            & IEEE 754 binary32
                             \\
     \texttt{float64}        & $64$
                             & \texttt{double}
                             & Approx. $\pm{}10^{308}$
-                            & IEEE 754 binary64
                             \\
     \texttt{void\textbf{X}} & $1 \le{} \text{X} \le 64$
-                            & N/A
-                            & N/A
-                            & X zero/ignored bits
+                            & \emph{N/A}
+                            & \emph{N/A}
                             \\
 \end{UAVCANSimpleTable}
 
@@ -870,12 +864,12 @@ before the system is fully deployed and fielded.
 \begin{minted}{python}
 # sirius_cyber_corp.golgafrincham_b_ark.cryopod.Status.0.2
 
-float16 internal_temperature    # [kelvin]
-float16 coolant_temperature     # [kelvin]
+truncated float16 internal_temperature    # [kelvin]
+truncated float16 coolant_temperature     # [kelvin]
 
-float32 power_consumption_0     # Power consumption by the redundant PSU 0 [watt]
-float32 power_consumption_1     # likewise for PSU 1
-float32 power_consumption_2     # likewise for PSU 2
+saturated float32 power_consumption_0     # Power consumption by the redundant PSU 0 [watt]
+saturated float32 power_consumption_1     # likewise for PSU 1
+saturated float32 power_consumption_2     # likewise for PSU 2
 
 # Status flags in the low byte
 uint16 FLAG_COOLING_SYSTEM_A_ACTIVE = 1
@@ -901,10 +895,10 @@ with v1.0, the major version number was kept the same and the minor version numb
 \begin{minted}{python}
 # sirius_cyber_corp.golgafrincham_b_ark.cryopod.Status.1.1
 
-float16 internal_temperature    # [kelvin]
-float16 coolant_temperature     # [kelvin]
+saturated float16 internal_temperature    # [kelvin]
+saturated float16 coolant_temperature     # [kelvin]
 
-float32[3] power_consumption    # Power consumption by the PSU
+saturated float32[3] power_consumption    # Power consumption by the PSU
 
 # Status flags
 uint8 STATUS_FLAG_COOLING_SYSTEM_A_ACTIVE = 1
