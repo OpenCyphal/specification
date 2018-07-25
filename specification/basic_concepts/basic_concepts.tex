@@ -50,7 +50,10 @@ allowing nodes to exchange data structures of arbitrary size.
 \section{Message broadcasting}
 
 Message broadcasting refers to the transmission of a serialized data structure over the CAN bus to other nodes.
-This is the primary data exchange mechanism used in UAVCAN.
+This is the primary data exchange mechanism used in UAVCAN;
+it is functionally similar to raw CAN messaging with minimal overhead,
+additional communication integrity guarantees, and automatic decomposition and reassembly of long payloads
+across multiple CAN frames.
 Typical use cases may include transfer of the following kinds of data (either cyclically or on an ad-hoc basis):
 sensor measurements, actuator commands, equipment status information, and more.
 
@@ -63,7 +66,11 @@ Information contained in a broadcast message is summarized in the table \ref{tab
     Data type major version number & Semantic major version number of the data type description. \\
     Source node ID  & The node ID of the transmitting node (excepting anonymous messages). \\
     Transfer ID     & A small overflowing integer that increments with every transfer
-                      of this type of message from a given node. \\
+                      of this message type from a given node. Used for message sequence monitoring,
+                      multi-frame transfer reassembly, and elimination of CAN frame duplication errors
+                      for single-frame transfers. Additionally, Transfer ID is crucial for automatic
+                      management of redundant CAN interfaces. The properties of this field are explained in
+                      detail in the chapter \ref{sec:can_bus_transport_layer}. \\
 \end{UAVCANSimpleTable}
 
 \subsection{Anonymous message broadcasting}
@@ -71,8 +78,11 @@ Information contained in a broadcast message is summarized in the table \ref{tab
 Nodes that don't have a unique node ID can publish \emph{anonymous messages}.
 An anonymous message is different from a regular message in that it doesn't contain a source node ID.
 
-This kind of data exchange is useful during initial configuration of the node,
-particularly during the dynamic node ID allocation procedure\footnote{This is an optional feature.}.
+UAVCAN nodes will not have an identifier initially until they are assigned one,
+either statically (which is generally the preferred option for applications where a high degree of
+determinism and high safety assurances are required) or dynamically.
+Anonymous messages are particularly useful for the dynamic node ID allocation feature,
+which is explored in detail in the chapter \ref{sec:application_layer}.
 
 Anonymous messages cannot be decomposed into multiple CAN frames,
 meaning that their payload capacity is limited to that of a single CAN frame.
@@ -81,7 +91,10 @@ More info is provided in the chapter \ref{sec:can_bus_transport_layer}.
 \section{Service invocation}
 
 Service invocation is a two-step data exchange operation between exactly two nodes: a client and a server.
-The steps are:
+The steps are\footnote{Note that just like the rest of UAVCAN,
+this feature is built on top of the standard CAN bus protocol.
+The request/response semantic is facilitated by means of hardware (if available) or software acceptance filtering
+and higher-layer logic. No additional support or non-standard transport features are required.}:
 
 \begin{enumerate}
     \item The client sends a service request to the server.
@@ -102,10 +115,15 @@ table \ref{table:service_req_resp_info}.
     Data type major version number & Semantic major version number of the data type definition. \\
     Client node ID  & Source node ID during request transfer, destination node ID during response transfer. \\
     Server node ID  & Destination node ID during request transfer, source node ID during response transfer. \\
-    Transfer ID     & A small overflowing integer that increments with every call to this service from a given node. \\
+    Transfer ID     & A small overflowing integer that increments with every call
+                      of this service type from a given node. Used for request/response matching,
+                      multi-frame transfer reassembly, and elimination of CAN frame duplication errors
+                      for single-frame transfers. Additionally, Transfer ID is crucial for automatic
+                      management of redundant CAN interfaces. The properties of this field are explained in
+                      detail in the chapter \ref{sec:can_bus_transport_layer}. \\
 \end{UAVCANSimpleTable}
 
-Both request and response contain exactly the same values for all fields except payload,
+Both request and response contain same values for all listed fields except payload,
 where the content is application-defined.
 Clients match responses with corresponding requests using the following fields:
 data type ID, data type major version number, client node ID, server node ID, and transfer ID.

@@ -14,8 +14,8 @@ UAVCAN is designed to adhere to the following set of basic principles.
     All nodes in the network should have the same communication rights; there should be no single point of failure.
 
     \item[Nodes can exchange long payloads] - Nodes must be provided with a simple way to exchange large
-    data structures that cannot fit into a single CAN\footnote{Or CAN FD. Here and in the following parts of the
-    specification, CAN also implies CAN FD, unless specifically noted otherwise.}
+    data structures that cannot fit into a single CAN\footnote{Here and in the following parts of the
+    specification, "CAN" implies both CAN 2.0 and CAN FD, unless specifically noted otherwise.}
     frame (such as GNSS solutions, 3D vectors, etc.).
     UAVCAN should perform automatic transfer decomposition and reassembly at the protocol level,
     hiding the related complexity from the application.
@@ -39,6 +39,30 @@ UAVCAN is designed to adhere to the following set of basic principles.
     \item[Open specification and reference implementations] - The UAVCAN specification is open and
     freely available; the reference implementations are distributed under the terms of the permissive MIT License.
 \end{description}
+
+\section{Capabilities}
+
+This section summarizes the capabilities of the UAVCAN protocol.
+
+UAVCAN-based networks can accommodate up to 127 nodes on the same logical bus.
+More nodes can be added to the system by separating the bus into several independent logical segments
+interconnected via gateway nodes.
+
+UAVCAN supports up to 32768 distinct message data types and up to 256 distinct service data types.
+Part of those are reserved for the standard data types defined by the specification;
+the rest are available for vendor- and application-specific data types.
+More information is provided in the chapter \ref{sec:application_layer}.
+
+UAVCAN supports eight distinct communication priority levels,
+defined in the section \ref{sec:transfer_prioritization}.
+Within each priority level, different types of transfers and different data types are
+prioritized in a well-defined deterministic manner.
+
+UAVCAN supports both CAN 2.0 and CAN FD transports.
+CAN FD should be considered the primary transport, whereas CAN 2.0 is supported as legacy.
+Non-redundant, doubly-redundant and triply-redundant transports are supported.
+More information on the transport properties and standardized physical connectivity options
+is provided in the chapter \ref{sec:hardware_design_recommendations}.
 
 \section{Specification update and approval process}
 
