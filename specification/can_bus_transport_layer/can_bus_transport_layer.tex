@@ -187,12 +187,109 @@ transfers with lower data type ID values preempt those with higher data type ID 
 
 \subsection{Transfer ID computation}
 
+The \emph{transfer ID} is a small unsigned integer value that is provided for every outgoing
+transfer.
+This value is crucial for many aspects of UAVCAN communication; specifically:
+\begin{description}
+    \item[Message sequence monitoring] - the continuously increasing transfer ID allows receiving nodes to
+    detect lost messages and detect when a message stream from any remote node is interrupted.
 
+    \item[Service response matching] - when a server responds to a request, it uses the same transfer ID for the
+    response as in the request,
+    allowing any node to emit concurrent requests to the same server while being able to
+    match each response with the corresponding request.
 
+    \item[CAN frame deduplication] - for single-frame transfers,
+    the transfer ID allows receiving nodes to work around the CAN bus
+    frame duplication problem\footnote{This is a well-known issue that can be observed even on a properly
+    fielded CAN bus caused by the fact that a frame that appears valid to the receiver may under certain
+    (rare) conditions appear invalid to the transmitter, triggering the latter to retransmit the frame,
+    in which case it will be duplicated on the side of the receiver.
+    Sequence counting mechanisms such as the transfer ID or the toggle bit (both of which are used in UAVCAN)
+    allow applications to circumvent this problem.} (multi-frame transfers combat the frame duplication
+    problem using the toggle bit).
+
+    \item[Multi-frame transfer reassembly] - more info is provided in the section \ref{sec:transfer_reception}.
+
+    \item[Automatic management of redundant interfaces] - the transfer ID parameter allows the UAVCAN protocol
+    stack to perform automatic switchover to a back-up interface shall the primary interface fail.
+    The switchover logic can be completely transparent to the application, joining several independent
+    redundant physical CAN transports into a highly reliable single virtual communication channel.
+\end{description}
+
+For message transfers and service request transfers the ID value should be computed as described below.
+For service response transfers this value must be directly copied from the corresponding service request transfer.
+
+The logic to compute the transfer ID relies on the concept of \emph{transfer descriptor}.
+A transfer descriptor is a set of properties that identify a particular set of transfers that originate
+from the same node, share the same data type ID, same data type major version number, and the same type.
+The properties that constitute a transfer descriptor are listed below:
+\begin{itemize}
+    \item Transfer type (message broadcast, service request, etc.).
+    \item Data type ID.
+    \item Data type major version number.
+    \item Source node ID.
+    \item Destination node ID (only for unicast\footnote{I.e., service requests and service responses.} transfers).
+\end{itemize}
+
+Every non-passive node must maintain a mapping from transfer descriptors to transfer ID counters.
+This mapping is referred to as the \emph{transfer ID map}.
+
+Whenever a node needs to emit a transfer, it will query its transfer ID map for the appropriate transfer descriptor.
+If the map does not contain such entry, a new entry will be created with the transfer ID counter initialized to zero.
+The node will use the current value of the transfer ID from the map for the transfer,
+and then the value stored in the map will be incremented by one.
+When the stored transfer ID exceeds its maximum value, it will roll over to zero.
+
+It is expected that some nodes will need to publish certain transfers aperiodically or on an ad-hoc basis,
+thereby creating unused entries in the transfer ID map.
+In order to avoid keeping unused entries in the map, the nodes are allowed, but not required,
+to remove entries from the map that were not used for more than 2 seconds.
+Therefore, it is possible that a node may publish a transfer with an out-of-order transfer ID value,
+if the previous transfer of the same descriptor has been published more than 2 seconds earlier.
+
+\subsection{Single frame transfers}
+
+If the size of the entire transfer payload does not exceed the space available for payload in a single CAN frame,
+the whole transfer will be contained in one CAN frame.
+Such transfer is called a \emph{single-frame transfer}.
+
+Single frame transfers are more efficient than multi-frame transfers in terms of throughput, latency,
+and data overhead.
+
+\subsection{Multi-frame transfers}
+
+\emph{Multi-frame transfers} are used when the size of the transfer payload exceeds the space available
+for payload in a single CAN frame.
+
+Two new concepts are introduced in the context of multi-frame transfers, both of which are reviewed below in detail:
+\begin{itemize}
+    \item Transfer CRC\footnote{CRC stands for "cyclic redundancy check", an error-detecting code
+    added to data transmissions to reduce the likelihood of undetected data corruption.}.
+    \item Toggle bit.
+\end{itemize}
+
+In order to emit a multi-frame transfer, the node must first compute the CRC for the entirety of the transfer payload.
+The node appends the CRC value at the end of the transfer payload,
+and then emits the resulting byte set in chunks as an ordered sequence of CAN frames
+(i.e. the last CAN frame contains the last bytes of the payload and the transfer CRC).
+The data field of all CAN frames of a multi-frame transfer, except the last one, must be fully utilized.
+
+All frames of a multi-frame transfer should be pushed to the transmission queue at once,
+in the proper order from the first frame to the last frame.
+Explicit gap time between CAN frames belonging to the same transfer should not be introduced.
+
+\subsubsection{Transfer CRC}
+
+The transfer CRC algorithm is specified as follows:
+
+% table
+
+\subsubsection{Toggle bit}
 
 \section{CAN frame format}
 
-\section{Transfer reception}
+\section{Transfer reception}\label{sec:transfer_reception}
 
 \section{CAN bus requirements}
 
