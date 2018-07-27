@@ -281,13 +281,134 @@ Explicit gap time between CAN frames belonging to the same transfer should not b
 
 \subsubsection{Transfer CRC}
 
-The transfer CRC algorithm is specified as follows:
+The objective of the transfer CRC is to allow receiving nodes to validate correctness of
+multi-frame transfer reassembly.
+It should be understood that the transfer CRC is not intended for bit-level data integrity checks,
+as that is managed by the CAN bus transport automatically.
+As such, the transfer CRC allows receiving nodes to ensure that all of the frames of a multi-frame
+transfer were received, all of the received frames were reassembled in the correct order,
+and that all of the received frames belong to the same multi-frame transfer.
 
-% table
+The transfer CRC is computed over the entire payload of the transfer.
+Certain transports, such as CAN FD, may require a short sequence of padding bytes to be added
+at the end of the transfer payload due to low granularity of the frame payload length property;
+in that case, the padding bytes are not to be included in the CRC computation.
+
+The resulting CRC value is appended to the transfer in the \emph{big-endian byte order}
+(most significant byte first),
+in order to take advantage of the CRC residue check intrinsic to this algorithm.
+
+The transfer CRC algorithm specification is provided in the table \ref{table:transfer_crc_params}.
+
+\begin{minipage}{0.7\textwidth}
+\begin{UAVCANSimpleTable}{Transfer CRC algorithm parameters}{|ll|}\label{table:transfer_crc_params}
+    Property        & Value \\
+    Name            & CRC-16/CCITT-FALSE \\
+    Initial value   & \texttt{0xFFFF} \\
+    Polynomial      & \texttt{0x1021} \\
+    Reverse         & No \\
+    Output XOR      & $0$ \\
+    Residue         & $0$ \\
+    Check           & $\left(49, 50, \ldots, 56, 57\right) \rightarrow \mathtt{0x29B1}$ \\
+\end{UAVCANSimpleTable}
+\end{minipage}
+
+The following code snippet provides an implementation of the transfer CRC algorithm in C++.
+
+\begin{minipage}{0.9\textwidth}
+\begin{minted}{cpp}
+// UAVCAN transfer CRC algorithm implementation in C++.
+// License: CC0, no copyright reserved.
+
+#include <iostream>
+#include <cstdint>
+#include <cstddef>
+
+class TransferCRC
+{
+    std::uint16_t value_ = 0xFFFFU;
+
+public:
+    void add(std::uint8_t byte)
+    {
+        value_ ^= static_cast<std::uint16_t>(byte) << 8U;
+        for (std::uint8_t bit = 8; bit > 0; --bit)
+        {
+            if ((value_ & 0x8000U) != 0)
+            {
+                value_ = (value_ << 1U) ^ 0x1021U;
+            }
+            else
+            {
+                value_ = value_ << 1U;
+            }
+        }
+    }
+
+    void add(const std::uint8_t* bytes, std::size_t length)
+    {
+        while (length-- > 0)
+        {
+            add(*bytes++);
+        }
+    }
+
+    [[nodiscard]] std::uint16_t get() const { return value_; }
+};
+
+int main()
+{
+    TransferCRC crc;
+    crc.add(reinterpret_cast<const std::uint8_t*>("123456789"), 9);
+    std::cout << std::hex << "0x" << crc.get() << std::endl;  // Outputs 0x29B1
+    return 0;
+}
+\end{minted}
+\end{minipage}
 
 \subsubsection{Toggle bit}
 
+The toggle bit is a property defined at the CAN frame level.
+Its purpose is to detect and avoid CAN frame duplication errors in multi-frame
+transfers\footnote{In single-frame transfers, CAN frame deduplication is based on the transfer ID counter.}.
+
+The toggle bit of the first CAN frame of a multi-frame transfer must be set to one.
+The toggle bits of the following CAN frames of the transfer must alternate,
+i.e., the toggle bit of the second CAN frame must be zero,
+the toggle bit of the third CAN frame must be one, and so on.
+
+For single-frame transfers, the toggle bit must be set to one.
+
+Transfers where the initial value of the toggle bit is zero must be ignored.
+The initial state of the toggle bit may be inverted in the future revisions of the protocol
+to facilitate automatic protocol version detection.
+
+\subsection{Redundant interface support}
+
+In configurations with redundant CAN bus interfaces,
+nodes are required to submit every outgoing transfer to the transmission queues of
+all available redundant interfaces simultaneously.
+It is understood that perfectly simultaneous transmission may not be possible due to different
+utilization rates of the redundant interfaces and different phasing of their traffic;
+however, that is not an issue for UAVCAN.
+If perfectly simultaneous frame submission is not possible, interfaces with lower numerical index
+should be handled in the first order.
+
+An exception to the above rule applies if the payload of the transfer depends on some properties
+of the interface through which the transfer is emitted.
+An example of such a special case is the time synchronization algorithm leveraged by UAVCAN
+(documented in the chapter \ref{sec:application_layer} of the specification).
+
 \section{CAN frame format}
+
+UAVCAN utilizes only extended CAN frames with 29-bit identifiers.
+UAVCAN can share the same bus with other protocols based on standard (non-extended) CAN frames with 11-bit identifiers.
+However, future revisions of UAVCAN may utilize 11-bit identifiers as well;
+therefore, backward compatibility with other protocols is not guaranteed.
+
+\subsection{CAN ID field structure}
+
+
 
 \section{Transfer reception}\label{sec:transfer_reception}
 
