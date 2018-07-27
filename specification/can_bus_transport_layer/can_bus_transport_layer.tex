@@ -514,7 +514,26 @@ The following acronyms are used for brevity:
 
 \subsubsection{Transfer priority}
 
+Valid values for priority range from 0 to 7, inclusively,
+where 0 corresponds to the highest priority, and 7 corresponds to the lowest priority.
+Mnemonics for transfer priority levels are provided in the table \ref{table:transfer_priority_levels}.
+
+In multi-frame transfers, the value of the priority field must be identical for all frames of the transfer.
+
 \subsubsection{Data type ID}
+
+A higher-level review of the concept of data type ID is available in the chapter \ref{sec:dsdl}.
+
+Valid values of message type ID belong to the range [0, 65535].
+For anonymous message transfers, however, the range of usable message type ID values
+is limited to [0, 7];
+messages with data type ID outside of this range cannot be used with anonymous message
+transfers\footnote{This is considered to be an acceptable limitation because anonymous transfers
+are intended for an extremely limited set of use cases.}.
+
+Valid values of service type ID belong to the range [0, 255].
+
+More information on the data type ID value ranges is available in the chapter \ref{sec:application_layer}.
 
 \subsubsection{Data type major version number}
 
