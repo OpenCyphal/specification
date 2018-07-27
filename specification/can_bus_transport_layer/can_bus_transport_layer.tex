@@ -408,7 +408,57 @@ therefore, backward compatibility with other protocols is not guaranteed.
 
 \subsection{CAN ID field structure}
 
+UAVCAN utilizes three different CAN ID formats for different types of transfers:
+message transfers, service transfers, and anonymous message transfers.
+The structure is summarized in the table \ref{table:can_id_structure}.
 
+\begin{table}\caption{CAN ID field structure}\label{table:can_id_structure}
+\NoLeftSkip
+\begin{tabu}{|c|X[c]|X[c]|X[c]|c|}
+    \hline
+    \rowfont{\bfseries}
+    Bit & Service & Message & Anonymous message & Bit \\\hline
+
+    28 & \multicolumn{3}{c|}{\multirow{3}{*}{Transfer priority}} & 28 \\
+    27 & \multicolumn{3}{c|}{} & 27 \\
+    26 & \multicolumn{3}{c|}{} & 26 \\
+    \hline
+
+    25 & \multicolumn{2}{c|}{Service not message} & \multirow{4}{*}{Reserved, required =0} & 25 \\\cline{2-3}
+    24 & Request not response & \multirow{16}{*}{Message data type ID} & & 24 \\\cline{2-2}
+    23 & \multirow{8}{*}{Service data type ID} & & & 23 \\
+    22 & & & & 22 \\\cline{4-4}
+    21 & & & \multirow{3}{*}{Message type ID modulo 8} & 21 \\
+    20 & & & & 20 \\
+    19 & & & & 19 \\\cline{4-4}
+    18 & & & \multirow{10}{*}{Payload discriminator} & 18 \\
+    17 & & & & 17 \\
+    16 & & & & 16 \\\cline{2-2}
+    15 & \multirow{7}{*}{Destination node ID} & & & 15 \\
+    14 & & & & 14 \\
+    13 & & & & 13 \\
+    12 & & & & 12 \\
+    11 & & & & 11 \\
+    10 & & & & 10 \\
+    9 & & & & 9 \\
+    \hline
+
+    8 & \multicolumn{3}{c|}{\multirow{7}{*}{Source node ID}} & 8 \\
+    7 & \multicolumn{3}{c|}{} & 7 \\
+    6 & \multicolumn{3}{c|}{} & 6 \\
+    5 & \multicolumn{3}{c|}{} & 5 \\
+    4 & \multicolumn{3}{c|}{} & 4 \\
+    3 & \multicolumn{3}{c|}{} & 3 \\
+    2 & \multicolumn{3}{c|}{} & 2 \\
+    \hline
+
+    1 & \multicolumn{3}{c|}{\multirow{2}{*}{Data type major version number modulo 4}} & 1 \\
+    0 & \multicolumn{3}{c|}{} & 0 \\
+    \hline
+    \rowfont{\bfseries}
+    Bit & Service & Message & Anonymous message & Bit \\\hline
+\end{tabu}
+\end{table}
 
 \section{Transfer reception}\label{sec:transfer_reception}
 
