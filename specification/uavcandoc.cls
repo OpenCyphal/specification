@@ -46,7 +46,7 @@
 
 \sisetup{range-phrase = \text{--}}
 
-\newcommand\UAVCANCopyright{\copyright{} \the\year{} \href{http://uavcan.org}{\@author}}
+\newcommand\UAVCANCopyright{\copyright{} 2015--\the\year{} \href{http://uavcan.org}{\@author}}
 
 % Deferring configuration of the PDF metadata until the point where the document title (and author) are known.
 \preto\frontmatter{\hypersetup{
