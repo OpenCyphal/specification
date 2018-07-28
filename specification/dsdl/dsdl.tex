@@ -314,6 +314,10 @@ The DSDL compiler can leverage this directive to amend auto-generated entities w
 deprecation markers appropriate to the target programming language;
 e.g. \verb|[[deprecated]]| in C++, \verb|DeprecationWarning| in Python, and so on.
 
+As explained in the section \ref{sec:dsdl_versioning},
+there are circumstances when the DSDL compiler is required to assume implicit deprecation,
+as if the \verb|@deprecated| directive was provided in the definition source.
+
 \subsection{Comments}
 
 A DSDL description may contain comments starting from the ASCII number sign (\verb|#|)
