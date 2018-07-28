@@ -614,9 +614,22 @@ the CAN bus is detected.
 This measure allows the protocol to prevent the bus deadlock that may occur if the automatic
 retransmission on bus error is not suppressed.
 
+\subsection{CAN frame payload}
+
+
+
 \section{Transfer reception}\label{sec:transfer_reception}
 
 \section{CAN bus requirements}
 
+The chapter \ref{sec:hardware_design_recommendations} contains important information
+concerning the CAN bus bit rate, connectors, and other properties of the physical layer of the protocol.
 
+\subsection{CAN controller driver software}
 
+Multi-frame transfers use identical CAN ID for all frames of the transfer,
+and UAVCAN requires that all frames of a multi-frame transfer should be transmitted in the correct order.
+Therefore, the CAN controller driver software must ensure that CAN frames with identical CAN ID values
+must be transmitted in their order of appearance in the transmission queue.
+Some CAN controllers will not meet this requirement by default,
+so the designer must take special care to ensure the correct behavior, and apply workarounds if necessary.
