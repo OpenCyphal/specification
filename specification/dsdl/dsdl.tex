@@ -271,7 +271,7 @@ A field of a void type does not have a name and its cast mode cannot be specifie
 During message serialization, all void fields are filled with zero bits;
 during deserialization, the contents of void fields should be ignored.
 
-\subsection{Directives}
+\subsection{Directives}\label{sec:dsdl_directives}
 
 A directive is a single case-sensitive word starting with an ASCII "at sign" character (\verb|@|),
 possibly followed by space-separated arguments:
@@ -792,7 +792,7 @@ data type compatibility.}.
 
 \subsection{Data type versioning}
 
-\subsubsection{Principles}
+\subsubsection{Versioning principles}
 
 Every data type definition has a pair of version numbers -
 a major version number and a minor version number, following the principles of semantic versioning.
@@ -814,7 +814,7 @@ comments and whitespace formatting.
 Therefore, substantial modifications of released data types are only possible by releasing
 new definitions of the same data type.
 If it is desired and possible to keep the same major version number for a new definition of the data type,
-the minor version number shall be one greater than the newest existing minor version
+the minor version number of the new definition shall be one greater than the newest existing minor version
 number before the new definition is introduced.
 Otherwise, the major version number shall be incremented by one and the minor version shall be set to zero.
 
@@ -825,10 +825,84 @@ ways without any regard for compatibility.
 It is recommended, however, to follow the principles of immutability, releasing every subsequent definition
 with the minor version number one greater than the newest existing definition.
 
-\subsubsection{Example}
+\subsubsection{Major version release constraints}
 
-Suppose a vendor \emph{Sirius Cybernetics Corporation} was contracted to design a cryopod management data bus for a
-colonial spaceship \emph{Golgafrincham B-Ark}.
+The DSDL specification limits the number of coexisting major data type versions
+in order to simplify support of the data type versioning system at the transport layer
+and simplify the management of legacy data type definitions.
+As such, at any given moment, the difference between the highest released major version number
+and the lowest released major version number of any given data type must not exceed 3.
+
+For example, the following set of released data type definition versions is valid and permissible:
+\{0.1, 0.2, 0.3, 1.0, 1.1, 2.0, 2.1, 2.2, 3.0\},
+because the difference between the newest released major version (3) and the oldest released major version (0)
+does not exceed 3.
+The set of the minor versions is not subjected to any constraints,
+and as such, there are no limits on the set of concurrently released minor versions.
+
+Continuing with the above example, if it were necessary to release a newer data type definition
+under a new major version of 4, the oldest major version of 0 would have to be removed first.
+Otherwise, the maximum major version number difference constraint would be violated.
+Observe that the actual number of published major versions is irrelevant;
+the constraint only applies to the difference between the highest and the lowest released major versions.
+For example, shall the version 2 be deprecated and removed while the versions 0 and 1 were still around,
+the requirement to remove the version 0 before publishing the version 4 would still hold.
+The resulting set of versions may then look like this:
+\{1.0, 1.1, 3.0, 4.0\}.
+
+If the difference between the highest and the lowest available major version numbers exceeds 2,
+the DSDL compiler must assume that the oldest available definition is marked with an implicit
+\verb|@deprecated| directive (section \ref{sec:dsdl_directives}),
+even if it is not explicitly provided in the definition.
+
+If the difference between the highest and the lowest available major version numbers exceeds 3,
+the DSDL compiler must refuse to process the data type and abort with an error.
+
+\subsubsection{Data type version selection}
+
+There are two aspects to the problem of data type version selection:
+compile-time behavior and runtime behavior.
+They are explored in this section.
+
+As far as compile-time data type version selection is concerned,
+the DSDL compiler is required to compile every available major data type version separately,
+allowing the application to choose any available major version at runtime.
+However, there may be more than one minor version available per major version;
+the DSDL compiler must resolve this ambiguity by always selecting the newest available minor
+version per major version at the time of compilation.
+
+For example, consider the following set of data type definition versions:
+\{0.1, 0.2, 0.3, 1.0, 1.1, 2.0, 2.1, 2.2, 3.0\}.
+As there are four different major data type versions (0, 1, 2, and 3),
+the DSDL compiler will make four independent definitions available for the application.
+Following the principle of choosing the newest available minor version,
+the resulting set of definitions available at runtime will be as follows:
+\{0.3, 1.1, 2.2, 3.0\}.
+
+Seeing as the minor version ambiguity is resolved statically,
+this information becomes irrelevant for the protocol at runtime.
+While implementations can keep the minor version information for diagnostic purposes,
+it is completely unnecessary at the transport layer.
+As such, the transport layer (which is specified in the chapter \ref{sec:can_bus_transport_layer})
+does not concern itself with the minor data type version information,
+whereas the major data type version is attached to every transfer.
+
+The implication is that upon reception of a transfer, the node will use the appropriate
+data type definition according to the major data type version information attached to the
+transfer; whereas the minor versions used by the emitter and the receiver may mismatch.
+The possibility of a minor version mismatch is acceptable because, by definition,
+all data type definitions sharing the same major version number are mutually semantically compatible.
+
+When initiating a data exchange (e.g. broadcasting a message or invoking a service),
+the node is free to choose the major data type version freely, according to its own application logic.
+Nodes that provide services (i.e., servers) must respond to requests using the same major service data type
+version that was used in the request.
+Again, the minor version number may mismatch, but by the compatibility requirement this is acceptable.
+
+\subsubsection{Versioning example}
+
+Suppose a vendor named \emph{Sirius Cybernetics Corporation} was contracted to design a
+cryopod management data bus for a colonial spaceship \emph{Golgafrincham B-Ark}.
 Having consulted with applicable specifications and standards, an engineer came up with the following
 definition of a cryopod status message type (named \verb|sirius_cyber_corp.golgafrincham_b_ark.cryopod.Status|):
 
