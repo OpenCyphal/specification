@@ -279,7 +279,7 @@ All frames of a multi-frame transfer should be pushed to the transmission queue 
 in the proper order from the first frame to the last frame.
 Explicit gap time between CAN frames belonging to the same transfer should not be introduced.
 
-\subsubsection{Transfer CRC}
+\subsubsection{Transfer CRC}\label{sec:transfer_crc}
 
 The objective of the transfer CRC is to allow receiving nodes to validate correctness of
 multi-frame transfer reassembly.
@@ -406,14 +406,14 @@ UAVCAN can share the same bus with other protocols based on standard (non-extend
 However, future revisions of UAVCAN may utilize 11-bit identifiers as well;
 therefore, backward compatibility with other protocols is not guaranteed.
 
-\subsection{CAN ID field structure}
+\subsection{CAN ID structure}
 
 UAVCAN utilizes three different CAN ID formats for different types of transfers:
 message transfers, service transfers, and anonymous message transfers.
 The structure is summarized in the table \ref{table:can_id_structure}.
 
 % Please do not remove the hard placement specifier [H], it is needed to keep tables ordered.
-\begin{table}[H]\caption{CAN ID field structure}\label{table:can_id_structure}
+\begin{table}[H]\caption{CAN ID structure}\label{table:can_id_structure}
 \NoLeftSkip
 \begin{tabu}{|c|X[c]|X[c]|X[c]|c|}
     \hline
@@ -491,7 +491,8 @@ The following acronyms are used for brevity:
     Message DTID modulo 8& 3    & [0, 7] (any)      & Three least significant bits of the data type ID of the
                                                       encoded message data structure. Message types where DTID is
                                                       greater than 7 cannot be used with anonymous message transfers. \\
-    Payload discriminator & 10  & [0, 1023] (any)   & Used for CAN ID conflict avoidance; more info below. \\
+    Payload discriminator & 10  & [0, 1023] (any)   & Used for CAN ID conflict avoidance;
+                                                      see section \ref{sec:can_payload_discriminator}. \\
     Source node ID      & 7     & 0                 & Set to zero. This field is used to distinguish anonymous message
                                                       transfers from regular message transfers. \\
     Message DTMVN       & 2     & [0, 3] (any)      & Major version number of the data type, modulo 4. \\
@@ -581,7 +582,37 @@ As such, for anonymous message transfers, the source node ID field is always set
 By observing a source node ID of zero, receiving nodes can distinguish
 anonymous message transfers from other types of transfers.
 
-\subsubsection{Payload discriminator}
+\subsubsection{Payload discriminator}\label{sec:can_payload_discriminator}
+
+CAN bus does not allow different nodes to transmit CAN frames with different data field values under the same CAN ID.
+Owing to the fact that the CAN ID includes the node ID value of the transmitting node,
+this restriction does not affect regular UAVCAN transfers.
+However, anonymous message transfers would violate this restriction,
+because they all share the same node ID of zero.
+
+In order to work-around this problem,
+UAVCAN adds a \emph{payload discriminator} to the CAN ID of anonymous message transfers,
+and defines special logic for handling CAN bus errors during transmission of anonymous frames.
+
+The payload discriminator field must be filled with pseudorandom data whenever a node transmits an
+anonymous message transfer.
+The source of the pseudorandom data must be likely to produce different discriminator values
+for different data field values.
+A possible way of initializing the payload discriminator value is to apply the transfer CRC function
+(as defined in the section \ref{sec:transfer_crc})
+to the contents of the anonymous message, and then use any 10 bits of the result.
+Nodes that adopt this approach will be using the same payload discriminator value for identical messages,
+which is acceptable since this will not trigger an error on the bus.
+
+Since the discriminator is only 10 bits long,
+the probability of having multiple nodes emitting CAN frames with the same CAN ID
+but different data can exceed 0.1\%, which is significant.
+Therefore, the protocol must account for possible errors on the CAN bus triggered by CAN ID collisions.
+In order to comply with this requirement,
+UAVCAN requires all nodes to immediately abort transmission of all anonymous transfers once an error on
+the CAN bus is detected.
+This measure allows the protocol to prevent the bus deadlock that may occur if the automatic
+retransmission on bus error is not suppressed.
 
 \section{Transfer reception}\label{sec:transfer_reception}
 
