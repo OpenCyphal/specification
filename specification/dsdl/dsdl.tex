@@ -296,6 +296,24 @@ Unions are required to have at least two fields.
 
 This directive must be placed before the first attribute definition.
 
+\subsubsection{Deprecated}
+
+Keyword: \verb|@deprecated|.
+
+This directive notifies the DSDL compiler that the current data type definition
+is scheduled for removal in the future.
+Note that it applies to the current \emph{definition} and not to the data type as a whole,
+meaning that only the current version is affected, while newer versions,
+if available, are not to be considered deprecated unless also marked with this directive.
+
+This directive must be placed before the first attribute definition.
+In the case of service data types, this directive must be placed before the first
+attribute definition of the request part.
+
+The DSDL compiler can leverage this directive to amend auto-generated entities with
+deprecation markers appropriate to the target programming language;
+e.g. \verb|[[deprecated]]| in C++, \verb|DeprecationWarning| in Python, and so on.
+
 \subsection{Comments}
 
 A DSDL description may contain comments starting from the ASCII number sign (\verb|#|)
@@ -951,7 +969,7 @@ uint16 FLAG_COOLING_SYSTEM_B_ACTIVE = 2
 # Error flags in the high byte
 uint16 FLAG_PSU_MALFUNCTION = 8192
 uint16 FLAG_OVERHEATING     = 16384
-uint16 FLAG_CRYOBOX_BREACH  = 35768
+uint16 FLAG_CRYOBOX_BREACH  = 32768
 # Storage for the above defined flags
 uint16 flags
 \end{minted}
