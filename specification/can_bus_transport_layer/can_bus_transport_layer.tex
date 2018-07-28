@@ -537,7 +537,49 @@ More information on the data type ID value ranges is available in the chapter \r
 
 \subsubsection{Data type major version number}
 
+As explained in the section \ref{sec:dsdl_versioning},
+the difference between the lowest and the highest released major version numbers of any given data type
+may never exceed three.
+
+Having made certain assumptions about the data type release cadence and the deprecation strategy,
+one can see that the transport layer can represent the data type major version number using a reduced
+modulo 4 representation; i.e., instead of carrying the whole version number, the transport layer
+can carry only the major version number modulo four:
+$$V^\prime{} = V \bmod 4 \Leftrightarrow{} V \geq{} 0$$
+where $V$ is the data type major version number and $V^\prime{}$ is its reduced representation used by
+the transport layer.
+
+Taking advantage of the fact that the transport layer representation of the major data type version number
+belongs to [0, 3], UAVCAN uses only a two-bit wide field in the CAN identifier to represent the major
+version number.
+
+The bit width saving measures described here warrant certain special handling rules for the major version
+number at the transport layer.
+When emitting a transfer, the node must compute the modulo of the major data type version number
+as described above, and populate the corresponding CAN ID field with the resulting value.
+When receiving a transfer, the node must search for an appropriate data type definition
+among the known definitions by looking for the one which has the same major version number modulus
+as the received modulus:
+$$V_\text{local} \bmod 4 = V^\prime{}$$
+where $V_\text{local}$ is the major version number of the locally available data type definition that will be used
+to process the transfer.
+
+From the above description one can see that a data type mismatch will occur if the absolute difference between
+the major data type version used by the emitter and that used by the receiver exceeds four:
+$$V_\text{local} \neq V \Leftrightarrow{} \vert{}V_\text{local} - V\vert{} \geq 4$$
+However, due to the implicit deprecation policy defined in the section \ref{sec:dsdl_versioning},
+the risk of version conflict is easy to avoid, and the limitation is therefore deemed acceptable.
+
 \subsubsection{Node ID}
+
+Valid values of node ID belong to the range [1, 127].
+
+Node ID is represented by a 7-bit unsigned integer value; zero is reserved.
+A node ID of zero is used to represent either an unknown node or all nodes, depending on the context.
+
+As such, for anonymous message transfers, the source node ID field is always set to zero.
+By observing a source node ID of zero, receiving nodes can distinguish
+anonymous message transfers from other types of transfers.
 
 \subsubsection{Payload discriminator}
 
