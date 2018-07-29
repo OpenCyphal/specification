@@ -185,7 +185,7 @@ transfers with lower data type ID values preempt those with higher data type ID 
 
 \section{Transfer emission}
 
-\subsection{Transfer ID computation}
+\subsection{Transfer ID computation}\label{sec:transfer_id}
 
 The \emph{transfer ID} is a small unsigned integer value that is provided for every outgoing
 transfer.
@@ -366,7 +366,7 @@ int main()
 \end{minted}
 \end{minipage}
 
-\subsubsection{Toggle bit}
+\subsubsection{Toggle bit}\label{sec:toggle_bit}
 
 The toggle bit is a property defined at the CAN frame level.
 Its purpose is to detect and avoid CAN frame duplication errors in multi-frame
@@ -614,9 +614,55 @@ the CAN bus is detected.
 This measure allows the protocol to prevent the bus deadlock that may occur if the automatic
 retransmission on bus error is not suppressed.
 
-\subsection{CAN frame payload}
+\subsection{CAN frame data}
 
+\subsubsection{Tail byte}
 
+UAVCAN adds one byte of overhead to every CAN frame irrespective of the type of the transfer.
+The extra byte contains certain metadata for the needs of the transport protocol.
+It is named the \emph{tail byte}, and as the name suggests, it is always situated
+at the very last byte of the data field of every CAN frame.
+The tail byte contains four fields: \emph{start of transfer}, \emph{end of transfer},
+\emph{toggle bit}, and the transfer ID (described earlier in the section \ref{sec:transfer_id}).
+The placement of the fields and their usage for single-frame and multi-frame transfers
+are documented in the table \ref{table:tail_byte}.
+
+% Please do not remove the hard placement specifier [H], it is needed to keep tables ordered.
+\begin{table}[H]\caption{Tail byte structure}\label{table:tail_byte}
+\begin{tabu}{|c|l|X[2]|X[3]|}
+    \hline
+    \rowfont{\bfseries}
+    Bit & Field & Single-frame transfers & Multi-frame transfers \\
+    \hline
+
+    7   & Start of transfer & Always 1  & First frame: 1, otherwise 0. \\\hline
+    6   & End of transfer   & Always 1  & Last frame: 1, otherwise 0. \\\hline
+    5   & Toggle bit        & Always 1  & First frame: 1, then alternates; section \ref{sec:toggle_bit} \\\hline
+
+    4   &               & \multicolumn{2}{c|}{} \\
+    3   &               & \multicolumn{2}{c|}{Modulo 32 (range [0, 31])} \\
+    2   & Transfer ID   & \multicolumn{2}{c|}{section \ref{sec:transfer_id}} \\
+    1   &               & \multicolumn{2}{c|}{} \\
+    0   &               & \multicolumn{2}{c|}{\footnotesize{(least significant bit)}} \\
+    \hline
+\end{tabu}
+\end{table}
+
+The field transfer ID is populated according to the specification provided in the section \ref{sec:transfer_id}.
+The usage of this field is independent of the type of the transfer.
+
+For single-frame transfers, the fields start-of-transfer, end-of-transfer, and the toggle bit
+are all set to~1.
+
+For multi-frame transfers, the fields start-of-transfer and end-of-transfer
+are used to state the boundaries of the current transfer as described in the table.
+
+The toggle bit, as described in the section \ref{sec:toggle_bit}, serves
+two main purposes: CAN frame deduplication and protocol version detection.
+
+\subsubsection{Single-frame transfers}
+
+\subsubsection{Multi-frame transfers}
 
 \section{Transfer reception}\label{sec:transfer_reception}
 
