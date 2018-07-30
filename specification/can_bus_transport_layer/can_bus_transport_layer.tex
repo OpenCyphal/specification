@@ -185,7 +185,7 @@ transfers with lower data type ID values preempt those with higher data type ID 
 
 \section{Transfer emission}
 
-\subsection{Transfer ID computation}\label{sec:transfer_id}
+\subsection{Transfer ID computation}\label{sec:transfer_id}\label{sec:transfer_descriptor}
 
 The \emph{transfer ID} is a small unsigned integer value that is provided for every outgoing
 transfer.
@@ -845,6 +845,244 @@ int main()
 \end{minipage}
 
 \subsection{State variables}
+
+Nodes that receive transfers must keep a certain set of state variables for each
+transfer descriptor\footnote{The concept of \emph{transfer descriptor} is explained
+in the section \ref{sec:transfer_descriptor}.}.
+The set of state variables will be referred to as the \emph{receiver state}.
+For the purposes of this specification, it is assumed that the node will maintain a
+mapping from transfer descriptors to receiver states, which will be referred to as the \emph{receiver map}.
+It is understood, however, that real implementations may resort to different architectures as
+long as the resulting behavior of the node observable at the protocol level is functionally equivalent.
+
+The list of receiver state variables is provided in the table \ref{table:transfer_receiver_state_variables}.
+Operations defined on receiver states are listed in the table
+\ref{table:transfer_receiver_state_operations};
+and the set of conditions defined for receiver states is provided in the table
+\ref{table:transfer_receiver_state_conditions}.
+
+Whenever a node receives a transfer, it will query its receiver map for the matching transfer descriptor.
+If the matching state does not exist, the node will add a new uninitialized receiver state to the map.
+The node then will proceed with the procedure of \emph{receiver state update}, which is defined below in this section.
+
+It is expected that some transfers will be aperiodic or ad-hoc,
+which implies that the receiver map may over time accumulate receiver states that are no longer used.
+Therefore, nodes are allowed, but not required, to remove any receiver state from the receiver map,
+once the state reaches the \emph{transfer ID timeout condition}.
+
+Receiver state can only be modified when a new CAN frame of a matching transfer is received.
+This guarantee simplifies implementation, as it implies that the receiver states will not
+require any background maintenance processes.
+
+\begin{UAVCANSimpleTable}{Transfer reception state variables}{|l X|}
+    State               & Description \label{table:transfer_receiver_state_variables} \\
+    Transfer payload    & Useful payload byte sequence; extended upon reception of CAN frames. \\
+    Transfer ID         & The transfer ID value of the current transfer or the next expected transfer.
+                          Section \ref{sec:transfer_id}. \\
+    Next toggle bit     & Expected value of the toggle bit in the next CAN frame.
+                          Section \ref{sec:toggle_bit}. \\
+    Transfer timestamp  & The local monotonic timestamp sampled when the first frame of the transfer arrived.
+                          Here, "monotonic" means that the reference clock does not change its rate or leap. \\
+    Interface index     & Only in the case of redundant transport interfaces. \\
+\end{UAVCANSimpleTable}
+
+\begin{UAVCANSimpleTable}{Transfer reception state operations}{|l X|}
+    Operation   & Description \label{table:transfer_receiver_state_operations} \\
+
+    Extension   & Add newly received useful payload data to the current transfer payload state. \\
+
+    Restart     & Reset the state variables to match the parameters of a new transfer.
+                  A reset can only be performed synchronously with the reception of a matching CAN frame
+                  which is the first frame of a new transfer (e.g. the start of transfer flag is set).
+                  A reset operation includes at least the following:
+                  \begin{itemize}
+                      \item Clearing (emptying) the transfer payload state.
+                      \item Updating the transfer ID state with the actual transfer ID value from the new transfer.
+                      \item Setting the toggle bit to its initial state (section \ref{sec:toggle_bit}).
+                      \item Initializing the transfer timestamp with the reception timestamp from the CAN frame.
+                      \item Initializing the interface index (for nodes with redundant interfaces only).
+                  \end{itemize}\\
+\end{UAVCANSimpleTable}
+
+\begin{UAVCANSimpleTable}{Transfer reception state conditions}{|l X|}
+    Condition       & Description \label{table:transfer_receiver_state_conditions} \\
+
+    Uninitialized   &
+    The default condition, which indicates that the receiver state has not yet seen any transfers. \\
+
+    Transfer ID timeout &
+    Last matching transfer was seen more than 2 seconds ago.\\
+
+    Interface switch allowed &
+    This condition is only applicable for configurations with redundant CAN bus interfaces.
+    It means that the node is allowed to receive the next transfer from an interface that is not the same
+    the previous transfer was received from.
+    The condition is reached when the last matching transfer has been successfully received more than
+    $T_\text{switch}$ seconds ago. The value of $T_\text{switch}$ must not exceed 2 seconds.
+    The actual value of $T_\text{switch}$ can be either a constant chosen by the designer according
+    to the application requirements (e.g., maximum recovery time in the event of an interface failure),
+    or the protocol stack can estimate this value automatically by analyzing the transfer intervals. \\
+\end{UAVCANSimpleTable}
+
+\subsection{State update in a redundant interface configuration}
+
+The following pseudocode demonstrates the transfer reception process
+for a configuration with redundant CAN bus interfaces.
+
+\clearpage
+\begin{minted}{cpp}
+// Constants:
+tid_timeout := 2 seconds;
+tid_half_range := 16;
+iface_switch_delay := UserDefinedConstant; // Or autodetect
+
+// State variables:
+initialized := 0;
+payload;
+this_transfer_timestamp;
+current_transfer_id;
+iface_index;
+toggle;
+
+function receiveFrame(frame)
+{
+    // Resolving the state flags:
+    tid_timed_out := (frame.timestamp - this_transfer_timestamp) > tid_timeout;
+    same_iface := frame.iface_index == iface_index;
+    first_frame := frame.start_of_transfer;
+    non_wrapped_tid := computeForwardDistance(current_transfer_id, frame.transfer_id) < tid_half_range;
+    not_previous_tid := computeForwardDistance(frame.transfer_id, current_transfer_id) > 1;
+    iface_switch_allowed := (frame.timestamp - this_transfer_timestamp) > iface_switch_delay;
+
+    // Using the state flags from above, deciding whether we need to reset:
+    need_restart :=
+        (!initialized) or
+        (tid_timed_out) or
+        (same_iface and first_frame and not_previous_tid) or
+        (iface_switch_allowed and first_frame and non_wrapped_tid);
+
+    if (need_restart)
+    {
+        initialized := 1;
+        iface_index := frame.iface_index;
+        current_transfer_id := frame.transfer_id;
+        payload.clear();
+        toggle := 0;
+        if (!first_frame)
+        {
+            current_transfer_id.increment();
+            return;         // Ignore this frame, since the start of the transfer has already been missed
+        }
+    }
+
+    if (frame.iface_index != iface_index)
+    {
+        return;  // Wrong interface, ignore
+    }
+
+    if (frame.toggle != toggle)
+    {
+        return;  // Unexpected toggle bit, ignore
+    }
+
+    if (frame.transfer_id != current_transfer_id)
+    {
+        return;  // Unexpected transfer ID, ignore
+    }
+
+    if (first_frame)
+    {
+        this_transfer_timestamp := frame.timestamp;
+    }
+
+    toggle := !toggle;
+    payload.append(frame.data);
+
+    if (frame.last_frame)
+    {
+        // CRC validation for multi-frame transfers is intentionally omitted for brevity
+        processTransfer(payload, ...);
+
+        current_transfer_id.increment();
+        toggle := 0;
+        payload.clear();
+    }
+}
+\end{minted}
+
+\subsection{State update in a non-redundant interface configuration}
+
+The following pseudocode demonstrates the transfer reception process for a configuration
+with a non-redundant CAN bus interface.
+This is a specialization of the more general algorithm defined for redundant transport.
+
+\clearpage
+\begin{minted}{cpp}
+// Constants:
+tid_timeout := 2 seconds;
+
+// State variables:
+initialized := 0;
+payload;
+this_transfer_timestamp;
+current_transfer_id;
+toggle;
+
+function receiveFrame(frame)
+{
+    // Resolving the state flags:
+    tid_timed_out := (frame.timestamp - this_transfer_timestamp) > tid_timeout;
+    first_frame := frame.start_of_transfer;
+    not_previous_tid := computeForwardDistance(frame.transfer_id, current_transfer_id) > 1;
+
+    // Using the state flags from above, deciding whether we need to reset:
+    need_restart :=
+        (!initialized) or
+        (tid_timed_out) or
+        (first_frame and not_previous_tid);
+
+    if (need_restart)
+    {
+        initialized := 1;
+        current_transfer_id := frame.transfer_id;
+        payload.clear();
+        toggle := 0;
+        if (!first_frame)
+        {
+            current_transfer_id.increment();
+            return; // Ignore this frame, since the start of the transfer has already been missed
+        }
+    }
+
+    if (frame.toggle != toggle)
+    {
+        return;  // Unexpected toggle bit, ignore
+    }
+
+    if (frame.transfer_id != current_transfer_id)
+    {
+        return;  // Unexpected transfer ID, ignore
+    }
+
+    if (first_frame)
+    {
+        this_transfer_timestamp := frame.timestamp;
+    }
+
+    toggle := !toggle;
+    payload.append(frame.data);
+
+    if (frame.last_frame)
+    {
+        // CRC validation for multi-frame transfers is intentionally omitted for brevity
+        processTransfer(payload, ...);
+
+        current_transfer_id.increment();
+        toggle := 0;
+        payload.clear();
+    }
+}
+\end{minted}
 
 \section{CAN bus requirements}
 
