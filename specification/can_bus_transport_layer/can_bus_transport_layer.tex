@@ -781,6 +781,71 @@ The resulting data field segmentation is shown in the table \ref{table:can_data_
 
 \subsection{Transfer ID comparison}
 
+The following explanation relies on the concept of the \emph{transfer ID forward distance}.
+Transfer ID forward distance $F$ is a function of two transfer ID values,
+$A$ and $B$, that defines the number of increment operations that need to be applied to
+$A$ so that $A^\prime{} = B$, assuming modulo 32 arithmetic:
+$$A + F = B \quad (\bmod{}\ 32)$$
+Consider the examples provided in the table \ref{table:transfer_id_fwd_dst_ex}.
+
+The \emph{half range} of transfer ID is 16.
+
+\begin{minipage}{0.6\textwidth}
+\begin{UAVCANSimpleTable}{Transfer ID forward distance examples}{|X[c] X[c]|X[c]|}
+    $A$ & $B$   & $F$ \label{table:transfer_id_fwd_dst_ex} \\
+    0   & 0     & 0 \\
+    0   & 5     & 5 \\
+    5   & 0     & 27 \\
+    31  & 30    & 31 \\
+    31  & 0     & 1 \\
+\end{UAVCANSimpleTable}
+\end{minipage}
+
+The following code sample provides an example implementation of the transfer ID comparison algorithm in C++.
+
+\begin{minipage}{0.9\textwidth}  % Mini page is needed to prevent page breaks within the snippet
+\begin{minted}{cpp}
+// UAVCAN transfer ID forward distance computation algorithm implemented in C++.
+// License: CC0, no copyright reserved.
+
+#include <cstdint>
+#include <iostream>
+#include <cassert>
+
+constexpr std::uint8_t TransferIDBitLength = 5;
+
+[[nodiscard]]
+constexpr std::int8_t computeForwardDistance(std::uint8_t a, std::uint8_t b)
+{
+    constexpr std::uint8_t MaxValue = (1U << TransferIDBitLength) - 1U;
+    assert((a <= MaxValue) && (b <= MaxValue));
+
+    std::int16_t d = static_cast<std::int16_t>(b) - static_cast<std::int16_t>(a);
+    if (d < 0)
+    {
+        d += 1U << TransferIDBitLength;
+    }
+
+    assert((d <= MaxValue) && (d >= -MaxValue));
+    assert(((a + d) & MaxValue) == b);
+    return static_cast<std::int8_t>(d);
+}
+
+int main()
+{
+    assert(0  == computeForwardDistance(0, 0));
+    assert(1  == computeForwardDistance(0, 1));
+    assert(7  == computeForwardDistance(0, 7));
+    assert(0  == computeForwardDistance(7, 7));
+    assert(31 == computeForwardDistance(31, 30)); // overflow
+    assert(1  == computeForwardDistance(31, 0));  // overflow
+    return 0;
+}
+\end{minted}
+\end{minipage}
+
+\subsection{State variables}
+
 \section{CAN bus requirements}
 
 The chapter \ref{sec:hardware_design_recommendations} contains important information
