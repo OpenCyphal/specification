@@ -76,20 +76,23 @@ The set of standard data type definitions is one of the cornerstone concepts of 
 Within the same major version, the specification can be extended only in the following ways:
 
 \begin{itemize}
-    \item A new data type can be added, possibly with default data type ID,
+    \item A new data type can be added, possibly with a default data type ID,
     as long as the default data type ID doesn't conflict with one of the existing data types.
 
-    \item An existing data type can be modified, as long as the modification doesn't break backward compatibility.
+    \item An existing data type can be modified, as long as its version number is updated accordingly
+    and the backward compatibility guarantees are respected.
 
-    \item A new version of an existing data type can be added.
+    \item A major version of an existing data type can be declared deprecated.
+    \begin{itemize}
+        \item Once declared deprecated, the major version will be maintained for at least two more years.
+        \item Deprecation will be indicated in the DSDL definition and announced via the discussion forum.
+    \end{itemize}
 
     \item An existing data type can be declared deprecated.
     \begin{itemize}
         \item Once declared deprecated, the data type will be maintained for at least two more years.
         After this period its default data type ID may be reused for an incompatible data type.
-
-        \item Deprecation will be announced via the discussion forum, and indicated in the form of a comment
-        in its DSDL definition.
+        \item Deprecation will be indicated in the DSDL definition and announced via the discussion forum.
     \end{itemize}
 \end{itemize}
 
