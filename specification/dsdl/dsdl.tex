@@ -643,21 +643,67 @@ which are discussed below.
 
 \subsection{Bit compatibility}
 
-\subsubsection{Definition}
+\subsubsection{The concept of valid encoded representation}
 
 For the purposes of the definition that follows, an \emph{encoded representation of $A$}
-is a sequence of data fields joined into a bit string according to the DSDL definition
+is a sequence of serialized data fields joined into a bit string according to the DSDL definition
 of the data structure $A$.
+The serialization rules are reviewed in detail in the section \ref{sec:dsdl_data_serialization}.
+
+A \emph{valid encoded representation of $A$} is any encoded representation of $A$ that belongs
+to the set of all possible encoded representations of $A$.
+
+The example below serves to illustrate the concept.
+Consider the following data structure definition:
+
+\begin{minted}{python}
+uint32 a
+\end{minted}
+
+For the provided definition, any sequence of 32 bits is a valid encoded representation of the structure,
+since any sequence of 32 bits can be mapped onto a valid unsigned 32-bit integer value.
+
+Similarly, any sequence of 100 bits is a valid encoded representation of the following data structure definition,
+because any sequence of 64 bits can be mapped onto a valid IEEE 754 binary64 floating point
+representation\footnote{Possibly not-a-number (NaN), which is nevertheless a valid value per IEEE 754.},
+and any sequence of 36 bits can be mapped onto a valid signed 36-bit integer value:
+
+\begin{minted}{python}
+float64 b
+int36 c
+\end{minted}
+
+The examples reviewed above are unconstrained, meaning that any bit sequence is a valid representation
+as long as it is sufficiently long.
+However, there exist cases where that may not be true.
+Specifically, as follows from the definition of data serialization rules,
+dynamic arrays and tagged unions impose constraints on the set of acceptable encoded values;
+examples of the constraints are listed below:
+\begin{itemize}
+    \item An encoded array representation cannot contain more items than than the maximum length of the array.
+
+    \item An encoded array length field cannot contain a value that is higher than the maximum length of the array.
+
+    \item An encoded union representation cannot contain more bits than expected by the currently contained alternative.
+
+    \item An encoded union tag field cannot contain a value that is greater than or equal the number of
+    alternatives in the tagged union.
+\end{itemize}
+
+\subsubsection{Definition of bit compatibility}
 
 A structure definition $A$ is bit-compatible with a structure definition $B$
 if any valid encoded representation of $B$ is also a valid encoded representation of $A$.
+Or, $A$ is bit-compatible with $B$ if the set of all possible encoded representations of $B$
+is a subset of all possible encoded representations of $A$.
+
 $A$ and $B$ are said to be \emph{mutually compatible} if the sets of all possible valid encoded representations of
 $A$ and $B$ are identical.
 
 \subsubsection{Example}
 
-A \emph{fixed-size data structure} is a structure that does not contain dynamic arrays
-or other structures that contain dynamic arrays within themselves.
+A \emph{fixed-size data structure} is a structure that does not contain dynamic arrays,
+unions, or other structures that contain dynamic arrays or unions within themselves.
 As such, the bit length of an encoded representation of a fixed-size structure is constant,
 regardless of the data contained in the structure.
 Conversely, any data structure that is not fixed-size is called a \emph{variable-size data structure}.
@@ -824,8 +870,8 @@ the disclosure of the data type definition to the intended users or to the publi
 or for the commencement of usage of the data type definition in a production system.
 
 In order to ensure a deterministic application behavior and ensure a robust migration path
-as data type definitions evolve, UAVCAN requires that all data types that share the same major version number
-greater than zero must be mutually semantically compatible with each other.
+as data type definitions evolve, UAVCAN requires that all data type definitions that share the same
+major version number greater than zero must be mutually semantically compatible with each other.
 
 In order to ensure predictable and repeatable behavior of applications that leverage UAVCAN,
 the standard requires that once a data type definition is released, it cannot undergo any modifications to
