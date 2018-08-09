@@ -643,19 +643,86 @@ which are discussed below.
 
 \subsection{Bit compatibility}
 
-\subsubsection{Definition}
+\subsubsection{Related concepts}
 
-For the purposes of the definition that follows, an \emph{encoded representation of a data structure $A$}
+For the purposes of the definition that follows, an \emph{encoded representation} of a data structure $A$
 is a sequence of serialized data fields joined into a bit string according to the DSDL definition
 of the data structure $A$.
 The serialization rules are reviewed in detail in the section \ref{sec:dsdl_data_serialization}.
 
-A structure definition $A$ is bit-compatible with a structure definition $B$
-if the set of all possible encoded representations of $B$
-is a subset of all possible encoded representations of $A$.
+A \emph{full encoded representation set} of $A$ is the set of all possible encoded representations of $A$.
 
-$A$ and $B$ are said to be \emph{mutually compatible} if the sets of all possible encoded representations of
-$A$ and $B$ are identical.
+A \emph{void-extended encoded representation set} of $A$
+is the full encoded representation set of $A$ where each void-typed field is replaced with
+an unsigned integral field of equal bit width.
+In other words, a void-extended encoded representation set assumes that the void fields, if there are any,
+can take arbitrary values when serialized, rather than being fixed at zero as required by the
+DSDL serialization rules (section \ref{sec:dsdl_data_serialization}).
+
+For example, consider the following data type definition:
+
+\begin{minted}{python}
+uint2 a
+void2
+\end{minted}
+
+As can be seen from the definition, the length of its encoded representations is always 4 bits.
+Since the void field is always set at zero,
+the full encoded representation set contains four elements:
+$0000_\text{bin}$,
+$0100_\text{bin}$,
+$1000_\text{bin}$,
+$1100_\text{bin}$.
+Whereas the void-extended representation set contains sixteen elements:
+$0000_\text{bin}$,
+$0001_\text{bin}$,
+$0010_\text{bin}$,
+$0011_\text{bin}$,
+$0100_\text{bin}$,
+$0101_\text{bin}$,
+$0110_\text{bin}$,
+$0111_\text{bin}$,
+$1000_\text{bin}$,
+$1001_\text{bin}$,
+$1010_\text{bin}$,
+$1011_\text{bin}$,
+$1100_\text{bin}$,
+$1101_\text{bin}$,
+$1110_\text{bin}$,
+$1111_\text{bin}$.
+
+Now, consider the following definition:
+
+\begin{minted}{python}
+void1
+int3 b
+\end{minted}
+
+The full encoded representation set of the new definition differs from that of the old
+definition, now it contains the following eight elements:
+$0000_\text{bin}$,
+$0001_\text{bin}$,
+$0010_\text{bin}$,
+$0011_\text{bin}$,
+$0100_\text{bin}$,
+$0101_\text{bin}$,
+$0110_\text{bin}$,
+$0111_\text{bin}$.
+However, the void-extended representations of the reviewed definitions are equal.
+
+The concept of bit compatibility relies on void-extended encoded representations
+rather than on regular encoded representations in order to allow
+data type definitions to replace void fields with non-void fields and vice versa,
+while retaining full compatibility.
+
+\subsubsection{Definition}
+
+A structure definition $A$ is bit-compatible with a structure definition $B$
+if the void-extended encoded representation set of $B$
+is a subset of the void-extended encoded representation set of $A$.
+
+$A$ and $B$ are said to be \emph{mutually compatible} if their void-extended encoded
+representation sets are identical.
 
 \subsubsection{Example}
 
