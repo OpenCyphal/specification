@@ -465,7 +465,7 @@ truncated int2   fourth     # = -1
 truncated uint4  fifth      # = 0x88 (136)
 \end{minted}
 
-The resulting encoded byte sequence is shown on the figure \ref{fig:dsdl_serialization_example}.
+The resulting serialized byte sequence is shown on the figure \ref{fig:dsdl_serialization_example}.
 
 \begin{figure}[hbt]
     \centering
@@ -510,11 +510,11 @@ No additional prefixes, suffixes, or padding is provided.
 
 \subsection{Fixed size arrays}
 
-Fixed-size arrays are encoded as a plain sequence of items,
-with each item encoded independently in place, with no alignment.
+Fixed-size arrays are serialized as a plain sequence of items,
+with each item serialized independently in place, with no alignment.
 No extra data is added.
 
-Essentially, a fixed-size array of size $X$ elements will be encoded exactly in the same way
+Essentially, a fixed-size array of size $X$ elements will be serialized exactly in the same way
 as a sequence of $X$ fields of the same type in a row.
 Hence, the following two data type definitions will have identical binary representation,
 the only actual difference being their representation for the application
@@ -539,7 +539,7 @@ AnyType[<42] a      # Can contain from 0 to 41 elements
 AnyType[<=41] b     # Can contain from 0 to 41 elements
 \end{minted}
 
-A dynamic array is encoded as a sequence of encoded items prepended with an unsigned
+A dynamic array is serialized as a sequence of serialized items prepended with an unsigned
 integer field representing the number of contained items - the \emph{length field}.
 The bit width of the length field is a function of the maximum number of items in the array:
 $$\lceil{}\log_2 (X + 1)\rceil{}$$
@@ -574,13 +574,13 @@ AnyType item_2
 
 \subsection{Unions}
 
-Similar to dynamic arrays, tagged unions are encoded as two subsequent entities:
+Similar to dynamic arrays, tagged unions are serialized as two subsequent entities:
 the union tag followed by the selected field, with no additional data.
 
 The union tag is an unsigned integer, the bit length of which is a function of the number of fields in the union:
 $$\lceil{}\log_2 N\rceil{}$$
 where N is the number of fields in the union.
-The value encoded in the union tag is the index of the selected field.
+The value serialized in the union tag is the index of the selected field.
 Field indexes are assigned according to the order in which they are defined in DSDL,
 starting from zero;
 i.e. the first defined field has the index 0, the second defined field has the index 1, and so on.
@@ -611,7 +611,7 @@ uint2 tag               # Set to 1
 uint8 b                 # The actual data
 \end{minted}
 
-If the value of \verb|b| was 7, the resulting encoded byte sequence would be (in binary):
+If the value of \verb|b| was 7, the resulting serialized byte sequence would be (in binary):
 $$%
 \underbrace{\texttt{01}}_{\text{tag}}%
 \overbrace{\texttt{000001 11}}^{\text{field }\texttt{b}}%
@@ -643,92 +643,38 @@ which are discussed below.
 
 \subsection{Bit compatibility}
 
-\subsubsection{Related concepts}
-
-For the purposes of the definition that follows, an \emph{encoded representation} of a data structure $A$
-is a sequence of serialized data fields joined into a bit string according to the DSDL definition
-of the data structure $A$.
-The serialization rules are reviewed in detail in the section \ref{sec:dsdl_data_serialization}.
-
-A \emph{full encoded representation set} of $A$ is the set of all possible encoded representations of $A$.
-
-A \emph{void-extended encoded representation set} of $A$
-is the full encoded representation set of $A$ where each void-typed field is replaced with
-an unsigned integral field of equal bit width.
-In other words, a void-extended encoded representation set assumes that the void fields, if there are any,
-can take arbitrary values when serialized, rather than being fixed at zero as required by the
-DSDL serialization rules (section \ref{sec:dsdl_data_serialization}).
-
-For example, consider the following data type definition:
-
-\begin{minted}{python}
-uint2 a
-void2
-\end{minted}
-
-As can be seen from the definition, the length of its encoded representations is always 4 bits.
-Since the void field is always set at zero,
-the full encoded representation set contains four elements:
-$0000_\text{bin}$,
-$0100_\text{bin}$,
-$1000_\text{bin}$,
-$1100_\text{bin}$.
-Whereas the void-extended representation set contains sixteen elements:
-$0000_\text{bin}$,
-$0001_\text{bin}$,
-$0010_\text{bin}$,
-$0011_\text{bin}$,
-$0100_\text{bin}$,
-$0101_\text{bin}$,
-$0110_\text{bin}$,
-$0111_\text{bin}$,
-$1000_\text{bin}$,
-$1001_\text{bin}$,
-$1010_\text{bin}$,
-$1011_\text{bin}$,
-$1100_\text{bin}$,
-$1101_\text{bin}$,
-$1110_\text{bin}$,
-$1111_\text{bin}$.
-
-Now, consider the following definition:
-
-\begin{minted}{python}
-void1
-int3 b
-\end{minted}
-
-The full encoded representation set of the new definition differs from that of the old
-definition, now it contains the following eight elements:
-$0000_\text{bin}$,
-$0001_\text{bin}$,
-$0010_\text{bin}$,
-$0011_\text{bin}$,
-$0100_\text{bin}$,
-$0101_\text{bin}$,
-$0110_\text{bin}$,
-$0111_\text{bin}$.
-However, the void-extended representations of the reviewed definitions are equal.
-
-The concept of bit compatibility relies on void-extended encoded representations
-rather than on regular encoded representations in order to allow
-data type definitions to replace void fields with non-void fields and vice versa,
-while retaining full compatibility.
-
 \subsubsection{Definition}
 
-A structure definition $A$ is bit-compatible with a structure definition $B$
-if the void-extended encoded representation set of $B$
-is a subset of the void-extended encoded representation set of $A$.
+For the purposes of the definition that follows, a \emph{valid
+serialized\footnote{The serialization rules are reviewed in detail in the section \ref{sec:dsdl_data_serialization}.}
+representation} of a data structure $A$ is a bit sequence that satisfies the \emph{serialization constraints} of $A$.
 
-$A$ and $B$ are said to be \emph{mutually compatible} if their void-extended encoded
-representation sets are identical.
+\emph{Serialization constraints} limit the set of valid bit sequences according to the data type definition.
+A bit sequence meets the serialization constraints if all of the following conditions are
+satisfied\footnote{Observe that serialization constraints are not affected by void-typed fields,
+because per the serialization rules, the values of void-typed fields are to be set to zero during serialization
+and to be ignored during deserialization.}:
+\begin{itemize}
+    \item Each dynamic array length field contains a valid value;
+    i.e. the value of the length field is less than the maximum number of values in the array.
+
+    \item Each union tag field contains a valid value;
+    i.e. the value of the tag field is less than the number of alternatives in the union.
+
+    \item The bit sequence is sufficiently long.
+\end{itemize}
+
+A data type definition $A$ is bit-compatible with a data type definition $B$ if and only if
+the set of valid serialized representations of $A$ is a superset of that of $B$.
+
+$A$ and $B$ are said to be \emph{mutually compatible} if
+$A$ is compatible with $B$ and $B$ is compatible with $A$.
 
 \subsubsection{Example}
 
 A \emph{fixed-size data structure} is a structure that does not contain dynamic arrays,
 unions, or other structures that contain dynamic arrays or unions within themselves.
-As such, the bit length of an encoded representation of a fixed-size structure is constant,
+As such, the bit length of an serialized representation of a fixed-size structure is constant,
 regardless of the data contained in the structure.
 Conversely, any data structure that is not fixed-size is called a \emph{variable-size data structure}.
 
@@ -747,7 +693,7 @@ uint64 c
 It should be observed that bit-compatibility is invariant to the complexity and the level of nesting
 of the data structure.
 From the above provided definitions follows that two fixed-size data structures are bit-compatible if the
-bit lengths of their respective encoded representations are equal.
+bit lengths of their respective serialized representations are equal.
 
 Consider the following example data type definition; assume that its full data type name is
 \verb|demo.Pair|:
@@ -823,8 +769,9 @@ Likewise, for the second definition, there are 6 possible bit length values.
 
 Since both arrays have the same bit offset from the beginning of the bit string,
 and taking into account the fact that the element sizes differ by an integral factor,
-the set of all possible encoded representations of the second definition is a subset of those of the first definition.
-Possible encoded representations are summarized in the table \ref{table:dsdl_variable_size_compat},
+the set of all possible serialized representations of the second definition is a subset of those of
+the first definition.
+Possible serialized representations are summarized in the table \ref{table:dsdl_variable_size_compat},
 where the columns labeled "First definition" and "Second definition" contain the number of elements in the
 respective arrays.
 
