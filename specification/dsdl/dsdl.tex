@@ -801,10 +801,8 @@ but the reverse is not true.
 
 A data structure definition $A$ is semantically compatible with a data structure definition $B$
 if an application that correctly uses $A$ exhibits a functionally equivalent behavior to an application
-that correctly uses $B$,
-and $A$ is bit-compatible with $B$.
-
-Because of the dependency on bit compatibility, the property of semantic compatibility is non-commutative.
+that correctly uses $B$.
+The property of semantic compatibility is commutative.
 
 \subsubsection{Example}
 
@@ -842,7 +840,8 @@ or for the commencement of usage of the data type definition in a production sys
 
 In order to ensure a deterministic application behavior and ensure a robust migration path
 as data type definitions evolve, UAVCAN requires that all data type definitions that share the same
-major version number greater than zero must be mutually semantically compatible with each other.
+major version number greater than zero must be semantically compatible with each other
+and mutually bit-compatible with each other.
 
 In order to ensure predictable and repeatable behavior of applications that leverage UAVCAN,
 the standard requires that once a data type definition is released, it cannot undergo any modifications to
