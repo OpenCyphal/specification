@@ -22,6 +22,8 @@ Both message and service transfers can be further distinguished between:
 
 \begin{description}
     \item[Single-frame transfer] - a transfer that is entirely contained in a single CAN frame.
+    The amount of data that can be exchanged using single-frame transfers is dependent on the transport protocol in use.
+
     \item[Multi-frame transfer] - a transfer that has its payload distributed over multiple CAN frames.
     The UAVCAN protocol stack handles transfer decomposition and reassembly automatically.
 \end{description}
@@ -34,10 +36,10 @@ The following properties are common to all types of transfers:
     Data type ID    & A numerical identifier that indicates how the data structure should be interpreted. \\
     Data type major version number & Semantic major version number of the data type definition. \\
     Source node ID  & The node ID of the transmitting node (excepting anonymous message transfers). \\
-    Priority        & A non-negative integer value that defines the message urgency (0 is the highest priority).
+    Priority        & A non-negative integer value that defines the transfer urgency (0 is the highest priority).
                       Higher priority transfers can preempt lower priority transfers. \\
     Transfer ID     & A small overflowing integer that increments with every transfer
-                      of this type of message from a given node. \\
+                      of this data type from a given node. \\
 \end{UAVCANSimpleTable}
 
 \subsection{Message broadcasting}
