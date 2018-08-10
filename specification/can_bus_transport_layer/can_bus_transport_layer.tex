@@ -68,6 +68,10 @@ An anonymous message has the same properties as a regular message, except for th
 which in the case of anonymous message transfers is always assumed to be zero.
 
 An anonymous transfer can only be a single-frame transfer. Multi-frame anonymous message transfers are not allowed.
+This restriction must be kept in mind when designing message data types
+intended for use with anonymous message transfers:
+when used with anonymous transfers, the whole message must fit into a single CAN frame;
+however, the same data type can be used with multi-frame regular (non-anonymous) transfers.
 
 Note that anonymous messages require specific arbitration rules and have restrictions on the acceptable
 data type ID values. The details are explained later in this chapter.
@@ -133,8 +137,11 @@ provided that every such deviation is explicitly documented.
 \begin{itemize}
     \item Service transfer transmission should be aborted if does not complete in 1 second.
     \item The client should stop waiting for a response from the server if one has not arrived within 1 second.
-    \item The server should be able to process any request in under 0.5 seconds.
 \end{itemize}
+
+If the server uses a significant part of the timeout period to process the request,
+the client might drop the request before receiving the response.
+It is recommended to ensure that the server will be able to process any request in less than 0.5 seconds.
 
 \subsection{Transfer prioritization}\label{sec:transfer_prioritization}
 
