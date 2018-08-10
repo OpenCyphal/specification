@@ -795,6 +795,42 @@ respective arrays.
 The table illustrates the fact that the first definition is compatible with the second definition,
 but the reverse is not true.
 
+Complicated scenarios are possible when a bit belonging to a scalar field is handed over to a
+constrained field such as an array length field or a union tag field.
+Some interesting examples are shown in the table \ref{table:dsdl_many_compat},
+together with a set of valid serialized representation patterns.
+Remember that the bits belonging to void-typed fields are ignored during deserialization.
+
+% Please do not remove the hard placement specifier [H], it is needed to keep tables ordered.
+\begin{table}[H]\caption{Complex bit compatibility examples}\label{table:dsdl_many_compat}
+\begin{tabu}{|l|X|X|X|X|X|}
+\hline
+\rowfont{\bfseries}
+&A                   &   B                 &   C                 &   D                 &   E                 \\
+\hline
+
+\multirow{2}{*}{\textbf{Definition}}
+&\texttt{void1}      & \texttt{bool x}     & \texttt{void1}      & \texttt{bool x}     & \texttt{bool[<5] a} \\
+&\texttt{bool[<3] a} & \texttt{bool[<3] a} & \texttt{bool[<4] a} & \texttt{bool[<4] a} &                     \\
+\hline
+
+\multirow{8}{*}{\begin{tabular}[x]{@{}l@{}}\textbf{Valid}\\\textbf{serialized}\\\textbf{representations}\\\end{tabular}}
+& \multicolumn{2}{l|}{\texttt{000      }}  & \multicolumn{2}{l|}{\texttt{000     }}    & \texttt{000      }  \\
+& \multicolumn{2}{l|}{\texttt{001a     }}  & \multicolumn{2}{l|}{\texttt{001a    }}    & \texttt{001a     }  \\
+& \multicolumn{2}{l|}{\texttt{010aa    }}  & \multicolumn{2}{l|}{\texttt{010aa   }}    & \texttt{010aa    }  \\
+& \multicolumn{2}{l|}{\texttt{         }}  & \multicolumn{2}{l|}{\texttt{011aaa  }}    & \texttt{011aaa   }  \\
+& \multicolumn{2}{l|}{\texttt{100      }}  & \multicolumn{2}{l|}{\texttt{100     }}    & \texttt{100aaaa  }  \\
+& \multicolumn{2}{l|}{\texttt{101a     }}  & \multicolumn{2}{l|}{\texttt{101a    }}    & \texttt{         }  \\
+& \multicolumn{2}{l|}{\texttt{110aa    }}  & \multicolumn{2}{l|}{\texttt{110aa   }}    & \texttt{         }  \\
+& \multicolumn{2}{l|}{\texttt{         }}  & \multicolumn{2}{l|}{\texttt{111aaa  }}    & \texttt{         }  \\
+\hline
+
+\textbf{Compatible with}
+&B                   & A                   & A, B, D             & A, B, C             & \emph{(none)}     \\
+\hline
+\end{tabu}
+\end{table}
+
 \subsection{Semantic compatibility}\label{sec:dsdl_semantic_compatibility}
 
 \subsubsection{Definition}
