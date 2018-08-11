@@ -44,8 +44,6 @@ The following properties are common to all types of transfers:
 
 \subsection{Message broadcasting}
 
-\subsubsection{Regular message broadcasting}
-
 Message broadcasting is the main method of communication between UAVCAN nodes.
 
 A broadcast message is carried by a single message transfer that contains the serialized message data structure.
@@ -57,7 +55,7 @@ An exception applies to \emph{anonymous message broadcasts}.
 
 \subsubsection{Anonymous message broadcasting}
 
-An anonymous message transfer is a transfer that originates from a node that does not have a node ID.
+An anonymous message transfer is a transfer that can be sent from a node that does not have a node ID.
 This sort of message transfer is especially useful for \emph{dynamic node ID allocation}
 (a high-level concept that is reviewed in detail in the chapter \ref{sec:application_layer}).
 
@@ -421,6 +419,8 @@ UAVCAN utilizes three different CAN ID formats for different types of transfers:
 message transfers, service transfers, and anonymous message transfers.
 The structure is summarized in the table \ref{table:can_id_structure}.
 
+{
+\setlength\arrayrulewidth{1pt}  % https://tex.stackexchange.com/a/256732/132781
 % Please do not remove the hard placement specifier [H], it is needed to keep tables ordered.
 \begin{table}[H]\caption{CAN ID structure}\label{table:can_id_structure}
 \NoLeftSkip
@@ -469,6 +469,7 @@ The structure is summarized in the table \ref{table:can_id_structure}.
     Bit & Service & Message & Anonymous message & Bit \\\hline
 \end{tabu}
 \end{table}
+}
 
 The fields are described in detail in the following sections.
 The tables \ref{table:can_id_fields_message_transfer},
