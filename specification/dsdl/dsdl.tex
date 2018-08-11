@@ -1,6 +1,6 @@
 \chapter{Data structure description language}\label{sec:dsdl}
 
-The data structure description language (DSDL) is used to define data structures for exchange via the CAN bus.
+The data structure description language (DSDL) is used to define data structures for exchange via the network.
 DSDL definitions are used to automatically (or manually) generate the message or service
 serialization/deserialization code in a particular programming language.
 A tool that automatically generates source code from DSDL definition files is called a \emph{DSDL compiler}.
@@ -437,7 +437,7 @@ i.e., the most significant bit has the index 0.
 Serialized data structures must be padded upon completion to one byte,
 with the pad bits set to zero.
 Lower layers of the protocol may also add additional padding as
-necessary\footnote{More on this in the chapter \ref{sec:can_bus_transport_layer}.};
+necessary\footnote{More on this in the chapter \ref{sec:transport_layer}.};
 however, the rules and patterns of such padding fall out of the scope of the DSDL specification.
 
 \subsubsection{Example}
@@ -958,7 +958,7 @@ Seeing as the minor version ambiguity is resolved statically,
 this information becomes irrelevant for the protocol at runtime.
 While implementations can keep the minor version information for diagnostic purposes,
 it is completely unnecessary at the transport layer.
-As such, the transport layer (which is specified in the chapter \ref{sec:can_bus_transport_layer})
+As such, the transport layer (which is specified in the chapter \ref{sec:transport_layer})
 does not concern itself with the minor data type version information,
 whereas the major data type version is attached to every transfer.
 

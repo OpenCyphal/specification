@@ -3,8 +3,6 @@
 This chapter covers the basic concepts that govern development and maintenance of the specification.
 The actual specification is contained in the following chapters.
 
-The reader should have a solid understanding of the main concepts and operating principles of the CAN bus.
-
 \section{Design principles}
 
 UAVCAN is designed to adhere to the following set of basic principles.
@@ -56,12 +54,9 @@ defined in the section \ref{sec:transfer_prioritization}.
 Within each priority level, different types of transfers and different data types are
 prioritized in a well-defined deterministic manner.
 
-UAVCAN supports both CAN 2.0 and CAN FD
-transports\footnote{Here and in the following parts of the specification,
-"CAN" implies both CAN 2.0 and CAN FD, unless specifically noted otherwise.
-CAN FD should be considered the primary transport protocol.}.
+The list of transport protocols supported by UAVCAN is provided in the chapter \ref{sec:transport_layer}.
 Non-redundant, doubly-redundant and triply-redundant transports are supported.
-More information on the transport properties and standardized physical connectivity options
+More information on the physical layer and standardized physical connectivity options
 is provided in the chapter \ref{sec:hardware_design_recommendations}.
 
 \section{Maintenance of the standard data type set}

@@ -25,7 +25,8 @@
 
 \section*{Overview}
 
-UAVCAN is an open lightweight protocol designed for reliable communication in aerospace and robotic applications via CAN bus.
+UAVCAN is an open lightweight protocol designed for reliable communication in aerospace and robotic applications via
+robust vehicle bus networks.
 
 Features:
 
@@ -35,7 +36,7 @@ Features:
     \item Efficient exchange of large data structures with automatic decomposition and reassembly.
     \item Lightweight, deterministic, easy to implement, and easy to validate.
     \item Suitable for deeply embedded, resource constrained, hard real-time systems.
-    \item Doubly- or triply- redundant CAN bus support.
+    \item Supports doubly- and triply-redundant transports.
     \item Supports high-precision network-wide time synchronization.
     \item The specification and high quality reference implementations in popular programming languages are free,
     open source, and available for commercial use (MIT license).
@@ -70,7 +71,7 @@ This UAVCAN specification is distributed under the terms of the Creative Commons
 \input{introduction/introduction.tex}
 \input{basic_concepts/basic_concepts.tex}
 \input{dsdl/dsdl.tex}
-\input{can_bus_transport_layer/can_bus_transport_layer.tex}
+\input{transport_layer/transport_layer.tex}
 \input{application_layer/application_layer.tex}
 \input{hardware_design_recommendations/hardware_design_recommendations.tex}
 
