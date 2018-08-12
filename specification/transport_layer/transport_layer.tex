@@ -424,7 +424,7 @@ The following code sample provides an example implementation of the transfer ID 
 constexpr std::uint8_t TransferIDBitLength = 5;
 
 [[nodiscard]]
-constexpr std::int8_t computeForwardDistance(std::uint8_t a, std::uint8_t b)
+constexpr std::uint8_t computeForwardDistance(std::uint8_t a, std::uint8_t b)
 {
     constexpr std::uint8_t MaxValue = (1U << TransferIDBitLength) - 1U;
     assert((a <= MaxValue) && (b <= MaxValue));
@@ -435,9 +435,10 @@ constexpr std::int8_t computeForwardDistance(std::uint8_t a, std::uint8_t b)
         d += 1U << TransferIDBitLength;
     }
 
-    assert((d <= MaxValue) && (d >= -MaxValue));
+    assert(d >= 0);
+    assert(d <= MaxValue);
     assert(((a + d) & MaxValue) == b);
-    return static_cast<std::int8_t>(d);
+    return static_cast<std::uint8_t>(d);
 }
 
 int main()
