@@ -1,10 +1,8 @@
 \chapter{Transport layer}\label{sec:transport_layer}
 
-This chapter defines the CAN bus based transport layer of UAVCAN,
-both for CAN 2.0 and for CAN FD.
-The differences between the two transports are minor,
-so by default all of the information provided in this chapter applies to both,
-unless specifically stated otherwise.
+This chapter defines the transport layer of UAVCAN.
+First, general implementation-agnostic concepts are introduced.
+Afterwards, they are further defined for each supported transport medium, e.g., CAN FD.
 
 \section{The concept of transfer}
 
@@ -21,10 +19,10 @@ UAVCAN defines the following types of transfers:
 Both message and service transfers can be further distinguished between:
 
 \begin{description}
-    \item[Single-frame transfer] - a transfer that is entirely contained in a single CAN frame.
+    \item[Single-frame transfer] - a transfer that is entirely contained in a single transport frame.
     The amount of data that can be exchanged using single-frame transfers is dependent on the transport protocol in use.
 
-    \item[Multi-frame transfer] - a transfer that has its payload distributed over multiple CAN frames.
+    \item[Multi-frame transfer] - a transfer that has its payload distributed over multiple transport frames.
     The UAVCAN protocol stack handles transfer decomposition and reassembly automatically.
 \end{description}
 
@@ -70,7 +68,7 @@ which in the case of anonymous message transfers is always assumed to be zero.
 An anonymous transfer can only be a single-frame transfer. Multi-frame anonymous message transfers are not allowed.
 This restriction must be kept in mind when designing message data types
 intended for use with anonymous message transfers:
-when used with anonymous transfers, the whole message must fit into a single CAN frame;
+when used with anonymous transfers, the whole message must fit into a single transport frame;
 however, the same data type can be used with multi-frame regular (non-anonymous) transfers.
 
 The set of message type ID values that can be used with anonymous messages may be limited
@@ -89,7 +87,7 @@ Generally, a message transmission should be aborted if it cannot be completed in
 Applications are allowed to deviate from this recommendation,
 provided that every such deviation is explicitly documented.
 It is expected that high-frequency high-priority messages may opt for lower timeout values,
-whereas low-priority data may opt for higher timeout values to account for CAN bus congestion.
+whereas low-priority data may opt for higher timeout values to account for the network congestion.
 
 \subsection{Service invocation}
 
@@ -187,10 +185,10 @@ This value is crucial for many aspects of UAVCAN communication; specifically:
     allowing any node to emit concurrent requests to the same server while being able to
     match each response with the corresponding request.
 
-    \item[CAN frame deduplication] - for single-frame transfers,
-    the transfer ID allows receiving nodes to work around the CAN bus
-    frame duplication problem\footnote{This is a well-known issue that can be observed even on a properly
-    fielded CAN bus caused by the fact that a frame that appears valid to the receiver may under certain
+    \item[Transport frame deduplication] - for single-frame transfers,
+    the transfer ID allows receiving nodes to work around the transport
+    frame duplication problem\footnote{This is a well-known issue that can be observed with certain
+    transports such as CAN bus -- a frame that appears valid to the receiver may under certain
     (rare) conditions appear invalid to the transmitter, triggering the latter to retransmit the frame,
     in which case it will be duplicated on the side of the receiver.
     Sequence counting mechanisms such as the transfer ID or the toggle bit (both of which are used in UAVCAN)
@@ -202,7 +200,7 @@ This value is crucial for many aspects of UAVCAN communication; specifically:
     \item[Automatic management of redundant interfaces] - the transfer ID parameter allows the UAVCAN protocol
     stack to perform automatic switchover to a back-up interface shall the primary interface fail.
     The switchover logic can be completely transparent to the application, joining several independent
-    redundant physical CAN transports into a highly reliable single virtual communication channel.
+    redundant physical transports into a highly reliable single virtual communication channel.
 \end{description}
 
 For message transfers and service request transfers the ID value should be computed as described below.
@@ -238,8 +236,8 @@ if the previous transfer of the same descriptor has been published more than 2 s
 
 \subsection{Single frame transfers}
 
-If the size of the entire transfer payload does not exceed the space available for payload in a single CAN frame,
-the whole transfer will be contained in one CAN frame.
+If the size of the entire transfer payload does not exceed the space available for payload in a single transport frame,
+the whole transfer will be contained in one transport frame.
 Such transfer is called a \emph{single-frame transfer}.
 
 Single frame transfers are more efficient than multi-frame transfers in terms of throughput, latency,
@@ -248,7 +246,7 @@ and data overhead.
 \subsection{Multi-frame transfers}
 
 \emph{Multi-frame transfers} are used when the size of the transfer payload exceeds the space available
-for payload in a single CAN frame.
+for payload in a single transport frame.
 
 Two new concepts are introduced in the context of multi-frame transfers, both of which are reviewed below in detail:
 \begin{itemize}
@@ -259,26 +257,26 @@ Two new concepts are introduced in the context of multi-frame transfers, both of
 
 In order to emit a multi-frame transfer, the node must first compute the CRC for the entirety of the transfer payload.
 The node appends the CRC value at the end of the transfer payload,
-and then emits the resulting byte set in chunks as an ordered sequence of CAN frames
-(i.e. the last CAN frame contains the last bytes of the payload and the transfer CRC).
-The data field of all CAN frames of a multi-frame transfer, except the last one, must be fully utilized.
+and then emits the resulting byte set in chunks as an ordered sequence of transport frames
+(i.e. the last transport frame contains the last bytes of the payload and the transfer CRC).
+The data field of all transport frames of a multi-frame transfer, except the last one, must be fully utilized.
 
 All frames of a multi-frame transfer should be pushed to the transmission queue at once,
 in the proper order from the first frame to the last frame.
-Explicit gap time between CAN frames belonging to the same transfer should not be introduced.
+Explicit gap time between transport frames belonging to the same transfer should not be introduced.
 
 \subsubsection{Transfer CRC}\label{sec:transfer_crc}
 
 The objective of the transfer CRC is to allow receiving nodes to validate correctness of
 multi-frame transfer reassembly.
 It should be understood that the transfer CRC is not intended for bit-level data integrity checks,
-as that is managed by the CAN bus transport automatically.
+as that must be managed by the transport layer implementation on a per-frame basis.
 As such, the transfer CRC allows receiving nodes to ensure that all of the frames of a multi-frame
 transfer were received, all of the received frames were reassembled in the correct order,
 and that all of the received frames belong to the same multi-frame transfer.
 
 The transfer CRC is computed over the entire payload of the transfer.
-Certain transports, such as CAN FD, may require a short sequence of padding bytes to be added
+Certain transport implementations, such as CAN FD, may require a short sequence of padding bytes to be added
 at the end of the transfer payload due to low granularity of the frame payload length property;
 in that case, the padding bytes are not to be included in the CRC computation.
 
@@ -356,14 +354,14 @@ int main()
 
 \subsubsection{Toggle bit}\label{sec:toggle_bit}
 
-The toggle bit is a property defined at the CAN frame level.
-Its purpose is to detect and avoid CAN frame duplication errors in multi-frame
-transfers\footnote{In single-frame transfers, CAN frame deduplication is based on the transfer ID counter.}.
+The toggle bit is a property defined at the transport frame level.
+Its purpose is to detect and avoid transport frame duplication errors in multi-frame
+transfers\footnote{In single-frame transfers, transport frame deduplication is based on the transfer ID counter.}.
 
-The toggle bit of the first CAN frame of a multi-frame transfer must be set to one.
-The toggle bits of the following CAN frames of the transfer must alternate,
-i.e., the toggle bit of the second CAN frame must be zero,
-the toggle bit of the third CAN frame must be one, and so on.
+The toggle bit of the first transport frame of a multi-frame transfer must be set to one.
+The toggle bits of the following transport frames of the transfer must alternate,
+i.e., the toggle bit of the second transport frame must be zero,
+the toggle bit of the third transport frame must be one, and so on.
 
 For single-frame transfers, the toggle bit must be set to one or removed completely,
 whichever option works best for the particular transport.
@@ -374,10 +372,10 @@ to facilitate automatic protocol version detection.
 
 \subsection{Redundant interface support}
 
-In configurations with redundant CAN bus interfaces,
+In configurations with redundant bus interfaces,
 nodes are required to submit every outgoing transfer to the transmission queues of
 all available redundant interfaces simultaneously.
-It is understood that perfectly simultaneous transmission may not be possible due to different
+It is recognized that perfectly simultaneous transmission may not be possible due to different
 utilization rates of the redundant interfaces and different phasing of their traffic;
 however, that is not an issue for UAVCAN.
 If perfectly simultaneous frame submission is not possible, interfaces with lower numerical index
@@ -481,16 +479,16 @@ which implies that the receiver map may over time accumulate receiver states tha
 Therefore, nodes are allowed, but not required, to remove any receiver state from the receiver map,
 once the state reaches the \emph{transfer ID timeout condition}.
 
-Receiver state can only be modified when a new CAN frame of a matching transfer is received.
+Receiver state can only be modified when a new transport frame of a matching transfer is received.
 This guarantee simplifies implementation, as it implies that the receiver states will not
 require any background maintenance processes.
 
 \begin{UAVCANSimpleTable}{Transfer reception state variables}{|l X|}
     State               & Description \label{table:transfer_receiver_state_variables} \\
-    Transfer payload    & Useful payload byte sequence; extended upon reception of CAN frames. \\
+    Transfer payload    & Useful payload byte sequence; extended upon reception of transport frames. \\
     Transfer ID         & The transfer ID value of the current transfer or the next expected transfer.
                           Section \ref{sec:transfer_id}. \\
-    Next toggle bit     & Expected value of the toggle bit in the next CAN frame.
+    Next toggle bit     & Expected value of the toggle bit in the next transport frame.
                           Section \ref{sec:toggle_bit}. \\
     Transfer timestamp  & The local monotonic timestamp sampled when the first frame of the transfer arrived.
                           Here, "monotonic" means that the reference clock does not change its rate or leap. \\
@@ -503,14 +501,14 @@ require any background maintenance processes.
     Extension   & Add newly received useful payload data to the current transfer payload state. \\
 
     Restart     & Reset the state variables to match the parameters of a new transfer.
-                  A reset can only be performed synchronously with the reception of a matching CAN frame
+                  A reset can only be performed synchronously with the reception of a matching transport frame
                   which is the first frame of a new transfer (e.g. the start of transfer flag is set).
                   A reset operation includes at least the following:
                   \begin{itemize}
                       \item Clearing (emptying) the transfer payload state.
                       \item Updating the transfer ID state with the actual transfer ID value from the new transfer.
                       \item Setting the toggle bit to its initial state (section \ref{sec:toggle_bit}).
-                      \item Initializing the transfer timestamp with the reception timestamp from the CAN frame.
+                      \item Initializing the transfer timestamp with the reception timestamp from the transport frame.
                       \item Initializing the interface index (for nodes with redundant interfaces only).
                   \end{itemize}\\
 \end{UAVCANSimpleTable}
@@ -525,7 +523,7 @@ require any background maintenance processes.
     Last matching transfer was seen more than 2 seconds ago.\\
 
     Interface switch allowed &
-    This condition is only applicable for configurations with redundant CAN bus interfaces.
+    This condition is only applicable for configurations with redundant transport interfaces.
     It means that the node is allowed to receive the next transfer from an interface that is not the same
     the previous transfer was received from.
     The condition is reached when the last matching transfer has been successfully received more than
@@ -538,7 +536,7 @@ require any background maintenance processes.
 \subsection{State update in a redundant interface configuration}
 
 The following pseudocode demonstrates the transfer reception process
-for a configuration with redundant CAN bus interfaces.
+for a configuration with redundant transport interfaces.
 
 \clearpage
 \begin{minted}{cpp}
@@ -624,7 +622,7 @@ function receiveFrame(frame)
 \subsection{State update in a non-redundant interface configuration}
 
 The following pseudocode demonstrates the transfer reception process for a configuration
-with a non-redundant CAN bus interface.
+with a non-redundant transport interface.
 This is a specialization of the more general algorithm defined for redundant transport.
 
 \clearpage
