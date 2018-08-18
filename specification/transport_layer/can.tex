@@ -15,13 +15,12 @@ therefore, backward compatibility with other protocols is not guaranteed.
 
 UAVCAN utilizes three different CAN ID formats for different types of transfers:
 message transfers, service transfers, and anonymous message transfers.
-The structure is summarized in the table \ref{table:can_id_structure}.
+The structure is summarized on the figure \ref{fig:can_id_structure}.
 
-{
+% Please do not remove the hard placement specifier [H], it is needed to keep elements ordered.
+\begin{figure}[H]
+\centering
 \setlength\arrayrulewidth{1pt}  % https://tex.stackexchange.com/a/256732/132781
-% Please do not remove the hard placement specifier [H], it is needed to keep tables ordered.
-\begin{table}[H]\caption{CAN ID structure}\label{table:can_id_structure}
-\NoLeftSkip
 \begin{tabu}{|c|X[c]|X[c]|X[c]|c|}
     \hline
     \rowfont{\bfseries}
@@ -66,8 +65,8 @@ The structure is summarized in the table \ref{table:can_id_structure}.
     \rowfont{\bfseries}
     Bit & Service & Message & Anonymous message & Bit \\\hline
 \end{tabu}
-\end{table}
-}
+\caption{CAN ID structure}\label{fig:can_id_structure}
+\end{figure}
 
 The fields are described in detail in the following sections.
 The tables \ref{table:can_id_fields_message_transfer},
