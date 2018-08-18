@@ -880,6 +880,10 @@ as data type definitions evolve, UAVCAN requires that all data type definitions 
 major version number greater than zero must be semantically compatible with each other
 and mutually bit-compatible with each other.
 
+Observe that the data type name or its ID do not affect its compatibility.
+Regardless, the default data type ID and/or the name of a data type should not be changed after its release,
+as that would essentially construe the release of a new data type.
+
 In order to ensure predictable and repeatable behavior of applications that leverage UAVCAN,
 the standard requires that once a data type definition is released, it cannot undergo any modifications to
 its attributes or directives anymore.
