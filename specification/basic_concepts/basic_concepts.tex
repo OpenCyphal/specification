@@ -45,8 +45,23 @@ allowing nodes to exchange data structures of arbitrary size.
 
 \begin{figure}[hbt]
     \centering
-	\includegraphics[width=0.5\textwidth]{basic_concepts/Architecture}
-	\caption{UAVCAN architectural diagram.\label{fig:architecture}}
+    \setlength\arrayrulewidth{1pt}  % https://tex.stackexchange.com/a/256732/132781
+    \begin{tabularx}{0.8\textwidth}{|X|X|X|X|}
+        \hline
+        \multicolumn{4}{|c|}{Application} \\
+        \hline
+
+        & Standard functions & \multicolumn{2}{c|}{\multirow{3}{*}{Vendor-specific data types (optional)}} \\\cline{2-2}
+        \multicolumn{2}{|c|}{\multirow{2}{*}{Standard data types}} & \multicolumn{2}{c|}{} \\
+        \multicolumn{2}{|c|}{} & \multicolumn{2}{c|}{} \\
+
+        \hline
+        \multicolumn{4}{|c|}{Serialization} \\
+        \hline
+        \multicolumn{4}{|c|}{Transport layer} \\
+        \hline
+    \end{tabularx}
+    \caption{UAVCAN architectural diagram.\label{fig:architecture}}
 \end{figure}
 
 \section{Message broadcasting}
