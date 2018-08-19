@@ -672,7 +672,7 @@ This will ensure compatibility with future revisions of the specification that m
 currently unused circuits of the connector.
 
 The CAN physical layer standard that can be used with this connector type is
-\textbf{ISO 11898-2}\footnote{Also known as \emph{high-speed CAN}.}.
+ISO 11898-2\footnote{Also known as \emph{high-speed CAN}.}.
 
 Devices that deliver power to the bus are required to provide 23.0--30.0 V on the bus power line, 24 V nominal.
 The maximum current draw is up to 3 A per connector.
@@ -699,5 +699,78 @@ Usage of twisted or flat wires for all other signals remains at the discretion o
     9  & Bus power supply   & 24 V nominal. See the power supply requirements. \\
 \end{UAVCANSimpleTable}
 
+\subsubsection{UAVCAN M8 connector}
 
+The UAVCAN M8 connector type is based on the standard circular M8 B-coded 5-circuit connector type,
+shown on the figure \ref{fig:can_uavcan_m8_connector_example}.
+This is a popular industry-standard connector, and there are many vendors that manufacture compatible components:
+connectors, cables, termination plugs, T-connectors, and so on.
+The pinning, physical layer, and supply voltages used in this connector type are compatible with CiA 103 (CANopen)
+and some other CAN bus standards.
 
+The M8 connector is preferred for most UAVCAN applications (it should be the default choice,
+except when there are specific reasons to select another standard connector type).
+
+{
+\NoLeftSkip
+\begin{UAVCANCompactTable}{X X}
+    Advantages & Disadvantages \\
+    \begin{itemize}
+        \item Compatibility with existing COTS hardware.
+        Connectors, cables, termination plugs, and other components can be purchased from many different vendors.
+        \item High-reliability options are available from multiple vendors.
+        \item Low-cost options are available from multiple vendors.
+        \item Reasonably compact. M8 connectors are much smaller than D-Sub.
+        \item PCB mounted and panel mounted types are available.
+    \end{itemize}
+    &
+    \begin{itemize}
+        \item M8 connectors may be a poor fit for applications that have severe weight and space constraints.
+        \item The level of adoption in the industry is noticeably lower than that of the D-Sub connector type.
+    \end{itemize}
+\end{UAVCANCompactTable}
+}
+
+\begin{figure}[hbt]
+    \centering
+    \includegraphics[width=0.7\textwidth]{transport_layer/m8_connector_pair_female_socket_male_plug}\\
+    Example connectors: female socket cable (left) and male plug device connector (right).
+    Different connector types are available from various vendors: PCB mounted, panel mounted;
+    straight cables, angled cables, etc.
+    \caption{UAVCAN M8 connector pair example.
+    \label{fig:can_uavcan_m8_connector_example}}
+\end{figure}
+
+\begin{figure}[hbt]
+    \centering
+    \includegraphics[width=0.7\textwidth]{transport_layer/m8_connector_pair_assembled}
+    \caption{UAVCAN M8 assembled connector pair example.}
+\end{figure}
+
+The UAVCAN M8 connector is based on the industry-standard \textbf{circular M8 B-coded 5-circuit} connector type.
+Devices are equipped with the male plug connector type
+mounted on the panel or on the PCB, and the cables are equipped with the female socket connectors on both ends
+(see the figure \ref{fig:can_uavcan_m8_connector_example}).
+\emph{Do not confuse A-coded and B-coded M8 connectors -- they are not mutually compatible}.
+
+The CAN physical layer standard that can be used with this connector type is
+ISO 11898-2\footnote{Also known as \emph{high-speed CAN}.}.
+
+Devices that deliver power to the bus are required to provide 23.0--30.0 V on the bus power line, 24 V nominal.
+The maximum current draw is up to 3 A per connector.
+
+Devices that are powered from the bus should expect 18.0--30.0 V on the bus power line.
+The maximum recommended current draw from the bus is 0.5 A per device.
+
+The table \ref{table:can_uavcan_m8_pinout} documents the pinout specification for the UAVCAN M8 connector type.
+The provided pinout, as indicated above, is compatible with the CiA 103 specification (CANopen).
+Note that the wires "CAN high" and "CAN low" should be a twisted pair.
+
+\begin{UAVCANSimpleTable}{UAVCAN M8 connector pinout}{|l l X|}\label{table:can_uavcan_m8_pinout}
+    \# & Function           & Note \\
+    1  & Bus power supply   & 24 V nominal. See the power supply requirements. \\
+    2  & CAN shield         & Optional. \\
+    3  & CAN high           & Twisted with "CAN low" (pin 4). \\
+    4  & CAN low            & Twisted with "CAN high" (pin 3). \\
+    5  & Ground             & \\
+\end{UAVCANSimpleTable}
