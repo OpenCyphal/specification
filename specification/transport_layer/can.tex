@@ -606,8 +606,14 @@ until the number of available hardware filters is sufficient to accommodate the 
 The UAVCAN standard defines several connector types, targeted towards different application domains:
 from highly compact systems to large deployments, from low-cost to safety-critical applications.
 
-The table \ref{table:can_connector_summary} provides an overview of the currently defined connector types.
+The table \ref{table:can_connector_summary} provides an overview of the currently defined connector types
+for the CAN bus transport implementation.
 Other connector types may be added in future revisions of the specification.
+
+It is highly recommended to provide two identical parallel connectors for each CAN interface per device,
+so that the device can be connected to the bus without the need to use T-connectors.
+T-connectors should be avoided when possible because generally they add an extra point of failure,
+increase the stub length, weight, and often require more complex and expensive wiring harnesses.
 
 \begin{UAVCANSimpleTable}{Standard CAN connector types}{l l l X}\label{table:can_connector_summary}
     Connector name & Base connector type & Bus power & Known compatible standards \\
@@ -845,3 +851,44 @@ Note that the wires "CAN high" and "CAN low" should be a twisted pair.
     4  & Ground             & \\
 \end{UAVCANSimpleTable}
 
+\subsection{CAN bus physical layer parameters}
+
+As can be seen from the rest of the specification,
+UAVCAN is mostly agnostic of the parameters of the physical layer.
+However, vendors should follow the recommendations provided in this section
+to maximize the cross-vendor compatibility.
+
+\subsubsection{CAN 2.0}
+
+This section is dedicated to the legacy CAN 2.0 protocol.
+
+The table \ref{table:can_2.0_phy_parameters} lists the standard parameters of the CAN PHY for
+ISO 11898-2.
+The estimated bus length limits are based on the assumption that the propagation delay does not exceed 5 ns/m,
+not including additional delay times of CAN transceivers and other components.
+
+\begin{UAVCANSimpleTable}{UAVCAN Micro connector pinout}{|X[c] X[c] X[c] X[c] X[c]|}
+    Bit rate [kbit/s] &
+    Valid range for location of sample point [\%] &
+    Recommended location of sample point [\%] &
+    Maximum bus length [m] &
+    Maximum stub length [m] \label{table:can_2.0_phy_parameters} \\
+
+    1000    & 75 to 90  & 87.5  & 40    & 0.3 \\
+     500    & 85 to 90  & 87.5  & 100   & 0.3 \\
+     250    & 85 to 90  & 87.5  & 250   & 0.3 \\
+     125    & 85 to 90  & 87.5  & 500   & 0.3 \\
+\end{UAVCANSimpleTable}
+
+Designers are encouraged to implement CAN auto bit rate detection when applicable.
+Please refer to the CiA 801 application note for the recommended practices.
+
+UAVCAN allows the use of a simple bit time measuring approach,
+as it is guaranteed that any functioning UAVCAN network will always exchange node status messages,
+which can be expected to be published at a rate no lower than 1 Hz,
+and that contain a suitable alternating bit pattern in the CAN ID field.
+Please refer to the chapter \ref{sec:application_layer} for details.
+
+\subsubsection{CAN FD}
+
+This section will be populated in a later revision of the document.
