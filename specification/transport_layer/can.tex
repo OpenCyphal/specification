@@ -774,3 +774,70 @@ Note that the wires "CAN high" and "CAN low" should be a twisted pair.
     4  & CAN low            & Twisted with "CAN high" (pin 3). \\
     5  & Ground             & \\
 \end{UAVCANSimpleTable}
+
+\subsubsection{UAVCAN Micro connector}
+
+The UAVCAN Micro connector is intended for weight- and space-sensitive applications.
+It is a board-level connector, meaning that it can be installed on the PCB rather than on the panel.
+An example is shown on the figure \ref{fig:can_uavcan_micro_connector_example}.
+
+The Micro connector is compatible with the Dronecode Autopilot Connector Standard.
+This connector type is recommended for small UAV and nanosatellites.
+It is also the recommended connector for attaching external panel-mounted connectors
+(such as the M8 or D-Sub types) to the PCB inside the enclosure.
+
+{
+\NoLeftSkip
+\begin{UAVCANCompactTable}{X X}
+    Advantages & Disadvantages \\
+    \begin{itemize}
+        \item Extremely compact, low-profile. The PCB footprint is under 9✕5 millimeters.
+        \item Secure positive lock ensures that the connection will not self-disconnect when exposed to vibrations.
+        \item Low-cost, easy to stock.
+    \end{itemize}
+    &
+    \begin{itemize}
+        \item Board-level connections only. No panel-mounted options available.
+        \item No shielding available.
+        \item Not suitable for safety-critical hardware.
+    \end{itemize}
+\end{UAVCANCompactTable}
+}
+
+\begin{figure}[hbt]
+    \centering
+    \includegraphics[width=0.7\textwidth]{transport_layer/jst_gh_connectors}
+    \caption{UAVCAN Micro right-angle connectors with a twisted pair patch cable connected.
+    \label{fig:can_uavcan_micro_connector_example}}
+\end{figure}
+
+\begin{figure}[hbt]
+    \centering
+    \includegraphics[width=0.4\textwidth]{transport_layer/jst_gh_termination_plug}
+    \caption{UAVCAN Micro CAN bus termination plug.}
+\end{figure}
+
+The UAVCAN Micro connector is based on the proprietary \textbf{JST GH 4-circuit} connector type.
+
+The suitable cable types are flat or twisted pair \#30 to \#26 AWG,
+outer insulation diameter 0.8--1.0 mm, multi-strand.
+Non-twisted (flat) cables can only be used in very small deployments free of significant
+EMI\footnote{Electromagnetic interference.};
+otherwise, reliable functioning of the bus cannot be guaranteed.
+
+The CAN physical layer standard that can be used with this connector type is ISO 11898-2.
+
+Devices that deliver power to the bus are required to provide 5.0--5.5 V on the bus power line.
+The anticipated current draw is up to 1 A per connector.
+
+Devices that are powered from the bus should expect 4.0--5.5 V on the bus power line.
+The maximum recommended current draw from the bus is 0.5 A per device.
+
+\begin{UAVCANSimpleTable}{UAVCAN M8 connector pinout}{|l l X|}\label{table:can_uavcan_m8_pinout}
+    \# & Function           & Note \\
+    1  & Bus power supply   & 5 V nominal. See the power supply requirements. \\
+    2  & CAN high           & Should be twisted with "CAN low" (pin 4). \\
+    3  & CAN low            & Should be twisted with "CAN high" (pin 3). \\
+    4  & Ground             & \\
+\end{UAVCANSimpleTable}
+
