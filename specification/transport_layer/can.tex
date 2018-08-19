@@ -396,6 +396,33 @@ The resulting data field segmentation is shown in the table \ref{table:can_data_
 
 \subsection{CAN-related software design considerations}
 
+\subsubsection{Ordered transmission}
+
+Multi-frame transfers use identical CAN ID for all frames of the transfer,
+and UAVCAN requires that all frames of a multi-frame transfer should be transmitted in the correct order.
+Therefore, the CAN controller driver software must ensure that CAN frames with identical CAN ID values
+must be transmitted in their order of appearance in the transmission queue.
+Some CAN controllers will not meet this requirement by default,
+so the designer must take special care to ensure the correct behavior, and apply workarounds if necessary.
+
+\subsubsection{Transmission time-stamping}
+
+Certain advanced features of UAVCAN may require the driver to time-stamp outgoing transport frames, e.g.,
+the time synchronization feature.
+A sensible approach to transmission time-stamping is built around the concept of \emph{loop-back frames},
+which is described here.
+
+If the application needs to time-stamp an outgoing frame, it sets a special flag -- the \emph{loop-back flag} --
+on the frame before sending it to the driver.
+The driver would then automatically re-enqueue this frame back into the reception queue once it is transmitted
+(keeping the loop-back flag set so that the application is able to distinguish the loop-back
+frame from regular received traffic).
+The time-stamp of the loop-backed frame would be of the moment when it was delivered to the bus.
+
+The advantage of the loop-back based approach is that it relies on the same interface between
+the application and the driver that is used for regular communications.
+No complex and dangerous callbacks or write-backs from interrupt handlers are involved.
+
 \subsubsection{Inner priority inversion}
 
 Suppose the application needs to emit a frame with the CAN ID $X$.
@@ -453,58 +480,123 @@ e.g., by limiting the number of simultaneously used distinct CAN ID values.
 The following pseudocode demonstrates the principles explained above:
 
 \begin{minipage}{0.8\textwidth}
-\begin{minted}{c}
+\begin{minted}{cpp}
 // Returns the index of the TX mailbox that can be used for the transmission of the newFrame
 // If none are available, returns -1.
 getFreeMailboxIndex(newFrame)
 {
-    chosen_mailbox = -1;    // By default, assume that no mailboxes are available
+    chosen_mailbox = -1     // By default, assume that no mailboxes are available
 
-    for (i = 0; i < NumberOfTxMailboxes; i++)
+    for i = 0...NumberOfTxMailboxes
     {
-        if (isTxMailboxFree(i))
+        if isTxMailboxFree(i)
         {
-            chosen_mailbox = i;
+            chosen_mailbox = i
             // Note: cannot break here, must check all other mailboxes as well.
         }
         else
         {
-            if (!isFramePriorityHigher(newFrame, getFrameFromTxMailbox(i)))
+            if not isFramePriorityHigher(newFrame, getFrameFromTxMailbox(i))
             {
-                chosen_mailbox = -1;
-                break;  // Denied - must wait until this mailbox has finished transmitting
+                chosen_mailbox = -1
+                break   // Denied - must wait until this mailbox has finished transmitting
             }
         }
     }
 
-    return chosen_mailbox;
+    return chosen_mailbox
 }
 \end{minted}
 \end{minipage}
 
-\subsubsection{Ordered transmission}
+\subsubsection{Automatic hardware acceptance filter configuration}
 
-Multi-frame transfers use identical CAN ID for all frames of the transfer,
-and UAVCAN requires that all frames of a multi-frame transfer should be transmitted in the correct order.
-Therefore, the CAN controller driver software must ensure that CAN frames with identical CAN ID values
-must be transmitted in their order of appearance in the transmission queue.
-Some CAN controllers will not meet this requirement by default,
-so the designer must take special care to ensure the correct behavior, and apply workarounds if necessary.
+Most CAN controllers are equipped with hardware acceptance filters.
+Hardware acceptance filters reduce the application workload by ignoring irrelevant CAN frames on the bus
+by comparing their ID values against the set of relevant ID values configured by the application.
 
-\subsubsection{Transmission time-stamping}
+There exist two common approaches to CAN hardware filtering:
+list-based and mask-based.
+In the case of the list-based approach, every CAN frame detected on the bus is compared
+against the set of reference CAN ID values provided by the application;
+only those frames that are found in the reference set are accepted.
+Due to the complex structure of the CAN ID field used by UAVCAN,
+usage of the list-based filtering method with this protocol is impractical.
 
-Certain advanced features of UAVCAN may require the driver to time-stamp outgoing transport frames, e.g.,
-the time synchronization feature.
-A sensible approach to transmission time-stamping is built around the concept of \emph{loop-back frames},
-which is described here.
+Most CAN controller vendors implement mask-based filters,
+where the behavior of each filter is defined by two parameters: the mask $M$ and the reference ID $R$.
+Then, such filter accepts only those CAN frames for which the following bitwise logical condition holds
+true\footnote{$\land$ -- bitwise logical AND, $\oplus$ -- bitwise logical XOR, $\neg$ - bitwise logical NOT.}:
+$$((X \land M) \oplus R) \leftrightarrow 0$$
+where $X$ is the CAN ID value of the evaluated frame.
 
-If the application needs to time-stamp an outgoing frame, it sets a special flag -- the \emph{loop-back flag} --
-on the frame before sending it to the driver.
-The driver would then automatically re-enqueue this frame back into the reception queue once it is transmitted
-(keeping the loop-back flag set so that the application is able to distinguish the loop-back
-frame from regular received traffic).
-The time-stamp of the loop-backed frame would be of the moment when it was delivered to the bus.
+Complex UAVCAN applications are often required to operate with more distinct transfers than there are
+acceptance filters available in the hardware.
+That creates the challenge of finding the optimal configuration of the available filters that meets the
+following criteria:
+\begin{itemize}
+    \item All CAN frames needed by the application are accepted.
+    \item The number of irrelevant frames (i.e., not used by the application) accepted from the bus is minimized.
+\end{itemize}
 
-The advantage of the loop-back based approach is that it relies on the same interface between
-the application and the driver that is used for regular communications.
-No complex and dangerous callbacks or write-backs from interrupt handlers are involved.
+The optimal configuration is a function of the number of available hardware filters,
+the set of distinct transfers needed by the application,
+and the expected frequency of occurrence of all possible distinct transfers on the bus.
+The latter is important because if there are to be irrelevant transfers,
+it makes sense to optimize the configuration so that the acceptance of less common irrelevant transfers
+is preferred over the more common irrelevant transfers, as that reduces the processing load on the application.
+
+The optimal configuration depends on the properties of the network the node is connected to.
+In the absence of the information about the network,
+or if the properties of the network are expected to change frequently,
+it is possible to resort to a quasi-optimal configuration which assumes that
+the occurrence of all possible irrelevant transfers is equally probable.
+As such, the quasi-optimal configuration is a function of only the number of available hardware filters
+and the set of distinct transfers needed by the application.
+
+The quasi-optimal configuration can be easily found automatically.
+Certain implementations of the UAVCAN protocol stack include this functionality,
+allowing the application to easily adjust the configuration of the hardware acceptance filters
+using a very simple API.
+
+The quasi-optimal hardware acceptance filter configuration algorithm is defined below.
+
+First, the bitwise \emph{filter merge} operation is defined on filter configurations $A$ and $B$.
+The set of CAN frames accepted by the merged filter configuration is a superset of
+those accepted by $A$ and $B$.
+The definition is as follows:
+\begin{equation*}
+\begin{split}
+    m_M(R_A, R_B, M_A, M_B) & = M_A \land M_B \land \neg (R_A \oplus R_B) \\
+    m_R(R_A, R_B, M_A, M_B) & = R_A \land m_M(R_A, R_B, M_A, M_B)
+\end{split}
+\end{equation*}
+
+The \emph{filter rank} is a function of the mask of the filter.
+The rank of a filter is a unitless quantity that defines in relative terms how selective the filter configuration is.
+The rank of a filter is inversely proportional to the likelihood that the filter will accept a random CAN ID.
+In the context of hardware filtering, this quantity is conveniently representable via the number of bits set in
+the filter mask parameter:
+\begin{equation*}
+r(M) =
+\begin{cases}
+    0                                   & \quad M < 1 \\
+    r(\lfloor\frac{M}{2}\rfloor)        & \quad M \land 1 = 0 \\
+    r(\lfloor\frac{M}{2}\rfloor) + 1    & \quad M \land 1 \neq 0 \\
+\end{cases}
+\end{equation*}
+
+Having the low-level operations defined, we can proceed to define the whole algorithm.
+First, construct the initial set of CAN acceptance filter configurations
+according to the requirements of the application.
+Then, as long as the number of configurations in the set exceeds the number of available hardware acceptance filters,
+repeat the following:
+\begin{enumerate}
+    \item Find the pair $A$, $B$ of configurations in the set for which $r(m_M(R_A, R_B, M_A, M_B))$ is maximized.
+    \item Remove $A$ and $B$ from the set of configurations.
+    \item Add a new configuration $X$ to the set of configurations, where
+    $X_M = m_M(R_A, R_B, M_A, M_B)$, and $X_R = m_R(R_A, R_B, M_A, M_B)$.
+\end{enumerate}
+
+The algorithm reduces the number of filter configurations by one at each iteration,
+until the number of available hardware filters is sufficient to accommodate the whole set of configurations.
