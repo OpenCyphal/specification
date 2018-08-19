@@ -394,12 +394,95 @@ The resulting data field segmentation is shown in the table \ref{table:can_data_
 \end{tabu}
 \end{table}
 
-\subsection{CAN bus requirements}
+\subsection{CAN-related software design considerations}
 
-The chapter \ref{sec:hardware_design_recommendations} contains important information
-concerning the CAN bus bit rate, connectors, and other properties of the physical layer of the protocol.
+\subsubsection{Inner priority inversion}
 
-\subsubsection{CAN controller driver software}
+Suppose the application needs to emit a frame with the CAN ID $X$.
+The frame is submitted to the CAN controller's registers and the transmission is started.
+Suppose that afterwards it turned out that there is a new frame with the CAN ID $(X-1)$ that needs to be sent,
+too, but the previous frame $X$ is in the way, and it is blocking the transmission of the new frame.
+This may turn into a problem if the lower-priority frame is losing arbitration on the bus due
+to the traffic on the bus having higher priority than the current frame,
+but lower priority than the next frame that is waiting in the queue.
+
+A naive solution to this is to continuously check whether the priority of the frame that is currently being
+transmitted by the CAN controller is lower than the priority of the next frame in the queue, and if it is,
+abort transmission of the current frame, move it back to the transmission queue,
+and begin transmission of the new one instead.
+This approach, however, has a hidden race condition:
+the old frame may be aborted at the moment when it has already been received by remote nodes,
+which means that the next time it is re-transmitted, the remote nodes will see it duplicated.
+Additionally, this approach increases the complexity of the driver and can possibly affect
+its throughput and latency.
+
+Most CAN controllers offer a proper solution to the problem:
+they have multiple transmission mailboxes (usually at least 3),
+and the controller always chooses for transmission the mailbox which contains the highest priority frame.
+This provides the application with a possibility to avoid the inner priority inversion problem:
+whenever a new transmission is initiated, the application should check whether the priority of the next frame
+is higher than any of the other frames that are already awaiting transmission.
+If there is at least one higher-priority frame pending,
+the application doesn't move the new one to the controller's transmission mailboxes,
+it remains in the queue.
+Otherwise, if the new frame has a higher priority level than all of the pending frames,
+it is pushed to the controller's transmission mailboxes and removed from the queue.
+In the latter case, if a lower-priority frame loses arbitration,
+the controller would postpone its transmission and try transmitting the higher-priority one instead.
+That resolves the problem.
+
+There is an interesting extreme case, however.
+Imagine a controller equipped with $N$ transmission mailboxes.
+Suppose the application needs to emit $N$ frames in the increasing order of priority,
+which leads to all of the transmission mailboxes of the controller being occupied.
+Now, if all of the conditions below are satisfied, the system ends up with a priority inversion condition nevertheless,
+despite the measures described above:
+
+\begin{itemize}
+    \item The highest-priority pending CAN frame cannot be transmitted due to the bus being saturated
+    with a higher-priority traffic.
+    \item The application needs to emit a new frame which has a higher priority than that which saturates the bus.
+\end{itemize}
+
+If both hold, a priority inversion is afoot because there is no free transmission mailbox to
+inject the new higher-priority frame into.
+The scenario is extremely unlikely, however;
+it is also possible to construct the application in a way that would preclude the problem,
+e.g., by limiting the number of simultaneously used distinct CAN ID values.
+
+The following pseudocode demonstrates the principles explained above:
+
+\begin{minipage}{0.8\textwidth}
+\begin{minted}{c}
+// Returns the index of the TX mailbox that can be used for the transmission of the newFrame
+// If none are available, returns -1.
+getFreeMailboxIndex(newFrame)
+{
+    chosen_mailbox = -1;    // By default, assume that no mailboxes are available
+
+    for (i = 0; i < NumberOfTxMailboxes; i++)
+    {
+        if (isTxMailboxFree(i))
+        {
+            chosen_mailbox = i;
+            // Note: cannot break here, must check all other mailboxes as well.
+        }
+        else
+        {
+            if (!isFramePriorityHigher(newFrame, getFrameFromTxMailbox(i)))
+            {
+                chosen_mailbox = -1;
+                break;  // Denied - must wait until this mailbox has finished transmitting
+            }
+        }
+    }
+
+    return chosen_mailbox;
+}
+\end{minted}
+\end{minipage}
+
+\subsubsection{Ordered transmission}
 
 Multi-frame transfers use identical CAN ID for all frames of the transfer,
 and UAVCAN requires that all frames of a multi-frame transfer should be transmitted in the correct order.
@@ -407,3 +490,21 @@ Therefore, the CAN controller driver software must ensure that CAN frames with i
 must be transmitted in their order of appearance in the transmission queue.
 Some CAN controllers will not meet this requirement by default,
 so the designer must take special care to ensure the correct behavior, and apply workarounds if necessary.
+
+\subsubsection{Transmission time-stamping}
+
+Certain advanced features of UAVCAN may require the driver to time-stamp outgoing transport frames, e.g.,
+the time synchronization feature.
+A sensible approach to transmission time-stamping is built around the concept of \emph{loop-back frames},
+which is described here.
+
+If the application needs to time-stamp an outgoing frame, it sets a special flag -- the \emph{loop-back flag} --
+on the frame before sending it to the driver.
+The driver would then automatically re-enqueue this frame back into the reception queue once it is transmitted
+(keeping the loop-back flag set so that the application is able to distinguish the loop-back
+frame from regular received traffic).
+The time-stamp of the loop-backed frame would be of the moment when it was delivered to the bus.
+
+The advantage of the loop-back based approach is that it relies on the same interface between
+the application and the driver that is used for regular communications.
+No complex and dangerous callbacks or write-backs from interrupt handlers are involved.
