@@ -813,7 +813,7 @@ It is also the recommended connector for attaching external panel-mounted connec
 
 \begin{figure}[hbt]
     \centering
-    \includegraphics[width=0.4\textwidth]{transport_layer/jst_gh_termination_plug}
+    \includegraphics[width=0.3\textwidth]{transport_layer/jst_gh_termination_plug}
     \caption{UAVCAN Micro CAN bus termination plug.}
 \end{figure}
 
@@ -833,11 +833,15 @@ The anticipated current draw is up to 1 A per connector.
 Devices that are powered from the bus should expect 4.0--5.5 V on the bus power line.
 The maximum recommended current draw from the bus is 0.5 A per device.
 
-\begin{UAVCANSimpleTable}{UAVCAN M8 connector pinout}{|l l X|}\label{table:can_uavcan_m8_pinout}
+The table \ref{table:can_uavcan_micro_pinout} documents the pinout specification for the UAVCAN M8 connector type.
+The provided pinout, as indicated above, is compatible with the Dronecode Autopilot Connector Standard.
+Note that the wires "CAN high" and "CAN low" should be a twisted pair.
+
+\begin{UAVCANSimpleTable}{UAVCAN Micro connector pinout}{|l l X|}\label{table:can_uavcan_micro_pinout}
     \# & Function           & Note \\
     1  & Bus power supply   & 5 V nominal. See the power supply requirements. \\
-    2  & CAN high           & Should be twisted with "CAN low" (pin 4). \\
-    3  & CAN low            & Should be twisted with "CAN high" (pin 3). \\
+    2  & CAN high           & Should be twisted with "CAN low" (pin 3). \\
+    3  & CAN low            & Should be twisted with "CAN high" (pin 2). \\
     4  & Ground             & \\
 \end{UAVCANSimpleTable}
 
