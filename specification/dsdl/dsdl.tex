@@ -1,6 +1,6 @@
 \chapter{Data structure description language}\label{sec:dsdl}
 
-The data structure description language (DSDL) is used to define data structures for exchange via the CAN bus.
+The data structure description language (DSDL) is used to define data structures for exchange via the network.
 DSDL definitions are used to automatically (or manually) generate the message or service
 serialization/deserialization code in a particular programming language.
 A tool that automatically generates source code from DSDL definition files is called a \emph{DSDL compiler}.
@@ -437,7 +437,7 @@ i.e., the most significant bit has the index 0.
 Serialized data structures must be padded upon completion to one byte,
 with the pad bits set to zero.
 Lower layers of the protocol may also add additional padding as
-necessary\footnote{More on this in the chapter \ref{sec:can_bus_transport_layer}.};
+necessary\footnote{More on this in the chapter \ref{sec:transport_layer}.};
 however, the rules and patterns of such padding fall out of the scope of the DSDL specification.
 
 \subsubsection{Example}
@@ -880,6 +880,10 @@ as data type definitions evolve, UAVCAN requires that all data type definitions 
 major version number greater than zero must be semantically compatible with each other
 and mutually bit-compatible with each other.
 
+Observe that the data type name or its ID do not affect its compatibility.
+Regardless, the default data type ID and/or the name of a data type should not be changed after its release,
+as that would essentially construe the release of a new data type.
+
 In order to ensure predictable and repeatable behavior of applications that leverage UAVCAN,
 the standard requires that once a data type definition is released, it cannot undergo any modifications to
 its attributes or directives anymore.
@@ -958,7 +962,7 @@ Seeing as the minor version ambiguity is resolved statically,
 this information becomes irrelevant for the protocol at runtime.
 While implementations can keep the minor version information for diagnostic purposes,
 it is completely unnecessary at the transport layer.
-As such, the transport layer (which is specified in the chapter \ref{sec:can_bus_transport_layer})
+As such, the transport layer (which is specified in the chapter \ref{sec:transport_layer})
 does not concern itself with the minor data type version information,
 whereas the major data type version is attached to every transfer.
 
@@ -993,7 +997,7 @@ uint16 FLAG_COOLING_SYSTEM_B_ACTIVE = 2
 # Error flags in the high byte
 uint16 FLAG_PSU_MALFUNCTION = 8192
 uint16 FLAG_OVERHEATING     = 16384
-uint16 FLAG_CRYOBOX_BREACH  = 35768
+uint16 FLAG_CRYOBOX_BREACH  = 32768
 # Storage for the above defined flags
 uint16 flags
 \end{minted}
@@ -1114,11 +1118,23 @@ The data type ID value does not affect data type compatibility.
 It stands to reason that in order to be able to interoperate successfully,
 every node connected to the bus must use identical mapping between data types and their identifiers.
 
-There are two independent sets of data type identifiers:
-one for message data types and the other for service data types.
-Each has a reserved subset which is used for standard data type definitions,
+There are two \emph{kinds} of data types: message data types and service data types.
+Each kind has an independent set of data type identifiers.
+Each kind has a reserved subset which is used for standard data type definitions,
 and a dedicated subset for vendor-specific data type definitions.
 More info on the reserved subsets is provided in the chapter \ref{sec:application_layer}.
+The permitted ranges of data type ID values are specified in the table \ref{table:dsdl_dtid_ranges}.
+
+\begin{UAVCANSimpleTable}{Data type ID ranges per data kind}{|l|c c|X|}\label{table:dsdl_dtid_ranges}
+    Kind            & Minimum & Maximum & Note \\
+
+    Message type    & 0       & 65535   & Representable as 16-bit unsigned integer (2 octets).
+                                          The range of message data type ID usable with anonymous message
+                                          transfers is further limited; more info in the
+                                          chapter \ref{sec:transport_layer}. \\
+
+    Service type    & 0       & 255     & Representable as 8-bit unsigned integer (1 octet). \\
+\end{UAVCANSimpleTable}
 
 All UAVCAN nodes must use the same data type ID mapping for the standard data types,
 as defined by the default data type ID values provided for each of the standard data types.
@@ -1135,7 +1151,7 @@ It is the responsibility of the system integrator to ensure that if vendor-speci
 used, the data type ID mappings are configured on all nodes identically.
 Vendors of UAVCAN equipment must provide the integrator with a way to change the data type ID
 of any vendor-specific data type leveraged by the node\footnote{Nodes that fail to provide a way of
-altering the data type ID mapping for vendor-specific data types cannot be considered standard-compliant}.
+altering the data type ID mapping for vendor-specific data types cannot be considered standard-compliant.}.
 
 \section{Standard and vendor-specific data types}
 
