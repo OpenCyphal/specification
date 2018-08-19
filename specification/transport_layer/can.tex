@@ -254,10 +254,10 @@ at the very last byte of the data field of every CAN frame.
 The tail byte contains four fields: \emph{start of transfer}, \emph{end of transfer},
 \emph{toggle bit}, and the transfer ID (described earlier in the section \ref{sec:transfer_id}).
 The placement of the fields and their usage for single-frame and multi-frame transfers
-are documented in the table \ref{table:tail_byte}.
+are documented in the table \ref{table:can_tail_byte}.
 
 % Please do not remove the hard placement specifier [H], it is needed to keep tables ordered.
-\begin{table}[H]\caption{Tail byte structure}\label{table:tail_byte}
+\begin{table}[H]\caption{Tail byte structure}\label{table:can_tail_byte}
 \begin{tabu}{|c|l|X[2]|X[3]|}
     \hline
     \rowfont{\bfseries}
@@ -600,3 +600,104 @@ repeat the following:
 
 The algorithm reduces the number of filter configurations by one at each iteration,
 until the number of available hardware filters is sufficient to accommodate the whole set of configurations.
+
+\subsection{Physical connectors}
+
+The UAVCAN standard defines several connector types, targeted towards different application domains:
+from highly compact systems to large deployments, from low-cost to safety-critical applications.
+
+The table \ref{table:can_connector_summary} provides an overview of the currently defined connector types.
+Other connector types may be added in future revisions of the specification.
+
+\begin{UAVCANSimpleTable}{Standard CAN connector types}{l l l X}\label{table:can_connector_summary}
+    Connector name & Base connector type & Bus power & Known compatible standards \\
+    \textbf{UAVCAN D-Sub} &
+    Generic D-Subminiature DE-9 &
+    24 V, 3 A &
+    De-facto standard connector for CAN, supported by many current specifications. \\
+
+    \textbf{UAVCAN M8} &
+    Generic M8 5-circuit B-coded &
+    24 V, 3 A &
+    CiA 103 (CANopen) \\
+
+    \textbf{UAVCAN Micro} &
+    JST GH 4-circuit &
+    5 V, 1 A &
+    Dronecode Autopilot Connector Standard \\
+\end{UAVCANSimpleTable}
+
+\subsubsection{UAVCAN D-Sub connector}
+
+The UAVCAN D-Sub connector type is based upon, and compatible with, the D-Subminiature DE-9 CAN connector
+(this is the most popular CAN connector type, in effect the de-facto industry standard).
+This connector is fully compatible with CANopen and many other current specifications.
+An example connector pair is pictured on the figure \ref{fig:can_uavcan_d_sub_connector_example}.
+
+{
+\NoLeftSkip
+\begin{UAVCANCompactTable}{X X}
+    Advantages & Disadvantages \\
+    \begin{itemize}
+        \item Highest level of compatibility with the existing commercial off the shelf (COTS) hardware.
+        Connectors, cables, termination plugs, and other components can be easily purchased from many different vendors.
+        \item High-reliability options are available from multiple vendors.
+        \item Low-cost options are available from multiple vendors.
+        \item Both PCB mounted and panel mounted types are available.
+    \end{itemize}
+    &
+    D-Subminiature connectors are the largest connector type defined by UAVCAN.
+    Due to its significant size and weight, it may be unsuitable for many vehicular applications.
+\end{UAVCANCompactTable}
+}
+
+\begin{figure}[hbt]
+    \centering
+    \includegraphics[width=0.45\textwidth]{transport_layer/de-9_connector_male_plug}
+    \includegraphics[width=0.45\textwidth]{transport_layer/de-9_cable_female_socket}
+    \caption{UAVCAN D-Sub connector pair example: device connector (left) and cable (right).
+    \label{fig:can_uavcan_d_sub_connector_example}}
+\end{figure}
+
+The UAVCAN D-Sub connector is based on the industry-standard \textbf{D-Sub DE-9} (9-circuit) connector type.
+Devices are equipped with the male plug connector type mounted on the panel or on the PCB,
+and the cables are equipped with the female socket connectors on both ends
+(see the figure \ref{fig:can_uavcan_d_sub_connector_example}).
+
+If the device uses two parallel connectors per CAN bus interface (as recommended),
+then all of the lines of the paired connectors,
+including those that are not used by the current specification,
+must be interconnected one to one.
+This will ensure compatibility with future revisions of the specification that make use of
+currently unused circuits of the connector.
+
+The CAN physical layer standard that can be used with this connector type is
+\textbf{ISO 11898-2}\footnote{Also known as \emph{high-speed CAN}.}.
+
+Devices that deliver power to the bus are required to provide 23.0--30.0 V on the bus power line, 24 V nominal.
+The maximum current draw is up to 3 A per connector.
+
+Devices that are powered from the bus should expect 18.0--30.0 V on the bus power line.
+The maximum recommended current draw from the bus is 0.5 A per device.
+
+The table \ref{table:can_uavcan_d_sub_pinout} documents the pinout specification for the
+UAVCAN D-Sub connector type.
+The provided pinout, as has been indicated above, is the de-facto industry standard for the CAN bus.
+Note that the signals "CAN High" and "CAN Low" must belong to the same twisted pair.
+Usage of twisted or flat wires for all other signals remains at the discretion of the implementer.
+
+\begin{UAVCANSimpleTable}{UAVCAN D-Sub connector pinout}{|l l X|}\label{table:can_uavcan_d_sub_pinout}
+    \# & Function           & Note \\
+    1  &                    &  \\
+    2  & CAN low            & Twisted with "CAN high" (pin 7). \\
+    3  & CAN ground         & Must be interconnected with "Ground" (pin 6) within the device. \\
+    4  &                    &  \\
+    5  & CAN shield         & Optional. \\
+    6  & Ground             & Must be interconnected with "CAN ground" (pin 3) within the device. \\
+    7  & CAN high           & Twisted with "CAN low" (pin 2). \\
+    8  &                    &  \\
+    9  & Bus power supply   & 24 V nominal. See the power supply requirements. \\
+\end{UAVCANSimpleTable}
+
+
+
