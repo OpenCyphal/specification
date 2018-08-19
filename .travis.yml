@@ -1,0 +1,12 @@
+before_install:
+- curl -L https://github.com/holgern/travis-texlive/releases/download/2017-07-05_09/texlive.tar.xz | tar -JxC ~
+- sudo apt-get update
+
+install:
+- PATH=$HOME/texlive/bin/x86_64-linux:$PATH
+- sudo apt-get install python-pygments
+- sudo apt-get install ghostscript
+
+script:
+- cd specification
+- ./compile.sh
