@@ -1,9 +1,9 @@
 \chapter{Basic concepts}\label{sec:basic_concepts}
 
 UAVCAN is a lightweight protocol designed to provide a highly reliable communication method for
-aerospace and robotic applications via the CAN bus.
+aerospace and robotic applications via robust vehicle bus networks.
 A UAVCAN network is a decentralized peer network, where each peer (node) has a unique
-numeric identifier - \emph{node ID}.
+numeric identifier - \emph{node ID} - ranging from 1 to 127, inclusively.
 Nodes of a UAVCAN network can communicate using the following communication methods:
 \begin{description}
     \item[Message broadcasting] - The primary method of data exchange with one-to-all publish/subscribe semantics.
@@ -36,24 +36,41 @@ node health monitoring, network discovery, time synchronization, firmware update
 plug-and-play node support, and more.
 For more information see chapter \ref{sec:application_layer}.
 
-Serialized message and service data structures are exchanged by means of the CAN bus transport
-layer (chapter \ref{sec:can_bus_transport_layer}),
-which implements automatic decomposition/reassembly of long transfers into/from several CAN frames,
+Serialized message and service data structures are exchanged by means of the transport
+layer (chapter \ref{sec:transport_layer}),
+which implements automatic decomposition/reassembly of long transfers into/from several transport
+frames\footnote{Here and elsewhere, a \emph{transport frame} means a block of data
+that can be atomically exchanged over the network, e.g., a CAN frame.},
 allowing nodes to exchange data structures of arbitrary size.
 
 \begin{figure}[hbt]
     \centering
-	\includegraphics[width=0.5\textwidth]{basic_concepts/Architecture}
-	\caption{UAVCAN architectural diagram.\label{fig:architecture}}
+    \setlength\arrayrulewidth{1pt}  % https://tex.stackexchange.com/a/256732/132781
+    \begin{tabularx}{0.8\textwidth}{|X|X|X|X|}
+        \hline
+        \multicolumn{4}{|c|}{Application} \\
+        \hline
+
+        & Standard functions & \multicolumn{2}{c|}{\multirow{3}{*}{Vendor-specific data types (optional)}} \\\cline{2-2}
+        \multicolumn{2}{|c|}{\multirow{2}{*}{Standard data types}} & \multicolumn{2}{c|}{} \\
+        \multicolumn{2}{|c|}{} & \multicolumn{2}{c|}{} \\
+
+        \hline
+        \multicolumn{4}{|c|}{Serialization} \\
+        \hline
+        \multicolumn{4}{|c|}{Transport layer} \\
+        \hline
+    \end{tabularx}
+    \caption{UAVCAN architectural diagram.\label{fig:architecture}}
 \end{figure}
 
 \section{Message broadcasting}
 
-Message broadcasting refers to the transmission of a serialized data structure over the CAN bus to other nodes.
+Message broadcasting refers to the transmission of a serialized data structure over the network to other nodes.
 This is the primary data exchange mechanism used in UAVCAN;
-it is functionally similar to raw CAN messaging with minimal overhead,
+it is functionally similar to raw data exchange with minimal overhead,
 additional communication integrity guarantees, and automatic decomposition and reassembly of long payloads
-across multiple CAN frames.
+across multiple transport frames.
 Typical use cases may include transfer of the following kinds of data (either cyclically or on an ad-hoc basis):
 sensor measurements, actuator commands, equipment status information, and more.
 
@@ -67,10 +84,10 @@ Information contained in a broadcast message is summarized in the table \ref{tab
     Source node ID  & The node ID of the transmitting node (excepting anonymous messages). \\
     Transfer ID     & A small overflowing integer that increments with every transfer
                       of this message type from a given node. Used for message sequence monitoring,
-                      multi-frame transfer reassembly, and elimination of CAN frame duplication errors
+                      multi-frame transfer reassembly, and elimination of transport frame duplication errors
                       for single-frame transfers. Additionally, Transfer ID is crucial for automatic
-                      management of redundant CAN interfaces. The properties of this field are explained in
-                      detail in the chapter \ref{sec:can_bus_transport_layer}. \\
+                      management of redundant transport interfaces. The properties of this field are explained in
+                      detail in the chapter \ref{sec:transport_layer}. \\
 \end{UAVCANSimpleTable}
 
 \subsection{Anonymous message broadcasting}
@@ -82,19 +99,18 @@ UAVCAN nodes will not have an identifier initially until they are assigned one,
 either statically (which is generally the preferred option for applications where a high degree of
 determinism and high safety assurances are required) or dynamically.
 Anonymous messages are particularly useful for the dynamic node ID allocation feature,
-which is explored in detail in the chapter \ref{sec:application_layer}.
+which is explored in detail in the chapter~\ref{sec:application_layer}.
 
-Anonymous messages cannot be decomposed into multiple CAN frames,
-meaning that their payload capacity is limited to that of a single CAN frame.
-More info is provided in the chapter \ref{sec:can_bus_transport_layer}.
+Anonymous messages cannot be decomposed into multiple transport frames,
+meaning that their payload capacity is limited to that of a single transport frame.
+More info is provided in the chapter~\ref{sec:transport_layer}.
 
 \section{Service invocation}
 
 Service invocation is a two-step data exchange operation between exactly two nodes: a client and a server.
-The steps are\footnote{Note that just like the rest of UAVCAN,
-this feature is built on top of the standard CAN bus protocol.
-The request/response semantic is facilitated by means of hardware (if available) or software acceptance filtering
-and higher-layer logic. No additional support or non-standard transport features are required.}:
+The steps are\footnote{The request/response semantic is facilitated by means of hardware (if available)
+or software acceptance filtering and higher-layer logic.
+No additional support or non-standard transport layer features are required.}:
 
 \begin{enumerate}
     \item The client sends a service request to the server.
@@ -117,10 +133,10 @@ table \ref{table:service_req_resp_info}.
     Server node ID  & Destination node ID during request transfer, source node ID during response transfer. \\
     Transfer ID     & A small overflowing integer that increments with every call
                       of this service type from a given node. Used for request/response matching,
-                      multi-frame transfer reassembly, and elimination of CAN frame duplication errors
+                      multi-frame transfer reassembly, and elimination of transport frame duplication errors
                       for single-frame transfers. Additionally, Transfer ID is crucial for automatic
-                      management of redundant CAN interfaces. The properties of this field are explained in
-                      detail in the chapter \ref{sec:can_bus_transport_layer}. \\
+                      management of redundant transport interfaces. The properties of this field are explained in
+                      detail in the chapter \ref{sec:transport_layer}. \\
 \end{UAVCANSimpleTable}
 
 Both request and response contain same values for all listed fields except payload,

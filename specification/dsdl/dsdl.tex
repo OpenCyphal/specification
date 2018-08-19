@@ -1,6 +1,6 @@
 \chapter{Data structure description language}\label{sec:dsdl}
 
-The data structure description language (DSDL) is used to define data structures for exchange via the CAN bus.
+The data structure description language (DSDL) is used to define data structures for exchange via the network.
 DSDL definitions are used to automatically (or manually) generate the message or service
 serialization/deserialization code in a particular programming language.
 A tool that automatically generates source code from DSDL definition files is called a \emph{DSDL compiler}.
@@ -437,7 +437,7 @@ i.e., the most significant bit has the index 0.
 Serialized data structures must be padded upon completion to one byte,
 with the pad bits set to zero.
 Lower layers of the protocol may also add additional padding as
-necessary\footnote{More on this in the chapter \ref{sec:can_bus_transport_layer}.};
+necessary\footnote{More on this in the chapter \ref{sec:transport_layer}.};
 however, the rules and patterns of such padding fall out of the scope of the DSDL specification.
 
 \subsubsection{Example}
@@ -465,7 +465,7 @@ truncated int2   fourth     # = -1
 truncated uint4  fifth      # = 0x88 (136)
 \end{minted}
 
-The resulting encoded byte sequence is shown on the figure \ref{fig:dsdl_serialization_example}.
+The resulting serialized byte sequence is shown on the figure \ref{fig:dsdl_serialization_example}.
 
 \begin{figure}[hbt]
     \centering
@@ -510,11 +510,11 @@ No additional prefixes, suffixes, or padding is provided.
 
 \subsection{Fixed size arrays}
 
-Fixed-size arrays are encoded as a plain sequence of items,
-with each item encoded independently in place, with no alignment.
+Fixed-size arrays are serialized as a plain sequence of items,
+with each item serialized independently in place, with no alignment.
 No extra data is added.
 
-Essentially, a fixed-size array of size $X$ elements will be encoded exactly in the same way
+Essentially, a fixed-size array of size $X$ elements will be serialized exactly in the same way
 as a sequence of $X$ fields of the same type in a row.
 Hence, the following two data type definitions will have identical binary representation,
 the only actual difference being their representation for the application
@@ -539,7 +539,7 @@ AnyType[<42] a      # Can contain from 0 to 41 elements
 AnyType[<=41] b     # Can contain from 0 to 41 elements
 \end{minted}
 
-A dynamic array is encoded as a sequence of encoded items prepended with an unsigned
+A dynamic array is serialized as a sequence of serialized items prepended with an unsigned
 integer field representing the number of contained items - the \emph{length field}.
 The bit width of the length field is a function of the maximum number of items in the array:
 $$\lceil{}\log_2 (X + 1)\rceil{}$$
@@ -574,13 +574,13 @@ AnyType item_2
 
 \subsection{Unions}
 
-Similar to dynamic arrays, tagged unions are encoded as two subsequent entities:
+Similar to dynamic arrays, tagged unions are serialized as two subsequent entities:
 the union tag followed by the selected field, with no additional data.
 
 The union tag is an unsigned integer, the bit length of which is a function of the number of fields in the union:
 $$\lceil{}\log_2 N\rceil{}$$
 where N is the number of fields in the union.
-The value encoded in the union tag is the index of the selected field.
+The value serialized in the union tag is the index of the selected field.
 Field indexes are assigned according to the order in which they are defined in DSDL,
 starting from zero;
 i.e. the first defined field has the index 0, the second defined field has the index 1, and so on.
@@ -611,7 +611,7 @@ uint2 tag               # Set to 1
 uint8 b                 # The actual data
 \end{minted}
 
-If the value of \verb|b| was 7, the resulting encoded byte sequence would be (in binary):
+If the value of \verb|b| was 7, the resulting serialized byte sequence would be (in binary):
 $$%
 \underbrace{\texttt{01}}_{\text{tag}}%
 \overbrace{\texttt{000001 11}}^{\text{field }\texttt{b}}%
@@ -645,20 +645,36 @@ which are discussed below.
 
 \subsubsection{Definition}
 
-For the purposes of the definition that follows, an \emph{encoded representation of $A$}
-is a sequence of data fields joined into a bit string according to the DSDL definition
-of the data structure $A$.
+For the purposes of the definition that follows, a \emph{valid
+serialized\footnote{The serialization rules are reviewed in detail in the section \ref{sec:dsdl_data_serialization}.}
+representation} of a data structure $A$ is a bit sequence that satisfies the \emph{serialization constraints} of $A$.
 
-A structure definition $A$ is bit-compatible with a structure definition $B$
-if any valid encoded representation of $B$ is also a valid encoded representation of $A$.
-$A$ and $B$ are said to be \emph{mutually compatible} if the sets of all possible valid encoded representations of
-$A$ and $B$ are identical.
+\emph{Serialization constraints} limit the set of valid bit sequences according to the data type definition.
+A bit sequence meets the serialization constraints if all of the following conditions are
+satisfied\footnote{Observe that serialization constraints are not affected by void-typed fields,
+because per the serialization rules, the values of void-typed fields are to be set to zero during serialization
+and to be ignored during deserialization.}:
+\begin{itemize}
+    \item Each dynamic array length field contains a valid value;
+    i.e. the value of the length field is less than the maximum number of values in the array.
+
+    \item Each union tag field contains a valid value;
+    i.e. the value of the tag field is less than the number of alternatives in the union.
+
+    \item The bit sequence is sufficiently long.
+\end{itemize}
+
+A data type definition $A$ is bit-compatible with a data type definition $B$ if and only if
+the set of valid serialized representations of $A$ is a superset of that of $B$.
+
+$A$ and $B$ are said to be \emph{mutually compatible} if
+$A$ is compatible with $B$ and $B$ is compatible with $A$.
 
 \subsubsection{Example}
 
-A \emph{fixed-size data structure} is a structure that does not contain dynamic arrays
-or other structures that contain dynamic arrays within themselves.
-As such, the bit length of an encoded representation of a fixed-size structure is constant,
+A \emph{fixed-size data structure} is a structure that does not contain dynamic arrays,
+unions, or other structures that contain dynamic arrays or unions within themselves.
+As such, the bit length of an serialized representation of a fixed-size structure is constant,
 regardless of the data contained in the structure.
 Conversely, any data structure that is not fixed-size is called a \emph{variable-size data structure}.
 
@@ -677,7 +693,7 @@ uint64 c
 It should be observed that bit-compatibility is invariant to the complexity and the level of nesting
 of the data structure.
 From the above provided definitions follows that two fixed-size data structures are bit-compatible if the
-bit lengths of their respective encoded representations are equal.
+bit lengths of their respective serialized representations are equal.
 
 Consider the following example data type definition; assume that its full data type name is
 \verb|demo.Pair|:
@@ -753,8 +769,9 @@ Likewise, for the second definition, there are 6 possible bit length values.
 
 Since both arrays have the same bit offset from the beginning of the bit string,
 and taking into account the fact that the element sizes differ by an integral factor,
-the set of valid encoded representations of the second definition is a subset of those of the first definition.
-Possible encoded representations are summarized in the table \ref{table:dsdl_variable_size_compat},
+the set of all possible serialized representations of the second definition is a subset of those of
+the first definition.
+Possible serialized representations are summarized in the table \ref{table:dsdl_variable_size_compat},
 where the columns labeled "First definition" and "Second definition" contain the number of elements in the
 respective arrays.
 
@@ -778,20 +795,55 @@ respective arrays.
 The table illustrates the fact that the first definition is compatible with the second definition,
 but the reverse is not true.
 
+Complicated scenarios are possible when a bit belonging to a scalar field is handed over to a
+constrained field such as an array length field or a union tag field.
+Some interesting examples are shown in the table \ref{table:dsdl_many_compat},
+together with a set of valid serialized representation patterns.
+Remember that the bits belonging to void-typed fields are ignored during deserialization.
+
+% Please do not remove the hard placement specifier [H], it is needed to keep tables ordered.
+\begin{table}[H]\caption{Complex bit compatibility examples}\label{table:dsdl_many_compat}
+\begin{tabu}{|l|X|X|X|X|X|}
+\hline
+\rowfont{\bfseries}
+&A                   &   B                 &   C                 &   D                 &   E                 \\
+\hline
+
+\multirow{2}{*}{\textbf{Definition}}
+&\texttt{void1}      & \texttt{bool x}     & \texttt{void1}      & \texttt{bool x}     & \texttt{bool[<5] a} \\
+&\texttt{bool[<3] a} & \texttt{bool[<3] a} & \texttt{bool[<4] a} & \texttt{bool[<4] a} &                     \\
+\hline
+
+\multirow{8}{*}{\begin{tabular}[x]{@{}l@{}}\textbf{Valid}\\\textbf{serialized}\\\textbf{representations}\\\end{tabular}}
+&\multicolumn{2}{l|}{\texttt{000   }}      & \multicolumn{2}{l|}{\texttt{000    }}     & \texttt{000     } \\
+&\multicolumn{2}{l|}{\texttt{001a  }}      & \multicolumn{2}{l|}{\texttt{001a   }}     & \texttt{001a    } \\
+&\multicolumn{2}{l|}{\texttt{010aa }}      & \multicolumn{2}{l|}{\texttt{010aa  }}     & \texttt{010aa   } \\
+&\multicolumn{2}{l|}{\texttt{      }}      & \multicolumn{2}{l|}{\texttt{011aaa }}     & \texttt{011aaa  } \\
+&\multicolumn{2}{l|}{\texttt{100   }}      & \multicolumn{2}{l|}{\texttt{100    }}     & \texttt{100aaaa } \\
+&\multicolumn{2}{l|}{\texttt{101a  }}      & \multicolumn{2}{l|}{\texttt{101a   }}     & \texttt{        } \\
+&\multicolumn{2}{l|}{\texttt{110aa }}      & \multicolumn{2}{l|}{\texttt{110aa  }}     & \texttt{        } \\
+&\multicolumn{2}{l|}{\texttt{      }}      & \multicolumn{2}{l|}{\texttt{111aaa }}     & \texttt{        } \\
+\hline
+
+\textbf{Compatible with}
+&B                   & A                   & A, B, D             & A, B, C             & \emph{(none)}     \\
+\hline
+\end{tabu}
+\end{table}
+
 \subsection{Semantic compatibility}\label{sec:dsdl_semantic_compatibility}
 
 \subsubsection{Definition}
 
 A data structure definition $A$ is semantically compatible with a data structure definition $B$
 if an application that correctly uses $A$ exhibits a functionally equivalent behavior to an application
-that correctly uses $B$,
-and $A$ is bit-compatible with $B$.
-
-Because of the dependency on bit compatibility, the property of semantic compatibility is non-commutative.
+that correctly uses $B$.
+The property of semantic compatibility is commutative.
 
 \subsubsection{Example}
 
-Despite using different binary layouts, the following two definitions are semantically compatible:
+Despite using different binary layouts, the following two definitions are semantically compatible
+and also bit-compatible:
 
 \begin{minted}{python}
 uint16 FLAG_A = 1
@@ -824,8 +876,13 @@ the disclosure of the data type definition to the intended users or to the publi
 or for the commencement of usage of the data type definition in a production system.
 
 In order to ensure a deterministic application behavior and ensure a robust migration path
-as data type definitions evolve, UAVCAN requires that all data types that share the same major version number
-greater than zero must be mutually semantically compatible with each other.
+as data type definitions evolve, UAVCAN requires that all data type definitions that share the same
+major version number greater than zero must be semantically compatible with each other
+and mutually bit-compatible with each other.
+
+Observe that the data type name or its ID do not affect its compatibility.
+Regardless, the default data type ID and/or the name of a data type should not be changed after its release,
+as that would essentially construe the release of a new data type.
 
 In order to ensure predictable and repeatable behavior of applications that leverage UAVCAN,
 the standard requires that once a data type definition is released, it cannot undergo any modifications to
@@ -905,7 +962,7 @@ Seeing as the minor version ambiguity is resolved statically,
 this information becomes irrelevant for the protocol at runtime.
 While implementations can keep the minor version information for diagnostic purposes,
 it is completely unnecessary at the transport layer.
-As such, the transport layer (which is specified in the chapter \ref{sec:can_bus_transport_layer})
+As such, the transport layer (which is specified in the chapter \ref{sec:transport_layer})
 does not concern itself with the minor data type version information,
 whereas the major data type version is attached to every transfer.
 
@@ -940,7 +997,7 @@ uint16 FLAG_COOLING_SYSTEM_B_ACTIVE = 2
 # Error flags in the high byte
 uint16 FLAG_PSU_MALFUNCTION = 8192
 uint16 FLAG_OVERHEATING     = 16384
-uint16 FLAG_CRYOBOX_BREACH  = 35768
+uint16 FLAG_CRYOBOX_BREACH  = 32768
 # Storage for the above defined flags
 uint16 flags
 \end{minted}
@@ -1061,11 +1118,23 @@ The data type ID value does not affect data type compatibility.
 It stands to reason that in order to be able to interoperate successfully,
 every node connected to the bus must use identical mapping between data types and their identifiers.
 
-There are two independent sets of data type identifiers:
-one for message data types and the other for service data types.
-Each has a reserved subset which is used for standard data type definitions,
+There are two \emph{kinds} of data types: message data types and service data types.
+Each kind has an independent set of data type identifiers.
+Each kind has a reserved subset which is used for standard data type definitions,
 and a dedicated subset for vendor-specific data type definitions.
 More info on the reserved subsets is provided in the chapter \ref{sec:application_layer}.
+The permitted ranges of data type ID values are specified in the table \ref{table:dsdl_dtid_ranges}.
+
+\begin{UAVCANSimpleTable}{Data type ID ranges per data kind}{|l|c c|X|}\label{table:dsdl_dtid_ranges}
+    Kind            & Minimum & Maximum & Note \\
+
+    Message type    & 0       & 65535   & Representable as 16-bit unsigned integer (2 octets).
+                                          The range of message data type ID usable with anonymous message
+                                          transfers is further limited; more info in the
+                                          chapter \ref{sec:transport_layer}. \\
+
+    Service type    & 0       & 255     & Representable as 8-bit unsigned integer (1 octet). \\
+\end{UAVCANSimpleTable}
 
 All UAVCAN nodes must use the same data type ID mapping for the standard data types,
 as defined by the default data type ID values provided for each of the standard data types.
@@ -1082,7 +1151,7 @@ It is the responsibility of the system integrator to ensure that if vendor-speci
 used, the data type ID mappings are configured on all nodes identically.
 Vendors of UAVCAN equipment must provide the integrator with a way to change the data type ID
 of any vendor-specific data type leveraged by the node\footnote{Nodes that fail to provide a way of
-altering the data type ID mapping for vendor-specific data types cannot be considered standard-compliant}.
+altering the data type ID mapping for vendor-specific data types cannot be considered standard-compliant.}.
 
 \section{Standard and vendor-specific data types}
 

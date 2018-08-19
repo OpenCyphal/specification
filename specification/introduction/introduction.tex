@@ -3,35 +3,31 @@
 This chapter covers the basic concepts that govern development and maintenance of the specification.
 The actual specification is contained in the following chapters.
 
-The reader should have a solid understanding of the main concepts and operating principles of the CAN bus.
-
-\section{Core design goals}
+\section{Design principles}
 
 UAVCAN is designed to adhere to the following set of basic principles.
 
 \begin{description}
-    \item[Democratic network] - There should be no master node.
-    All nodes in the network should have the same communication rights; there should be no single point of failure.
+    \item[Democratic network] - There will be no master node.
+    All nodes in the network will have the same communication rights; there must be no single point of failure.
 
-    \item[Nodes can exchange long payloads] - Nodes must be provided with a simple way to exchange large
-    data structures that cannot fit into a single CAN\footnote{Here and in the following parts of the
-    specification, "CAN" implies both CAN 2.0 and CAN FD, unless specifically noted otherwise.}
-    frame (such as GNSS solutions, 3D vectors, etc.).
+    \item[Nodes can exchange long payloads] - Nodes must be provided with a simple way of exchanging large
+    data structures that cannot fit into a single transport frame (such as GNSS solutions, 3D vectors, etc.).
     UAVCAN should perform automatic transfer decomposition and reassembly at the protocol level,
     hiding the related complexity from the application.
 
-    \item[Support for redundant interfaces and redundant nodes] - This is a common requirement for
-    safety-critical applications.
+    \item[Support for redundant interfaces and redundant nodes] - UAVCAN must be suitable for use in
+    applications that require modular redundancy.
 
-    \item[High throughput, low latency communication] - Applications that are dependent on high-frequency,
-    hard real-time control loops, require a low-latency, high-throughput communication method.
+    \item[High throughput, low latency communication] - UAVCAN must be suitable for use in
+    hard real-time systems.
 
     \item[Simple logic, low computational requirements] - UAVCAN targets a wide variety of embedded systems,
     from high-performance embedded on-board computers for intensive data processing
     (e.g., a high-performance GNU/Linux-powered machine) to extremely resource-constrained microcontrollers.
     The latter imposes severe restrictions on the amount of logic needed to implement the protocol.
 
-    \item[Common high-level functions should be clearly defined] - UAVCAN defines standard services
+    \item[Common high-level functions must be clearly defined] - UAVCAN defines standard services
     and messages for common high-level functions, such as network discovery, node configuration,
     node software update, node status monitoring (which naturally grows into a vehicle-wide health monitoring),
     network-wide time synchronization, dynamic node ID allocation (a.k.a. plug-and-play node support), etc.
@@ -53,43 +49,53 @@ Part of those are reserved for the standard data types defined by the specificat
 the rest are available for vendor- and application-specific data types.
 More information is provided in the chapter \ref{sec:application_layer}.
 
-UAVCAN supports eight distinct communication priority levels,
+UAVCAN supports at least\footnote{Depending on the transport protocol.} eight distinct communication priority levels,
 defined in the section \ref{sec:transfer_prioritization}.
 Within each priority level, different types of transfers and different data types are
 prioritized in a well-defined deterministic manner.
 
-UAVCAN supports both CAN 2.0 and CAN FD transports.
-CAN FD should be considered the primary transport, whereas CAN 2.0 is supported as legacy.
+The list of transport protocols supported by UAVCAN is provided in the chapter \ref{sec:transport_layer}.
 Non-redundant, doubly-redundant and triply-redundant transports are supported.
-More information on the transport properties and standardized physical connectivity options
+More information on the physical layer and standardized physical connectivity options
 is provided in the chapter \ref{sec:hardware_design_recommendations}.
 
-\section{Specification update and approval process}
+\section{Maintenance of the standard data type set}
 
-The UAVCAN development team is charged with advancing the specification based on the input from adopters.
+The UAVCAN maintainers are charged with advancing the standard data type set based on the input from adopters.
 This feedback is gathered via the official discussion
 forum\footnote{Please refer to \href{http://uavcan.org}{uavcan.org}.},
 which is open to everyone.
 
-The set of standard data type definitions is one of the cornerstone concepts of the specification
+The set of standard data type definitions is an important part of the specification
 (the data structure description language (DSDL) and related concepts are described in section \ref{sec:dsdl}).
-Within the same major version, the specification can be extended only in the following ways:
+With minor exceptions explained in the chapter \ref{sec:application_layer},
+none of the standard data types are required to be supported by protocol implementations.
+Rather, their objective is to create a standardized data exchange environment
+allowing COTS\footnote{Commercial off-the-shelf equipment.} equipment manufactured by different vendors to
+interoperate.
+Non-COTS applications may avoid any dependency on the standard data type definitions (barring the aforementioned
+minor exceptions), relying solely on vendor-specific data types instead.
+
+Within the same major version, the set of standard data type definitions can be modified only in the following ways:
 
 \begin{itemize}
-    \item A new data type can be added, possibly with default data type ID,
+    \item A new data type can be added, possibly with a default data type ID,
     as long as the default data type ID doesn't conflict with one of the existing data types.
 
-    \item An existing data type can be modified, as long as the modification doesn't break backward compatibility.
+    \item An existing data type can be modified, as long as its version number is updated accordingly
+    and the backward compatibility guarantees are respected.
 
-    \item A new version of an existing data type can be added.
+    \item A major version of an existing data type can be declared deprecated.
+    \begin{itemize}
+        \item Once declared deprecated, the major version will be maintained for at least two more years.
+        \item Deprecation will be indicated in the DSDL definition and announced via the discussion forum.
+    \end{itemize}
 
     \item An existing data type can be declared deprecated.
     \begin{itemize}
         \item Once declared deprecated, the data type will be maintained for at least two more years.
         After this period its default data type ID may be reused for an incompatible data type.
-
-        \item Deprecation will be announced via the discussion forum, and indicated in the form of a comment
-        in its DSDL definition.
+        \item Deprecation will be indicated in the DSDL definition and announced via the discussion forum.
     \end{itemize}
 \end{itemize}
 
