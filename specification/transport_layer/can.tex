@@ -526,7 +526,8 @@ usage of the list-based filtering method with this protocol is impractical.
 Most CAN controller vendors implement mask-based filters,
 where the behavior of each filter is defined by two parameters: the mask $M$ and the reference ID $R$.
 Then, such filter accepts only those CAN frames for which the following bitwise logical condition holds
-true\footnote{$\land$ -- bitwise logical AND, $\oplus$ -- bitwise logical XOR, $\neg$ - bitwise logical NOT.}:
+true\footnote{Notation: $\land$ -- bitwise logical AND, $\oplus$ -- bitwise logical XOR,
+$\neg$ -- bitwise logical NOT.}:
 $$((X \land M) \oplus R) \leftrightarrow 0$$
 where $X$ is the CAN ID value of the evaluated frame.
 
@@ -581,8 +582,8 @@ the filter mask parameter:
 r(M) =
 \begin{cases}
     0                                   & \quad M < 1 \\
-    r(\lfloor\frac{M}{2}\rfloor)        & \quad M \land 1 = 0 \\
-    r(\lfloor\frac{M}{2}\rfloor) + 1    & \quad M \land 1 \neq 0 \\
+    r(\lfloor\frac{M}{2}\rfloor)        & \quad M \bmod 2 = 0 \\
+    r(\lfloor\frac{M}{2}\rfloor) + 1    & \quad M \bmod 2 \neq 0 \\
 \end{cases}
 \end{equation*}
 
