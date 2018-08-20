@@ -575,7 +575,7 @@ The definition is as follows:
 
 The \emph{filter rank} is a function of the mask of the filter.
 The rank of a filter is a unitless quantity that defines in relative terms how selective the filter configuration is.
-The rank of a filter is inversely proportional to the likelihood that the filter will accept a random CAN ID.
+The rank of a filter is proportional to the likelihood that the filter will reject a random CAN ID.
 In the context of hardware filtering, this quantity is conveniently representable via the number of bits set in
 the filter mask parameter:
 \begin{equation*}
