@@ -204,7 +204,7 @@ It is also the recommended connector for attaching external panel-mounted connec
 \begin{UAVCANCompactTable}{X X}
     Advantages & Disadvantages \\
     \begin{itemize}
-        \item Extremely compact, low-profile. The PCB footprint is under 9✕5 millimeters.
+        \item Extremely compact, low-profile. The PCB footprint is under 9$\times$5 millimeters.
         \item Secure positive lock ensures that the connection will not self-disconnect when exposed to vibrations.
         \item Low-cost, easy to stock.
     \end{itemize}
@@ -218,6 +218,10 @@ It is also the recommended connector for attaching external panel-mounted connec
 }
 
 The UAVCAN Micro connector is based on the proprietary \textbf{JST GH 4-circuit} connector type.
+Beware that the top-entry type is not PCB footprint-compatible with the side-entry type --
+its pin ordering is reversed.
+The wire-side pinout, however, is compatible, so both types can be used interchangeably as long
+as their PCB footprints are correct.
 
 The suitable cable types are flat or twisted pair \#30 to \#26 AWG,
 outer insulation diameter 0.8--1.0 mm, multi-strand.
