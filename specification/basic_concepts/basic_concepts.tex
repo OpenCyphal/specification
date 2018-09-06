@@ -3,16 +3,16 @@
 UAVCAN is a lightweight protocol designed to provide a highly reliable communication method for
 aerospace and robotic applications via robust vehicle bus networks.
 A UAVCAN network is a decentralized peer network, where each peer (node) has a unique
-numeric identifier - \emph{node ID} - ranging from 1 to 127, inclusively.
+numeric identifier --- \emph{node ID} --- ranging from 1 to 127, inclusively.
 Nodes of a UAVCAN network can communicate using the following communication methods:
 \begin{description}
-    \item[Message broadcasting] - The primary method of data exchange with one-to-all publish/subscribe semantics.
-    \item[Service invocation] - The communication method for peer-to-peer request/response
+    \item[Message broadcasting] --- The primary method of data exchange with one-to-all publish/subscribe semantics.
+    \item[Service invocation] --- The communication method for peer-to-peer request/response
     interactions\footnote{Like remote procedure call (RPC).}.
 \end{description}
 
 For each type of communication, a predefined set of data structures is used,
-where each data structure has a unique identifier - the \emph{data type ID} (DTID).
+where each data structure has a unique identifier --- the \emph{data type ID} (DTID).
 Additionally, every data structure definition has a pair of major and minor semantic version numbers,
 which enable data type definitions to evolve in arbitrary ways while ensuring a comprehensible
 migration path in the event of backward-incompatible changes.
