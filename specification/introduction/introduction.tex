@@ -8,73 +8,66 @@ The actual specification is contained in the following chapters.
 UAVCAN is designed to adhere to the following set of basic principles.
 
 \begin{description}
-    \item[Democratic network] - There will be no master node.
+    \item[Democratic network] --- There will be no master node.
     All nodes in the network will have the same communication rights; there must be no single point of failure.
 
-    \item[Nodes can exchange long payloads] - Nodes must be provided with a simple way of exchanging large
+    \item[Nodes can exchange long payloads] --- Nodes must be provided with a simple way of exchanging large
     data structures that cannot fit into a single transport frame (such as GNSS solutions, 3D vectors, etc.).
     UAVCAN should perform automatic transfer decomposition and reassembly at the protocol level,
     hiding the related complexity from the application.
 
-    \item[Support for redundant interfaces and redundant nodes] - UAVCAN must be suitable for use in
+    \item[Support for redundant interfaces and redundant nodes] --- UAVCAN must be suitable for use in
     applications that require modular redundancy.
 
-    \item[High throughput, low latency communication] - UAVCAN must be suitable for use in
+    \item[High throughput, low latency communication] --- UAVCAN must be suitable for use in
     hard real-time systems.
 
-    \item[Simple logic, low computational requirements] - UAVCAN targets a wide variety of embedded systems,
+    \item[Simple logic, low computational requirements] --- UAVCAN targets a wide variety of embedded systems,
     from high-performance embedded on-board computers for intensive data processing
     (e.g., a high-performance GNU/Linux-powered machine) to extremely resource-constrained microcontrollers.
     The latter imposes severe restrictions on the amount of logic needed to implement the protocol.
 
-    \item[Common high-level functions must be clearly defined] - UAVCAN defines standard services
+    \item[Common high-level functions must be clearly defined] --- UAVCAN defines standard services
     and messages for common high-level functions, such as network discovery, node configuration,
     node software update, node status monitoring (which naturally grows into a vehicle-wide health monitoring),
     network-wide time synchronization, dynamic node ID allocation (a.k.a. plug-and-play node support), etc.
 
-    \item[Open specification and reference implementations] - The UAVCAN specification is open and
+    \item[Open specification and reference implementations] --- The UAVCAN specification is open and
     freely available; the reference implementations are distributed under the terms of the permissive MIT License.
 \end{description}
 
 \section{Capabilities}
 
-This section summarizes the capabilities of the UAVCAN protocol.
-
 UAVCAN-based networks can accommodate up to 127 nodes on the same logical bus.
-More nodes can be added to the system by separating the bus into several independent logical segments
-interconnected via gateway nodes.
 
-UAVCAN supports up to 32768 distinct message data types and up to 256 distinct service data types.
-Part of those are reserved for the standard data types defined by the specification;
-the rest are available for vendor- and application-specific data types.
-More information is provided in the chapter \ref{sec:application_layer}.
+UAVCAN supports up to 65536 message, 256 service, and at least 8 anonymous data types.
+Some of these identifiers are reserved for the core standard with 
+the rest available for vendor- and application-specific data types.
+More information is provided in chapter \ref{sec:application_layer}.
 
 UAVCAN supports at least\footnote{Depending on the transport protocol.} eight distinct communication priority levels,
 defined in the section \ref{sec:transfer_prioritization}.
-Within each priority level, different types of transfers and different data types are
-prioritized in a well-defined deterministic manner.
+Within each priority level different types of transfers and different data types are
+prioritized in a well-defined, deterministic manner.
 
-The list of transport protocols supported by UAVCAN is provided in the chapter \ref{sec:transport_layer}.
+The list of transport protocols supported by UAVCAN is provided in chapter \ref{sec:transport_layer}.
 Non-redundant, doubly-redundant and triply-redundant transports are supported.
 More information on the physical layer and standardized physical connectivity options
 is provided in the chapter \ref{sec:physical_layer}.
 
 \section{Maintenance of the standard data type set}
 
-The UAVCAN maintainers are charged with advancing the standard data type set based on the input from adopters.
+The UAVCAN maintainers are charged with advancing the standard data type set based on input from adopters.
 This feedback is gathered via the official discussion
-forum\footnote{Please refer to \href{http://uavcan.org}{uavcan.org}.},
-which is open to everyone.
+forum\footnote{Please refer to \href{http://uavcan.org}{uavcan.org}.}
+which is open to the general public.
 
-The set of standard data type definitions is an important part of the specification
-(the data structure description language (DSDL) and related concepts are described in section \ref{sec:dsdl}).
-With minor exceptions explained in the chapter \ref{sec:application_layer},
-none of the standard data types are required to be supported by protocol implementations.
-Rather, their objective is to create a standardized data exchange environment
-allowing COTS\footnote{Commercial off-the-shelf equipment.} equipment manufactured by different vendors to
-interoperate.
-Non-COTS applications may avoid any dependency on the standard data type definitions (barring the aforementioned
-minor exceptions), relying solely on vendor-specific data types instead.
+The set of standard data type definitions\footnote{The Data Structure Description Language (DSDL) and related concepts are described in section \ref{sec:dsdl}.}
+is an integral part of the specification, however, there is only a small set of required data types needed to implement the protocol.
+A larger set of optional data types are defined to create a standardized data exchange environment
+supporting the interoperability of COTS\footnote{Commercial off-the-shelf equipment.} equipment manufactured by different vendors.
+See chapter \ref{sec:application_layer} for more information.
+
 
 Within the same major version, the set of standard data type definitions can be modified only in the following ways:
 
@@ -83,7 +76,7 @@ Within the same major version, the set of standard data type definitions can be 
     as long as the default data type ID doesn't conflict with one of the existing data types.
 
     \item An existing data type can be modified, as long as its version number is updated accordingly
-    and the backward compatibility guarantees are respected.
+    and any backward compatibility guarantees are respected.
 
     \item A major version of an existing data type can be declared deprecated.
     \begin{itemize}
@@ -107,15 +100,15 @@ website\footnote{\href{http://uavcan.org}{uavcan.org}}.
 The UAVCAN specification contains references to the following sources:
 
 \begin{itemize}
-    \item CiA 801 - Application note - Automatic bit rate detection.
-    \item CiA 103 - Intrinsically safe capable physical layer.
-    \item CiA 303 - Recommendation - Part 1: Cabling and connector pin assignment.
-    \item IEEE 754 - Standard for binary floating-point arithmetic.
-    \item ISO 11898-1 - Controller area network (CAN) - Part 1: Data link layer and physical signaling.
-    \item ISO 11898-2 - Controller area network (CAN) - Part 2: High-speed medium access unit.
-    \item ISO/IEC 10646 - Universal Coded Character Set (UCS).
-    \item ISO/IEC 14882 - Programming Language C++.
-    \item "Implementing a Distributed High-Resolution Real-Time Clock using the CAN-Bus", M. Gergeleit and H. Streich.
-    \item "In Search of an Understandable Consensus Algorithm (Extended Version)", Diego Ongaro and John Ousterhout.
+    \item CiA 801 --- Application note --- Automatic bit rate detection.
+    \item CiA 103 --- Intrinsically safe capable physical layer.
+    \item CiA 303 --- Recommendation --- Part 1: Cabling and connector pin assignment.
+    \item IEEE 754 --- Standard for binary floating-point arithmetic.
+    \item ISO 11898-1 --- Controller area network (CAN) --- Part 1: Data link layer and physical signaling.
+    \item ISO 11898-2 --- Controller area network (CAN) --- Part 2: High-speed medium access unit.
+    \item ISO/IEC 10646 --- Universal Coded Character Set (UCS).
+    \item ISO/IEC 14882 --- Programming Language C++.
+    \item ``Implementing a Distributed High-Resolution Real-Time Clock using the CAN-Bus'', M. Gergeleit and H. Streich.
+    \item ``In Search of an Understandable Consensus Algorithm (Extended Version)'', Diego Ongaro and John Ousterhout.
     \item \href{http://semver.org}{semver.org} - Semantic versioning specification.
 \end{itemize}
