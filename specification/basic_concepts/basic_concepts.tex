@@ -1,10 +1,10 @@
 \chapter{Basic concepts}\label{sec:basic_concepts}
 
-UAVCAN is a lightweight protocol designed to provide a highly reliable communication method for
-aerospace and robotic applications via robust vehicle bus networks.
+
 A UAVCAN network is a decentralized peer network, where each peer (node) has a unique
 numeric identifier --- \emph{node ID} --- ranging from 1 to 127, inclusively.
 Nodes of a UAVCAN network can communicate using the following communication methods:
+
 \begin{description}
     \item[Message broadcasting] --- The primary method of data exchange with one-to-all publish/subscribe semantics.
     \item[Service invocation] --- The communication method for peer-to-peer request/response
@@ -14,10 +14,10 @@ Nodes of a UAVCAN network can communicate using the following communication meth
 For each type of communication, a predefined set of data structures is used,
 where each data structure has a unique identifier --- the \emph{data type ID} (DTID).
 Additionally, every data structure definition has a pair of major and minor semantic version numbers,
-which enable data type definitions to evolve in arbitrary ways while ensuring a comprehensible
-migration path in the event of backward-incompatible changes.
-Some data structures are standard and defined by the protocol specification;
-others may be specific to a particular application or vendor.
+which enable data type definitions to evolve in arbitrary ways while ensuring a well-defined
+migration path if backward-incompatible changes are introduced.
+Some data structures are standard and defined by the protocol specification (of which only a small 
+subset are required); others may be specific to a particular application or vendor.
 
 Since every message or service data type has its own unique data type ID,
 and each node in the network has its own unique node ID,
@@ -29,38 +29,31 @@ Message and service data structures are defined using the Data Structure Descrip
 A DSDL description can be used to automatically generate the serialization/deserialization code
 for every defined data structure in a particular programming language.
 DSDL ensures that the worst case memory footprint and computational complexity per data type
-are constant and easily predictable, which is paramount for hard real-time and safety-critical applications.
+are constant and easily predictable.
 
 On top of the standard data types, UAVCAN defines a set of standard high-level functions including:
-node health monitoring, network discovery, time synchronization, firmware update,
+node health monitoring, node discovery, time synchronization, firmware update,
 plug-and-play node support, and more.
 For more information see chapter \ref{sec:application_layer}.
 
 Serialized message and service data structures are exchanged by means of the transport
-layer (chapter \ref{sec:transport_layer}),
-which implements automatic decomposition/reassembly of long transfers into/from several transport
-frames\footnote{Here and elsewhere, a \emph{transport frame} means a block of data
-that can be atomically exchanged over the network, e.g., a CAN frame.},
-allowing nodes to exchange data structures of arbitrary size.
+layer (chapter \ref{sec:transport_layer}), which implements automatic decomposition of
+long transfers into several transport frames\footnote{Here and 
+elsewhere, a \emph{transport frame} means a block of data that can be atomically exchanged 
+over the network, e.g., a CAN frame.} and reassembly from these transport frames
+back into a single transfer buffer, allowing nodes to exchange data structures of 
+arbitrary size.
 
 \begin{figure}[hbt]
     \centering
-    \setlength\arrayrulewidth{1pt}  % https://tex.stackexchange.com/a/256732/132781
-    \begin{tabularx}{0.8\textwidth}{|X|X|X|X|}
+    \begin{tabular}{|c|c|l|c|l|c|}
         \hline
-        \multicolumn{4}{|c|}{Application} \\
-        \hline
-
-        & Standard functions & \multicolumn{2}{c|}{\multirow{3}{*}{Vendor-specific data types (optional)}} \\\cline{2-2}
-        \multicolumn{2}{|c|}{\multirow{2}{*}{Standard data types}} & \multicolumn{2}{c|}{} \\
-        \multicolumn{2}{|c|}{} & \multicolumn{2}{c|}{} \\
-
-        \hline
-        \multicolumn{4}{|c|}{Serialization} \\
-        \hline
-        \multicolumn{4}{|c|}{Transport layer} \\
-        \hline
-    \end{tabularx}
+        \multicolumn{6}{|c|}{Applications}                                                                                              \\ \hline
+        \multicolumn{1}{|l|}{} & Required functions &            & Standard functions          &            & Custom functions          \\ \cline{2-2} \cline{4-4} \cline{6-6} 
+        \multicolumn{2}{|c|}{Required data types}   & \multicolumn{2}{c|}{Standard data types} & \multicolumn{2}{c|}{Custom data types} \\ \hline
+        \multicolumn{6}{|c|}{Serialization}                                                                                             \\ \hline
+        \multicolumn{6}{|c|}{Transport}                                                                                                 \\ \hline
+    \end{tabular}
     \caption{UAVCAN architectural diagram.\label{fig:architecture}}
 \end{figure}
 
