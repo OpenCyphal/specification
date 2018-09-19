@@ -15,7 +15,7 @@
 \RequirePackage{lipsum}              % Lorem ipsum text generation, useful for testing.
 \RequirePackage[pagestyles]{titlesec}
 \RequirePackage{titletoc}
-\RequirePackage{xcolor}
+\RequirePackage[table,xcdraw]{xcolor}
 \RequirePackage{gensymb}
 \RequirePackage{graphicx}
 \RequirePackage{hyperref}
@@ -36,7 +36,7 @@
 \RequirePackage{lastpage}
 \RequirePackage{minted}
 \RequirePackage{chngcntr}
-
+\RequirePackage{mdframed}
 %
 % Minor definitions.
 %
