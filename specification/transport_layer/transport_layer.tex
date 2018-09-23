@@ -386,7 +386,11 @@ It is recognized that perfectly simultaneous transmission may not be possible du
 utilization rates of the redundant interfaces and different phasing of their traffic;
 however, that is not an issue for UAVCAN.
 If perfectly simultaneous frame submission is not possible, interfaces with lower numerical index
-should be handled in the first order.
+should be handled in the first order\footnote{It should be kept in mind that redundant interfaces
+are used for increased fault tolerance, not for load sharing reasons.
+Whenever a node is connected to an interface, the likelihood of its failure is increased;
+therefore, backup interfaces should interconnect only mission-critical equipment.
+See section \ref{sec:phy_non_uniform_transport_redundancy}.}.
 
 An exception to the above rule applies if the payload of the transfer depends on some properties
 of the interface through which the transfer is emitted.
@@ -540,6 +544,16 @@ require any background maintenance processes.
     to the application requirements (e.g., maximum recovery time in the event of an interface failure),
     or the protocol stack can estimate this value automatically by analyzing the transfer intervals. \\
 \end{UAVCANSimpleTable}
+
+It might be useful to clarify why immediate switching between interfaces is not allowed,
+and why nodes are required to let the first interface time out before using the next one.
+The transfer ID value wraps around every 32 transfers.
+Different interfaces are expected to exhibit different latencies even in a properly functioning system,
+especially if the system contains both redundantly-interfaced and non-redundantly-interfaced nodes.
+If the latency of a backup interface relative to the primary interface exceeds 32 transfer intervals,
+and receiving nodes were to be allowed to switch between interfaces freely disregarding the timeout,
+the receiving node would skip the whole period of transfer ID (32 transfers will be lost).
+The problem would primarily affect low-priority transfers where large latencies are possible.
 
 \subsection{State update in a redundant interface configuration}
 
