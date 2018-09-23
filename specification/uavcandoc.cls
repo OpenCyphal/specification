@@ -36,7 +36,7 @@
 \RequirePackage{lastpage}
 \RequirePackage{minted}
 \RequirePackage{chngcntr}
-\RequirePackage{mdframed}
+
 %
 % Minor definitions.
 %
