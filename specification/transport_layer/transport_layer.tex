@@ -178,9 +178,8 @@ that is provided for every transfer.
 This value is crucial for many aspects of UAVCAN communication\footnote{One might be tempted to use the transfer ID
 value for temporal synchronization of parallel message streams originating from the same node,
 where messages bearing the same transfer ID value are supposed to correspond to the same moment of time.
-Such use case is explicitly discouraged due to the fact that the overflow interval of the transfer ID value
-is insufficiently long, which creates the risk of undetected phase slip of one of the message streams by
-more than 32 messages behind.
+Such use is strongly discouraged because it is impossible to detect if one node is more than
+32 messages behind another.
 If temporal synchronization is necessary, explicit time stamping should be used instead.};
 specifically:
 \begin{description}
@@ -386,16 +385,17 @@ It is recognized that perfectly simultaneous transmission may not be possible du
 utilization rates of the redundant interfaces and different phasing of their traffic;
 however, that is not an issue for UAVCAN.
 If perfectly simultaneous frame submission is not possible, interfaces with lower numerical index
-should be handled in the first order\footnote{It should be kept in mind that redundant interfaces
-are used for increased fault tolerance, not for load sharing reasons.
-Whenever a node is connected to an interface, the likelihood of its failure is increased;
-therefore, backup interfaces should interconnect only mission-critical equipment.
-See section \ref{sec:phy_non_uniform_transport_redundancy}.}.
+should be handled in the first order.
 
 An exception to the above rule applies if the payload of the transfer depends on some properties
 of the interface through which the transfer is emitted.
 An example of such a special case is the time synchronization algorithm leveraged by UAVCAN
 (documented in the chapter \ref{sec:application_layer} of the specification).
+
+Redundant interfaces are used for increased fault tolerance, not for load sharing reasons.
+Whenever a node is connected to an interface the likelihood of the interface failing is increased.
+This suggests that backup interfaces may only interconnect with mission-critical equipment.
+See section \ref{sec:phy_non_uniform_transport_redundancy}.
 
 \section{Transfer reception}\label{sec:transfer_reception}
 
@@ -545,9 +545,8 @@ require any background maintenance processes.
     or the protocol stack can estimate this value automatically by analyzing the transfer intervals. \\
 \end{UAVCANSimpleTable}
 
-It might be useful to clarify why immediate switching between interfaces is not allowed,
-and why nodes are required to let the first interface time out before using the next one.
-The transfer ID value wraps around every 32 transfers.
+The reason nodes are required to let the first interface time out before using the next one
+is that the transfer ID field is expected to wrap around frequently (every 32 transfers).
 Different interfaces are expected to exhibit different latencies even in a properly functioning system,
 especially if the system contains both redundantly-interfaced and non-redundantly-interfaced nodes.
 If the latency of a backup interface relative to the primary interface exceeds 32 transfer intervals,
