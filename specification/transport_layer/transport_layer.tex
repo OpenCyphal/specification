@@ -545,13 +545,13 @@ require any background maintenance processes.
     or the protocol stack can estimate this value automatically by analyzing the transfer intervals. \\
 \end{UAVCANSimpleTable}
 
-The reason nodes are required to let the first interface time out before using the next one
-is that the transfer ID field is expected to wrap around frequently (every 32 transfers).
+Nodes are required to let the first interface time out before using the next one because the
+transfer ID field is expected to wrap around frequently (every 32 transfers).
 Different interfaces are expected to exhibit different latencies even in a properly functioning system,
 especially if the system contains both redundantly-interfaced and non-redundantly-interfaced nodes.
 If the latency of a backup interface relative to the primary interface exceeds 32 transfer intervals,
 and receiving nodes were to be allowed to switch between interfaces freely disregarding the timeout,
-the receiving node would skip the whole period of transfer ID (32 transfers will be lost).
+the receiving node would skip the whole period of transfer IDs (32 transfers will be lost).
 The problem would primarily affect low-priority transfers where large latencies are possible.
 
 \subsection{State update in a redundant interface configuration}
