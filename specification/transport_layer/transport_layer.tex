@@ -175,7 +175,13 @@ delaying their transmission until there are no more higher priority transfers to
 
 The \emph{transfer ID} is a small unsigned integer value in the range from 0 to 31, inclusive,
 that is provided for every transfer.
-This value is crucial for many aspects of UAVCAN communication; specifically:
+This value is crucial for many aspects of UAVCAN communication\footnote{One might be tempted to use the transfer ID
+value for temporal synchronization of parallel message streams originating from the same node,
+where messages bearing the same transfer ID value are supposed to correspond to the same moment of time.
+Such use is strongly discouraged because it is impossible to detect if one node is more than
+32 messages behind another.
+If temporal synchronization is necessary, explicit time stamping should be used instead.};
+specifically:
 \begin{description}
     \item[Message sequence monitoring] - the continuously increasing transfer ID allows receiving nodes to
     detect lost messages and detect when a message stream from any remote node is interrupted.
@@ -386,6 +392,11 @@ of the interface through which the transfer is emitted.
 An example of such a special case is the time synchronization algorithm leveraged by UAVCAN
 (documented in the chapter \ref{sec:application_layer} of the specification).
 
+Redundant interfaces are used for increased fault tolerance, not for load sharing reasons.
+Whenever a node is connected to an interface the likelihood of the interface failing is increased.
+This suggests that backup interfaces may only interconnect with mission-critical equipment.
+See section \ref{sec:phy_non_uniform_transport_redundancy}.
+
 \section{Transfer reception}\label{sec:transfer_reception}
 
 \subsection{Transfer ID comparison}
@@ -533,6 +544,15 @@ require any background maintenance processes.
     to the application requirements (e.g., maximum recovery time in the event of an interface failure),
     or the protocol stack can estimate this value automatically by analyzing the transfer intervals. \\
 \end{UAVCANSimpleTable}
+
+Nodes are required to let the first interface time out before using the next one because the
+transfer ID field is expected to wrap around frequently (every 32 transfers).
+Different interfaces are expected to exhibit different latencies even in a properly functioning system,
+especially if the system contains both redundantly-interfaced and non-redundantly-interfaced nodes.
+If the latency of a backup interface relative to the primary interface exceeds 32 transfer intervals,
+and receiving nodes were to be allowed to switch between interfaces freely disregarding the timeout,
+the receiving node would skip the whole period of transfer IDs (32 transfers will be lost).
+The problem would primarily affect low-priority transfers where large latencies are possible.
 
 \subsection{State update in a redundant interface configuration}
 
