@@ -17,76 +17,39 @@ UAVCAN utilizes three different CAN ID formats for different types of transfers:
 message transfers, service transfers, and anonymous message transfers.
 The structure is summarized on the figure~\ref{fig:can_id_structure}.
 
-% Please do not remove the hard placement specifier [H], it is needed to keep elements ordered.
-\begin{figure}[H]
-\centering
-\setlength\arrayrulewidth{1pt}  % https://tex.stackexchange.com/a/256732/132781
-\begin{tabu}{|c|X[c]|X[c]|X[c]|c|}
-    \hline
-    \rowfont{\bfseries}
-    Bit & Service & Message & Anonymous message & Bit \\\hline
-
-    28 & \multicolumn{3}{c|}{\multirow{3}{*}{Transfer priority}} & 28 \\
-    27 & \multicolumn{3}{c|}{} & 27 \\
-    26 & \multicolumn{3}{c|}{} & 26 \\
-    \hline
-
-    25 & \multicolumn{2}{c|}{Service not message} & \multirow{4}{*}{Reserved, required =0} & 25 \\\cline{2-3}
-    24 & Request not response & \multirow{16}{*}{Message data type ID} & & 24 \\\cline{2-2}
-    23 & \multirow{8}{*}{Service data type ID} & & & 23 \\
-    22 & & & & 22 \\\cline{4-4}
-    21 & & & \multirow{3}{*}{Message DTID modulo 8} & 21 \\
-    20 & & & & 20 \\
-    19 & & & & 19 \\\cline{4-4}
-    18 & & & \multirow{10}{*}{Payload discriminator} & 18 \\
-    17 & & & & 17 \\
-    16 & & & & 16 \\\cline{2-2}
-    15 & \multirow{7}{*}{Destination node ID} & & & 15 \\
-    14 & & & & 14 \\
-    13 & & & & 13 \\
-    12 & & & & 12 \\
-    11 & & & & 11 \\
-    10 & & & & 10 \\
-    9 & & & & 9 \\
-    \hline
-
-    8 & \multicolumn{3}{c|}{\multirow{7}{*}{Source node ID}} & 8 \\
-    7 & \multicolumn{3}{c|}{} & 7 \\
-    6 & \multicolumn{3}{c|}{} & 6 \\
-    5 & \multicolumn{3}{c|}{} & 5 \\
-    4 & \multicolumn{3}{c|}{} & 4 \\
-    3 & \multicolumn{3}{c|}{} & 3 \\
-    2 & \multicolumn{3}{c|}{} & 2 \\
-    \hline
-
-    1 & \multicolumn{3}{c|}{\multirow{2}{*}{Data type major version number modulo 4}} & 1 \\
-    0 & \multicolumn{3}{c|}{} & 0 \\
-    \hline
-    \rowfont{\bfseries}
-    Bit & Service & Message & Anonymous message & Bit \\\hline
-\end{tabu}
-\caption{CAN ID structure}\label{fig:can_id_structure}
-\end{figure}
-
 The fields are described in detail in the following sections.
 The tables \ref{table:can_id_fields_message_transfer},
 \ref{table:can_id_fields_anonymous_message_transfer}, and \ref{table:can_id_fields_service_transfer}
 summarize the purpose of the fields and their permitted values
 for message transfers, anonymous message transfers, and service transfers, respectively.
-The following acronyms are used for brevity:
-\begin{description}
-    \item[DTID] - data type ID.
-    \item[DTMVN] - data type major version number.
-\end{description}
+
+
+\begin{landscape}
+% Please do not remove the hard placement specifier [H], it is needed to keep elements ordered.
+\begin{figure}[H]
+\centering
+\begin{tabular}{|l|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\textbf{CAN ID Bit} & 28 & 27 & 26 & 25 & 24 & 23 & 22 & 21 & 20 & 19 & 18 & 17 & 16 & 15 & 14 & 13 & 12 & 11 & 10 &  9 &  8 &  7 &  6 &  5 &  4 &  3 &  2 &  1 &  0 \\ \hline
+\textbf{Anonymous} & \multicolumn{3}{c|}{\multirow{3}{*}{Priority}} & \multicolumn{5}{c|}{Reserved} & \multicolumn{3}{c|}{Subject ID} & \multicolumn{10}{c|}{Discriminator} & \multicolumn{7}{c|}{Anonymous Node ID} & \multirow{3}{*}{} \\ \cline{0-0} \cline{5-5} \cline{7-29}
+\textbf{Message} & \multicolumn{3}{c|}{} & 0 &  & \multicolumn{16}{c|}{Subject ID}  & \multicolumn{7}{c|}{\multirow{2}{*}{Source Node ID}} & \\ \cline{0-0} \cline{6-22}
+\textbf{Service} & \multicolumn{3}{c|}{} & 1 & 1|0  & \multicolumn{9}{c|}{Service ID} & \multicolumn{7}{c|}{Destination Node ID} & \multicolumn{7}{c|}{} & \\ \cline{0-3} \cline{7-29}
+\multicolumn{5}{|c|}{Service not Message} & \multicolumn{7}{c|}{Request not Response} & \multicolumn{10}{c|}{} & \multicolumn{8}{c|}{Version} \\ \hline
+\end{tabular}
+\caption{CAN ID structure}\label{fig:can_id_structure}
+\end{figure}
+
+\end{landscape}
 
 \begin{UAVCANSimpleTable}{CAN ID fields for message transfers}{|l l l X|}
     \label{table:can_id_fields_message_transfer}
     Field               & Width & Permitted values  & Description \\
     Transfer priority   & 3     & [0, 7] (any)      & Section \ref{sec:transfer_prioritization}. \\
     Service not message & 1     & 0                 & Always zero for message transfers. \\
-    Message DTID        & 16    & [0, 65535] (any)  & Data type ID of the encoded message data structure. \\
+    Reserved Field      & 1     & 0                 & Set to zero when emitting. When receiving, ignore the frame if this field is not zero. \\
+    Subject ID          & 16    & [0, 65535] (any)  & Used for identifying the Subject this message was transmitted on. \\
     Source node ID      & 7     & [1, 127]          & Node ID of the origin. \\
-    Message DTMVN       & 2     & [0, 3] (any)      & Major version number of the data type, modulo 4. \\
+    Protocol version    & 1     & 1                 & Protocol version, ignore frame (or use according to a newer specification) if this field is not 1. \\
 \end{UAVCANSimpleTable}
 
 \begin{UAVCANSimpleTable}{CAN ID fields for anonymous message transfers}{|l l l X|}
@@ -95,14 +58,12 @@ The following acronyms are used for brevity:
     Transfer priority   & 3     & [0, 7] (any)      & Section \ref{sec:transfer_prioritization}. \\
     Reserved field      & 4     & 0                 & Set to zero when emitting. When receiving, ignore the
                                                       frame if this field is not zero. \\
-    Message DTID modulo 8& 3    & [0, 7] (any)      & Three least significant bits of the data type ID of the
-                                                      encoded message data structure. Message types where DTID is
-                                                      greater than 7 cannot be used with anonymous message transfers. \\
+    Subject ID          & 3     & [0, 7] (any)      & Used for identifying the Subject this message was transmitted on. Subject with ID 0-7 is special in regards that anonymous nodes are also allowed to communicate over them. \\
     Payload discriminator & 10  & [0, 1023] (any)   & Used for CAN ID conflict avoidance;
                                                       see section \ref{sec:can_payload_discriminator}. \\
-    Source node ID      & 7     & 0                 & Set to zero. This field is used to distinguish anonymous message
+    Anonymous node ID   & 7     & 0                 & Set to zero. This field is used to distinguish anonymous message
                                                       transfers from regular message transfers. \\
-    Message DTMVN       & 2     & [0, 3] (any)      & Major version number of the data type, modulo 4. \\
+    Protocol version    & 1     & 1                 & Protocol version, ignore frame (or use according to a newer specification) if this field is not 1. \\
 \end{UAVCANSimpleTable}
 
 \begin{UAVCANSimpleTable}{CAN ID fields for service transfers}{|l l l X|}
@@ -111,13 +72,13 @@ The following acronyms are used for brevity:
     Transfer priority   & 3     & [0, 7] (any)      & Section \ref{sec:transfer_prioritization}. \\
     Service not message & 1     & 1                 & Always one for service transfers. \\
     Request not response& 1     & \{0, 1\} (any)    & 1 for service request, 0 for service response. \\
-    Service DTID        & 8     & [0, 255] (any)    & Data type ID of the encoded service data structure
+    Service ID          & 9     & [0, 255] (any)    & Service ID of the encoded service data structure
                                                       (request or response). \\
     Destination node ID & 7     & [1, 127]          & Node ID of the destination
                                                       (i.e., server for requests, client for responses). \\
     Source node ID      & 7     & [1, 127]          & Node ID of the origin
                                                       (i.e., client for requests, server for responses). \\
-    Service DTMVN       & 2     & [0, 3] (any)      & Major version number of the data type, modulo 4. \\
+    Protocol version    & 1     & 1                 & Protocol version, ignore frame (or use according to a newer specification) if this field is not 1. \\
 \end{UAVCANSimpleTable}
 
 \subsubsection{Transfer priority}

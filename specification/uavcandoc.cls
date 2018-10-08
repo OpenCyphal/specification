@@ -36,6 +36,7 @@
 \RequirePackage{lastpage}
 \RequirePackage{minted}
 \RequirePackage{chngcntr}
+\RequirePackage{pdflscape}
 
 %
 % Minor definitions.
