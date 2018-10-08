@@ -24,10 +24,10 @@ summarize the purpose of the fields and their permitted values
 for message transfers, anonymous message transfers, and service transfers, respectively.
 
 
-\begin{landscape}
 % Please do not remove the hard placement specifier [H], it is needed to keep elements ordered.
 \begin{figure}[H]
 \centering
+\resizebox{\textwidth}{!}{
 \begin{tabular}{|l|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|}  \hline
 \multirow{3}{*}{\textbf{Anonymous}} &
 \multicolumn{3}{c|}{\multirow{2}{*}{Priority}} &
@@ -117,11 +117,10 @@ for message transfers, anonymous message transfers, and service transfers, respe
 \hline
 
 \end{tabular}
+}
 
 \caption{CAN ID structure}\label{fig:can_id_structure}
 \end{figure}
-
-\end{landscape}
 
 \begin{UAVCANSimpleTable}{CAN ID fields for message transfers}{|l l l X|}
     \label{table:can_id_fields_message_transfer}
