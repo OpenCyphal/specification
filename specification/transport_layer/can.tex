@@ -28,14 +28,27 @@ for message transfers, anonymous message transfers, and service transfers, respe
 % Please do not remove the hard placement specifier [H], it is needed to keep elements ordered.
 \begin{figure}[H]
 \centering
-\begin{tabular}{|l|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|}
-\hline
+\begin{tabular}{|l|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|}  \hline
+\multirow{3}{*}{\textbf{Anonymous}} & \multicolumn{3}{c|}{\multirow{2}{*}{Priority}} & \multicolumn{5}{c|}{\multirow{2}{*}{Reserved}} & \multicolumn{3}{c|}{\multirow{2}{*}{Subject ID}} & \multicolumn{10}{c|}{\multirow{2}{*}{Discriminator}} & \multicolumn{8}{c|}{Protocol Version} \\ \cline{23-29}
+ & \multicolumn{3}{c|}{} & \multicolumn{5}{c|}{} & \multicolumn{3}{c|}{} & \multicolumn{10}{c|}{} & \multicolumn{7}{c|}{Anonymous Node ID} &  \\
+ & \multicolumn{3}{c|}{[0-127]} & \multicolumn{5}{c|}{0x00} & \multicolumn{3}{c|}{[0-7]} & \multicolumn{10}{c|}{[0-1023]} & \multicolumn{7}{c|}{0x00} & 1 \\ \hline
 \textbf{CAN ID Bit} & 28 & 27 & 26 & 25 & 24 & 23 & 22 & 21 & 20 & 19 & 18 & 17 & 16 & 15 & 14 & 13 & 12 & 11 & 10 &  9 &  8 &  7 &  6 &  5 &  4 &  3 &  2 &  1 &  0 \\ \hline
-\textbf{Anonymous} & \multicolumn{3}{c|}{\multirow{3}{*}{Priority}} & \multicolumn{5}{c|}{Reserved} & \multicolumn{3}{c|}{Subject ID} & \multicolumn{10}{c|}{Discriminator} & \multicolumn{7}{c|}{Anonymous Node ID} & \multirow{3}{*}{} \\ \cline{0-0} \cline{5-5} \cline{7-29}
-\textbf{Message} & \multicolumn{3}{c|}{} & 0 &  & \multicolumn{16}{c|}{Subject ID}  & \multicolumn{7}{c|}{\multirow{2}{*}{Source Node ID}} & \\ \cline{0-0} \cline{6-22}
-\textbf{Service} & \multicolumn{3}{c|}{} & 1 & 1|0  & \multicolumn{9}{c|}{Service ID} & \multicolumn{7}{c|}{Destination Node ID} & \multicolumn{7}{c|}{} & \\ \cline{0-3} \cline{7-29}
-\multicolumn{5}{|c|}{Service not Message} & \multicolumn{7}{c|}{Request not Response} & \multicolumn{10}{c|}{} & \multicolumn{8}{c|}{Version} \\ \hline
+
+\multicolumn{30}{c}{} \\ \hline
+
+\multirow{3}{*}{\textbf{Message}} & \multicolumn{4}{c|}{service/!message} & \multicolumn{5}{c|}{Reserved} & \multicolumn{12}{c|}{\multirow{2}{*}{Subject ID}} & \multicolumn{8}{c|}{Protocol Version} \\ \cline{2-4} \cline{7-10} \cline{23-29}
+ & \multicolumn{3}{c|}{Priority} &  &  & \multicolumn{16}{c|}{} & \multicolumn{7}{c|}{Source Node ID} &  \\
+ & \multicolumn{3}{c|}{[0-127]}  & 0 & 0  & \multicolumn{4}{c}{} & \multicolumn{12}{c|}{[0, 65535]} & \multicolumn{7}{c|}{[1-127]} & 1 \\ \hline
+\textbf{CAN ID Bit} & 28 & 27 & 26 & 25 & 24 & 23 & 22 & 21 & 20 & 19 & 18 & 17 & 16 & 15 & 14 & 13 & 12 & 11 & 10 &  9 &  8 &  7 &  6 &  5 &  4 &  3 &  2 &  1 &  0 \\ \hline
+
+\multicolumn{30}{c}{} \\ \hline
+
+\multirow{3}{*}{\textbf{Service}} & \multicolumn{4}{c|}{service/!message} & \multicolumn{5}{c|}{request/!response} & \multicolumn{5}{c|}{} & \multicolumn{7}{c|}{\multirow{2}{*}{Destination Node ID}} & \multicolumn{8}{c|}{Protocol Version} \\ \cline{2-4} \cline{7-10} \cline{23-29}
+& \multicolumn{3}{c|}{Priority} &  &  & \multicolumn{9}{c|}{Service ID} & \multicolumn{7}{c|}{} & \multicolumn{7}{c|}{Source Node ID} &  \\
+& \multicolumn{3}{c|}{[0-127]}  & 1 & 0|1  & \multicolumn{9}{c|}{[0-511]} & \multicolumn{7}{c|}{[1, 127]} & \multicolumn{7}{c|}{[1-127]} & 1 \\ \hline
+\textbf{CAN ID Bit} & 28 & 27 & 26 & 25 & 24 & 23 & 22 & 21 & 20 & 19 & 18 & 17 & 16 & 15 & 14 & 13 & 12 & 11 & 10 &  9 &  8 &  7 &  6 &  5 &  4 &  3 &  2 &  1 &  0 \\ \hline
 \end{tabular}
+
 \caption{CAN ID structure}\label{fig:can_id_structure}
 \end{figure}
 
