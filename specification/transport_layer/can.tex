@@ -42,10 +42,10 @@ for message transfers, anonymous message transfers, and service transfers, respe
 \multicolumn{7}{c|}{Anonymous Node ID} &  \\
 
  &
-\multicolumn{3}{c|}{[0-127]} &
+\multicolumn{3}{c|}{[0, 7]} &
 \multicolumn{5}{c|}{0x00} &
-\multicolumn{3}{c|}{[0-7]} &
-\multicolumn{10}{c|}{[0-1023]} &
+\multicolumn{3}{c|}{[0, 7]} &
+\multicolumn{10}{c|}{[0, 1023]} &
 \multicolumn{7}{c|}{0x00} & 1 \\ \hline
 
 \textbf{CAN ID Bit} &
@@ -72,12 +72,12 @@ for message transfers, anonymous message transfers, and service transfers, respe
 \\
 
  &
-\multicolumn{3}{c|}{[0-127]} &
+\multicolumn{3}{c|}{[0, 7]} &
 0 &
 0 &
 \multicolumn{4}{c}{} &
 \multicolumn{12}{c|}{[0, 65535]} &
-\multicolumn{7}{c|}{[1-127]} & 1 \\
+\multicolumn{7}{c|}{[1, 127]} & 1 \\
 \hline
 
 \textbf{CAN ID Bit} &
@@ -103,12 +103,12 @@ for message transfers, anonymous message transfers, and service transfers, respe
 \multicolumn{7}{c|}{} &
 \multicolumn{7}{c|}{Source Node ID} &  \\
  &
-\multicolumn{3}{c|}{[0-127]} &
+\multicolumn{3}{c|}{[0, 7]} &
 1 &
 0|1 &
-\multicolumn{9}{c|}{[0-511]} &
+\multicolumn{9}{c|}{[0, 511]} &
 \multicolumn{7}{c|}{[1, 127]} &
-\multicolumn{7}{c|}{[1-127]} & 1 \\
+\multicolumn{7}{c|}{[1, 127]} & 1 \\
 \hline
 
 \textbf{CAN ID Bit} &
