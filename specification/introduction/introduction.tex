@@ -13,29 +13,42 @@ UAVCAN is designed to adhere to the following set of basic principles.
     \item[Democratic network] --- There will be no master node.
     All nodes in the network will have the same communication rights; there must be no single point of failure.
 
-    \item[Nodes can exchange long payloads] --- Nodes must be provided with a simple way of exchanging large
-    data structures that cannot fit into a single transport frame (such as GNSS solutions, 3D vectors, etc.).
-    UAVCAN should perform automatic transfer decomposition and reassembly at the protocol level,
-    hiding the related complexity from the application.
+    \item[High-level communication abstractions] --- The protocol must support publish-subscribe and remote procedure
+    call semantics with statically defined data types (schema).
+    The data types used for communication must be defined in a clear, platform-agnostic way.
 
-    \item[Support for redundant interfaces and redundant nodes] --- UAVCAN must be suitable for use in
-    applications that require modular redundancy.
+    \item[Facilitation of cross-vendor interoperability] --- UAVCAN should provide a common foundation that
+    different vendors can use to ensure interoperability of their equipment.
+    UAVCAN must provide a generic set of standard application-agnostic communication data types.
+
+    \item[Well-defined generic high-level functions] --- UAVCAN must define standard services
+    and messages for common high-level functions, such as network discovery, node configuration,
+    node software update, node status monitoring (which naturally grows into a vehicle-wide health monitoring),
+    network-wide time synchronization, plug-and-play node support, etc.
+
+    \item[Atomic data abstractions] --- Nodes must be provided with a simple way of exchanging large
+    data structures that exceed the capacity of a single transport frame\footnote{A \emph{transport frame} is
+    an atomic transmission unit defined by the underlying transport protocol. For example, a CAN frame.}.
+    UAVCAN should perform automatic data decomposition and reassembly at the protocol level,
+    hiding the related complexity from the application.
 
     \item[High throughput, low latency communication] --- UAVCAN must be suitable for use in
     hard real-time systems.
+
+    \item[Support for redundant interfaces and redundant nodes] --- UAVCAN must be suitable for use in
+    applications that require modular redundancy.
 
     \item[Simple logic, low computational requirements] --- UAVCAN targets a wide variety of embedded systems,
     from high-performance embedded on-board computers for intensive data processing
     (e.g., a high-performance GNU/Linux-powered machine) to extremely resource-constrained microcontrollers.
     The latter imposes severe restrictions on the amount of logic needed to implement the protocol.
 
-    \item[Common high-level functions must be clearly defined] --- UAVCAN defines standard services
-    and messages for common high-level functions, such as network discovery, node configuration,
-    node software update, node status monitoring (which naturally grows into a vehicle-wide health monitoring),
-    network-wide time synchronization, dynamic node ID allocation (a.k.a. plug-and-play node support), etc.
+    \item[Support for various transport protocols] --- UAVCAN must be usable with different bus protocols,
+    such as CAN 2.0 or CAN FD.
+    The standard must be capable of accommodating other transport protocols in the future.
 
-    \item[Open specification and reference implementations] --- The UAVCAN specification is open and
-    freely available; the reference implementations are distributed under the terms of the permissive MIT License.
+    \item[Open specification and reference implementations] --- The UAVCAN specification will always be open and
+    freely available; the reference implementations will be distributed under the terms of the permissive MIT License.
 \end{description}
 
 \section{Capabilities}
