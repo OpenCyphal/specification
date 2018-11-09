@@ -3,18 +3,17 @@
 UAVCAN is a lightweight protocol designed to provide a highly reliable communication method for
 aerospace and robotic applications via robust vehicle bus networks.
 
-This is a non-normative section covering the basic concepts that govern development and maintenance of the specification.
+This is a non-normative section covering the basic concepts that govern development and maintenance of
+the specification.
 
 \section{Design principles}
-
-UAVCAN is designed to adhere to the following set of basic principles.
 
 \begin{description}
     \item[Democratic network] --- There will be no master node.
     All nodes in the network will have the same communication rights; there must be no single point of failure.
 
     \item[High-level communication abstractions] --- The protocol must support publish-subscribe and remote procedure
-    call semantics with statically defined data types (schema).
+    call semantics with statically defined and statically verified data types (schema).
     The data types used for communication must be defined in a clear, platform-agnostic way.
 
     \item[Facilitation of cross-vendor interoperability] --- UAVCAN should provide a common foundation that
@@ -48,27 +47,35 @@ UAVCAN is designed to adhere to the following set of basic principles.
     The standard must be capable of accommodating other transport protocols in the future.
 
     \item[Open specification and reference implementations] --- The UAVCAN specification will always be open and
-    freely available; the reference implementations will be distributed under the terms of the permissive MIT License.
+    free to use for everyone; the reference implementations will be distributed under the terms of
+    the permissive MIT License or released into public domain.
 \end{description}
 
 \section{Capabilities}
 
 UAVCAN-based networks can accommodate up to 127 nodes on the same logical bus.
 
-UAVCAN supports up to 65536 message, 256 service, and at least 8 anonymous data types.
-Some of these identifiers are reserved for the core standard with
-the rest available for vendor- and application-specific data types.
+UAVCAN supports an unlimited number of data types, which can be either standard (defined by the specification)
+or vendor-specific (defined by third parties for private use or for public release).
+There can be up to 256 major versions of a data type, and up to 256 minor versions per major version.
+More information is provided in chapter \ref{sec:dsdl}.
+
+UAVCAN supports up to 65536 message subject identifiers for publish/subscribe exchanges,
+256 service identifiers for remote procedure call exchanges,
+and at least 8 anonymous message subject identifiers for certain special features such as plug-and-play support.
+A small subset of these identifiers is reserved for the core standard and for publicly released vendor-specific types
+(data types with a predefined subject ID or service ID are said to have a \emph{regulated port ID}).
 More information is provided in chapter \ref{sec:application_layer}.
 
 UAVCAN supports at least\footnote{Depending on the transport protocol.} eight distinct communication priority levels,
-defined in the section \ref{sec:transfer_prioritization}.
+defined in section \ref{sec:transfer_prioritization}.
 Within each priority level different types of transfers and different data types are
 prioritized in a well-defined, deterministic manner.
 
 The list of transport protocols supported by UAVCAN is provided in chapter \ref{sec:transport_layer}.
 Non-redundant, doubly-redundant and triply-redundant transports are supported.
 More information on the physical layer and standardized physical connectivity options
-is provided in the chapter \ref{sec:physical_layer}.
+is provided in chapter \ref{sec:physical_layer}.
 
 \section{Maintenance of the standard data type set}
 
@@ -77,31 +84,27 @@ This feedback is gathered via the official discussion
 forum\footnote{Please refer to \href{http://uavcan.org}{uavcan.org}.}
 which is open to the general public.
 
-The set of standard data type definitions\footnote{The Data Structure Description Language (DSDL) and related concepts are described in section \ref{sec:dsdl}.}
-is an integral part of the specification, however, there is only a small set of required data types needed to implement the protocol.
+The set of standard data type definitions\footnote{The Data Structure Description Language (DSDL) and
+related concepts are described in section \ref{sec:dsdl}.} is an integral part of the specification;
+however, there is only a small set of required data types needed to implement the protocol.
 A larger set of optional data types are defined to create a standardized data exchange environment
-supporting the interoperability of COTS\footnote{Commercial off-the-shelf equipment.} equipment manufactured by different vendors.
+supporting the interoperability of COTS\footnote{Commercial off-the-shelf equipment.}
+equipment manufactured by different vendors.
 See chapter \ref{sec:application_layer} for more information.
 
-Within the same major version, the set of standard data type definitions can be modified only in the following ways:
+Within the same major version of the specification,
+the set of standard data type definitions can be modified only in the following ways:
 
 \begin{itemize}
-    \item A new data type can be added, possibly with a default data type ID,
-    as long as the default data type ID doesn't conflict with one of the existing data types.
+    \item A new data type can be added, as long as it doesn't conflict with any of the existing data types.
 
     \item An existing data type can be modified, as long as its version number is updated accordingly
-    and any backward compatibility guarantees are respected.
+    and all backward compatibility guarantees are respected.
 
-    \item A major version of an existing data type can be declared deprecated.
-    \begin{itemize}
-        \item Once declared deprecated, the major version will be maintained for at least two more years.
-        \item Deprecation will be indicated in the DSDL definition and announced via the discussion forum.
-    \end{itemize}
-
-    \item An existing data type can be declared deprecated.
+    \item An existing data type or a particular major version of it can be declared deprecated.
     \begin{itemize}
         \item Once declared deprecated, the data type will be maintained for at least two more years.
-        After this period its default data type ID may be reused for an incompatible data type.
+        After this period, its regulated port ID (if defined) may be reused for an incompatible data type definition.
         \item Deprecation will be indicated in the DSDL definition and announced via the discussion forum.
     \end{itemize}
 \end{itemize}
