@@ -1,33 +1,58 @@
 \chapter{Basic concepts}\label{sec:basic_concepts}
 
-
 A UAVCAN network is a decentralized peer network, where each peer (node) has a unique
 numeric identifier --- \emph{node ID} --- ranging from 1 to 127, inclusively.
 Nodes of a UAVCAN network can communicate using the following communication methods:
 
 \begin{description}
-    \item[Message broadcasting] --- The primary method of data exchange with one-to-all publish/subscribe semantics.
-    \item[Service invocation] --- The communication method for peer-to-peer request/response
+    \item[Message publication] --- The primary method of data exchange with one-to-many publish/subscribe semantics.
+    \item[Service invocation] --- The communication method for one-to-one request/response
     interactions\footnote{Like remote procedure call (RPC).}.
 \end{description}
 
-For each type of communication, a predefined set of data structures is used,
-where each data structure has a unique identifier --- the \emph{data type ID} (DTID).
-Additionally, every data structure definition has a pair of major and minor semantic version numbers,
+For each type of communication, a predefined set of data types is used,
+where each data type has a unique name.
+Additionally, every data type definition has a pair of major and minor semantic version numbers,
 which enable data type definitions to evolve in arbitrary ways while ensuring a well-defined
 migration path if backward-incompatible changes are introduced.
-Some data structures are standard and defined by the protocol specification (of which only a small 
+Some data types are standard and defined by the protocol specification (of which only a small
 subset are required); others may be specific to a particular application or vendor.
 
-Since every message or service data type has its own unique data type ID,
-and each node in the network has its own unique node ID,
-a pair of data type ID and node ID can be used to support redundant nodes with identical
-functionality inside the same network.
+Message exchanges between nodes are grouped into \emph{subjects} by their semantic meaning.
+Message exchanges belonging to the same subject use same message data type down to the major version
+(minor versions are allowed to differ) and pertain to same function or process within the system.
 
-Message and service data structures are defined using the Data Structure Description Language
+Request/response exchanges between nodes are grouped into \emph{services} by their semantic meaning,
+like messages are grouped into subjects.
+Requests and their corresponding responses that belong to the same service use same service data type down to
+the major version (minor versions are allowed to differ; as a consequence, the minor data type version number
+of a service response may differ from that of its corresponding request) and pertain to same function.
+
+Each message subject is identified by a unique natural number -- a \emph{subject ID};
+likewise, each service is identified by a unique \emph{service ID}.
+An umbrella term \emph{port ID} is used to refer either to a subject ID or to a service ID.
+Port identifiers have no direct manifestation in the construction of the protocol,
+but they are convenient for discussion.
+
+Message and service data types are defined using the \emph{data structure description language}
 (DSDL) (chapter \ref{sec:dsdl}).
-A DSDL description can be used to automatically generate the serialization/deserialization code
-for every defined data structure in a particular programming language.
+A DSDL definition specifies the name, major version, minor version, the data structure,
+and an optional predefined port ID of the data type.
+Message data types always contain exactly one data structure, whereas
+service data types contain two data structures: one for request, and the other for response.
+
+If a port identifier is defined by a data type definition, such identifier is said to be a
+\emph{regulated port identifier}
+(by inheritance, the same naming principle applies to \emph{regulated subject ID} and \emph{regulated service ID}).
+If a regulated port ID is not provided with a data type definition,
+it can be assigned at runtime on a per-application basis,
+in which case it is said to be an \emph{unregulated port identifier}.
+A data type can be used with an arbitrary number of different unregulated port identifiers,
+but not more than one regulated port identifier.
+
+A DSDL description can be used to automatically generate the serialization and deserialization code
+for every defined data type in a particular programming language.
+Alternatively, a DSDL description can be used to construct appropriate serialization code manually by a human.
 DSDL ensures that the worst case memory footprint and computational complexity per data type
 are constant and easily predictable.
 
@@ -38,28 +63,35 @@ For more information see chapter \ref{sec:application_layer}.
 
 Serialized message and service data structures are exchanged by means of the transport
 layer (chapter \ref{sec:transport_layer}), which implements automatic decomposition of
-long transfers into several transport frames\footnote{Here and 
-elsewhere, a \emph{transport frame} means a block of data that can be atomically exchanged 
+long transfers into several transport frames\footnote{Here and
+elsewhere, a \emph{transport frame} means a block of data that can be atomically exchanged
 over the network, e.g., a CAN frame.} and reassembly from these transport frames
-back into a single transfer buffer, allowing nodes to exchange data structures of 
+back into a single atomic data block, allowing nodes to exchange data structures of
 arbitrary size.
 
 \begin{figure}[hbt]
     \centering
     \begin{tabular}{|c|c|l|c|l|c|}
         \hline
-        \multicolumn{6}{|c|}{Applications}                                                                                              \\ \hline
-        \multicolumn{1}{|l|}{} & Required functions &            & Standard functions          &            & Custom functions          \\ \cline{2-2} \cline{4-4} \cline{6-6} 
-        \multicolumn{2}{|c|}{Required data types}   & \multicolumn{2}{c|}{Standard data types} & \multicolumn{2}{c|}{Custom data types} \\ \hline
-        \multicolumn{6}{|c|}{Serialization}                                                                                             \\ \hline
-        \multicolumn{6}{|c|}{Transport}                                                                                                 \\ \hline
+        \multicolumn{6}{|c|}{Applications} \\ \hline
+
+        \multicolumn{1}{|l|}{} & Required functions & & Standard functions & & Custom functions \\
+        \cline{2-2} \cline{4-4} \cline{6-6}
+
+        \multicolumn{2}{|c|}{Required data types} &
+        \multicolumn{2}{c|}{Standard data types} &
+        \multicolumn{2}{c|}{Custom data types} \\ \hline
+
+        \multicolumn{6}{|c|}{Serialization} \\ \hline
+
+        \multicolumn{6}{|c|}{Transport} \\ \hline
     \end{tabular}
     \caption{UAVCAN architectural diagram.\label{fig:architecture}}
 \end{figure}
 
-\section{Message broadcasting}
+\section{Message publication}
 
-Message broadcasting refers to the transmission of a serialized data structure over the network to other nodes.
+Message publication refers to the transmission of a serialized data structure over the network to other nodes.
 This is the primary data exchange mechanism used in UAVCAN;
 it is functionally similar to raw data exchange with minimal overhead,
 additional communication integrity guarantees, and automatic decomposition and reassembly of long payloads
@@ -67,13 +99,12 @@ across multiple transport frames.
 Typical use cases may include transfer of the following kinds of data (either cyclically or on an ad-hoc basis):
 sensor measurements, actuator commands, equipment status information, and more.
 
-Information contained in a broadcast message is summarized in the table \ref{table:broadcast_message_info}.
+Information contained in a published message is summarized in the table \ref{table:published_message_info}.
 
-\begin{UAVCANSimpleTable}{Broadcast message properties}{|l X|}\label{table:broadcast_message_info}
+\begin{UAVCANSimpleTable}{Published message properties}{|l X|}\label{table:published_message_info}
     Property        & Description \\
     Payload         & The serialized message data structure. \\
-    Data type ID    & Numerical identifier that indicates how the data structure should be interpreted. \\
-    Data type major version number & Semantic major version number of the data type description. \\
+    Subject ID      & Numerical identifier that indicates how the information should be interpreted. \\
     Source node ID  & The node ID of the transmitting node (excepting anonymous messages). \\
     Transfer ID     & A small overflowing integer that increments with every transfer
                       of this message type from a given node. Used for message sequence monitoring,
@@ -83,20 +114,21 @@ Information contained in a broadcast message is summarized in the table \ref{tab
                       detail in the chapter \ref{sec:transport_layer}. \\
 \end{UAVCANSimpleTable}
 
-\subsection{Anonymous message broadcasting}
+\subsection{Anonymous message publication}
 
-Nodes that don't have a unique node ID can publish \emph{anonymous messages}.
-An anonymous message is different from a regular message in that it doesn't contain a source node ID.
+Nodes that don't have a unique node ID can publish only \emph{anonymous messages}.
+An anonymous message is different from a regular message in that it doesn't contain a source node ID,
+and that it can't be decomposed across several transport frames.
 
 UAVCAN nodes will not have an identifier initially until they are assigned one,
 either statically (which is generally the preferred option for applications where a high degree of
-determinism and high safety assurances are required) or dynamically.
-Anonymous messages are particularly useful for the dynamic node ID allocation feature,
-which is explored in detail in the chapter~\ref{sec:application_layer}.
+determinism and high safety assurances are required) or automatically (i.e., plug-and-play).
+Anonymous messages are particularly useful for the plug-and-play feature,
+which is explored in detail in chapter~\ref{sec:application_layer}.
 
 Anonymous messages cannot be decomposed into multiple transport frames,
 meaning that their payload capacity is limited to that of a single transport frame.
-More info is provided in the chapter~\ref{sec:transport_layer}.
+More info is provided in chapter~\ref{sec:transport_layer}.
 
 \section{Service invocation}
 
@@ -112,7 +144,7 @@ No additional support or non-standard transport layer features are required.}:
 
 Typical use cases for this type of communication include:
 node configuration parameter update, firmware update, an ad-hoc action request, file transfer,
-and similar service tasks.
+and other functions of similar nature.
 
 Information contained in service requests and responses is summarized in the
 table \ref{table:service_req_resp_info}.
@@ -120,8 +152,7 @@ table \ref{table:service_req_resp_info}.
 \begin{UAVCANSimpleTable}{Service request/response properties}{|l X|}\label{table:service_req_resp_info}
     Property        & Description \\
     Payload         & The serialized request/response data structure. \\
-    Data type ID    & Numerical identifier that indicates how the data structure should be interpreted. \\
-    Data type major version number & Semantic major version number of the data type definition. \\
+    Service ID      & Numerical identifier that indicates how the service should be handled. \\
     Client node ID  & Source node ID during request transfer, destination node ID during response transfer. \\
     Server node ID  & Destination node ID during request transfer, source node ID during response transfer. \\
     Transfer ID     & A small overflowing integer that increments with every call
@@ -132,7 +163,7 @@ table \ref{table:service_req_resp_info}.
                       detail in the chapter \ref{sec:transport_layer}. \\
 \end{UAVCANSimpleTable}
 
-Both request and response contain same values for all listed fields except payload,
+Both the request and the response contain same values for all listed fields except payload,
 where the content is application-defined.
 Clients match responses with corresponding requests using the following fields:
-data type ID, data type major version number, client node ID, server node ID, and transfer ID.
+service ID, client node ID, server node ID, and transfer ID.
