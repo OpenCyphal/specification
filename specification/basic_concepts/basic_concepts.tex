@@ -1,7 +1,11 @@
 \chapter{Basic concepts}\label{sec:basic_concepts}
 
+\section{Main principles}
+
 A UAVCAN network is a decentralized peer network, where each peer (node) has a unique
-numeric identifier --- \emph{node ID} --- ranging from 1 to 127, inclusively.
+numeric identifier\footnote{Here and elsewhere in this specification, \emph{ID} and \emph{identifier} are used
+interchangeably unless specifically indicated otherwise.}
+--- \emph{node ID} --- ranging from 1 to 127, inclusively.
 Nodes of a UAVCAN network can communicate using the following communication methods:
 
 \begin{description}
@@ -34,8 +38,8 @@ An umbrella term \emph{port ID} is used to refer either to a subject ID or to a 
 Port identifiers have no direct manifestation in the construction of the protocol,
 but they are convenient for discussion.
 
-Message and service data types are defined using the \emph{data structure description language}
-(DSDL) (chapter \ref{sec:dsdl}).
+Message and service data types\footnote{Data types are the core concept of UAVCAN.}
+are defined using the \emph{data structure description language} (DSDL) (chapter \ref{sec:dsdl}).
 A DSDL definition specifies the name, major version, minor version, the data structure,
 and an optional predefined port ID of the data type.
 Message data types always contain exactly one data structure, whereas
@@ -65,7 +69,7 @@ Serialized message and service data structures are exchanged by means of the tra
 layer (chapter \ref{sec:transport_layer}), which implements automatic decomposition of
 long transfers into several transport frames\footnote{Here and
 elsewhere, a \emph{transport frame} means a block of data that can be atomically exchanged
-over the network, e.g., a CAN frame.} and reassembly from these transport frames
+over the transport layer network, e.g., a CAN frame.} and reassembly from these transport frames
 back into a single atomic data block, allowing nodes to exchange data structures of
 arbitrary size.
 
