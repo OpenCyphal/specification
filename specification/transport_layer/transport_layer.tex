@@ -6,33 +6,53 @@ Afterwards, they are further defined for each supported transport medium, e.g., 
 
 \section{The concept of transfer}
 
+\subsection{Fundamentals}
+
 A \emph{transfer} is an act of data transmission between nodes.
-A transfer that is addressed to all nodes except the source node is a \emph{broadcast transfer}.
+
+\subsubsection{Broadcast and unicast transfers}
+
+A transfer that is addressed to any interested node except the source node is a \emph{broadcast transfer}.
 A transfer that is addressed to one particular node is a \emph{unicast transfer}.
-UAVCAN defines the following types of transfers:
 
-\begin{description}
-    \item[Message transfer] - a broadcast transfer that contains a serialized message.
-    \item[Service transfer] - a unicast transfer that contains either a service request or a service response.
-\end{description}
+In the case of broadcast transfers, the sending node makes the data widely available on the bus,
+allowing any interested node to freely opt-in and process
+it\footnote{The word "broadcast" should not lead one to believe that every node is required to
+process such transfers. The opt-in logic is facilitated by automatic acceptance filtering features
+implemented on the transport layer.}.
+The decision of whether to process any given transfer or not is made by receiving nodes.
 
-Both message and service transfers can be further distinguished between:
+In the case of unicast transfers, the addressing logic is inverted:
+the sending node decides which particular remote node should receive the transfer.
+All other nodes remain unaffected by such transmission and take no part in the addressing process.
 
-\begin{description}
-    \item[Single-frame transfer] - a transfer that is entirely contained in a single transport frame.
-    The amount of data that can be exchanged using single-frame transfers is dependent on the transport protocol in use.
+\subsubsection{Message and service transfers}
 
-    \item[Multi-frame transfer] - a transfer that has its payload distributed over multiple transport frames.
-    The UAVCAN protocol stack handles transfer decomposition and reassembly automatically.
-\end{description}
+A \emph{message transfer} is a broadcast transfer that contains a serialized message and its
+metadata\footnote{Such as the subject ID and the source node ID.}.
 
-The following properties are common to all types of transfers:
+A \emph{service transfer} is a unicast transfer that contains either a service request or a service response
+with related metadata.
+
+\subsubsection{Single-frame and multi-frame transfers}
+
+Both message and service transfers can be further distinguished between single-frame and multi-frame transfers.
+
+A \emph{single-frame transfer} is a transfer that is entirely contained in a single transport frame.
+The amount of data that can be exchanged using single-frame transfers is dependent on the transport protocol in use.
+
+A \emph{multi-frame transfer} is a transfer that has its payload distributed over multiple transport frames.
+The UAVCAN protocol stack handles transfer decomposition and reassembly automatically.
+
+\subsubsection{Common properties}
+
+The properties listed in the table \ref{table:common_transfer_properties} are common to all types of transfers.
 
 \begin{UAVCANSimpleTable}{Common transfer properties}{|l X|}\label{table:common_transfer_properties}
     Property        & Description \\
     Payload         & The serialized data structure. \\
-    Data type ID    & A numerical identifier that indicates how the data structure should be interpreted. \\
-    Data type major version number & Semantic major version number of the data type definition. \\
+    Port ID         & A numerical identifier that indicates how the data should be processed.
+                      This is the subject ID for message transfers and service ID for service transfers. \\
     Source node ID  & The node ID of the transmitting node (excepting anonymous message transfers). \\
     Priority        & A non-negative integer value that defines the transfer urgency.
                       Higher priority transfers can preempt lower priority transfers. \\
@@ -40,22 +60,22 @@ The following properties are common to all types of transfers:
                       of this data type from a given node. \\
 \end{UAVCANSimpleTable}
 
-\subsection{Message broadcasting}
+\subsection{Message publication}
 
-Message broadcasting is the main method of communication between UAVCAN nodes.
+Message publication is the main method of communication between UAVCAN nodes.
 
-A broadcast message is carried by a single message transfer that contains the serialized message data structure.
-A broadcast message does not contain any additional fields besides those listed in the table
+A published message is carried by a single message transfer that contains the serialized message data structure.
+A published message does not contain any additional fields besides those listed in the table
 \ref{table:common_transfer_properties}.
 
-In order to broadcast a message, the broadcasting node must have a node ID that is unique within the network.
-An exception applies to \emph{anonymous message broadcasts}.
+In order to publish a message, the publishing node must have a node ID that is unique within the network.
+An exception applies to \emph{anonymous message publications}.
 
-\subsubsection{Anonymous message broadcasting}
+\subsubsection{Anonymous message publication}
 
 An anonymous message transfer is a transfer that can be sent from a node that does not have a node ID.
-This sort of message transfer is especially useful for \emph{dynamic node ID allocation}
-(a high-level concept that is reviewed in detail in the chapter \ref{sec:application_layer}).
+This kind of message transfer is especially useful for facilitation of \emph{plug-and-play nodes}
+(a high-level concept that is reviewed in detail in chapter \ref{sec:application_layer}).
 
 A node that does not have a node ID is said to be in \emph{passive mode}.
 Passive nodes are unable to initiate regular data exchanges,
@@ -69,17 +89,16 @@ An anonymous transfer can only be a single-frame transfer. Multi-frame anonymous
 This restriction must be kept in mind when designing message data types
 intended for use with anonymous message transfers:
 when used with anonymous transfers, the whole message must fit into a single transport frame;
-however, the same data type can be used with multi-frame regular (non-anonymous) transfers.
+however, the same data type can be used with multi-frame regular (non-anonymous) transfers, if desired.
 
-The set of message type ID values that can be used with anonymous messages may be limited
-depending on the transport in use
-(section \ref{sec:transport_layer})\footnote{This is considered to be an acceptable limitation because
+The set of message subject ID values that can be used with anonymous messages may be limited
+depending on the transport protocol in use\footnote{This is considered to be an acceptable limitation because
 anonymous transfers are intended for an extremely limited set of use cases.}.
-It is guaranteed, however, that the message data type ID in the range from 0 to 7, inclusively,
+It is guaranteed, however, that the subject ID values in the range
+from 65528 ($\text{FFF8}_\text{16}$) to 65535 ($\text{FFFF}_\text{16}$), inclusively,
 are always available for use with anonymous messages regardless of the transport in use.
 
-Note that anonymous messages require specific arbitration rules and have restrictions on the acceptable
-data type ID values. The details are explained later in this chapter.
+Anonymous messages may require special handling logic depending on the transport layer in use.
 
 \subsubsection{Message timing requirements}
 
@@ -87,31 +106,30 @@ Generally, a message transmission should be aborted if it cannot be completed in
 Applications are allowed to deviate from this recommendation,
 provided that every such deviation is explicitly documented.
 It is expected that high-frequency high-priority messages may opt for lower timeout values,
-whereas low-priority data may opt for higher timeout values to account for the network congestion.
+whereas low-priority delayable data may opt for higher timeout values to account for the network congestion.
 
 \subsection{Service invocation}
 
 A service invocation sequence consists of two related service transfers:
+\emph{service request transfer} and \emph{service response transfer}.
 
-\begin{description}
-    \item[Service request transfer] - from the node that invokes the service - the \emph{client} - to the node that
-    provides the service - the \emph{server}.
-
-    \item[Service response transfer] - once the \emph{server node} receives the service request and processes it,
-    it sends a response transfer back to the \emph{client node}.
-\end{description}
+A service request transfer is sent from the invoking node -- \emph{client node} -- to the node
+that provides the service -- \emph{server node}.
+Upon handling the request, the server node responds to the client node with a service response transfer.
+The client will match the response with the corresponding request by comparing the following values:
+server node ID, service ID, and the transfer ID.
 
 The tables \ref{table:service_request_transfer_properties} and \ref{table:service_response_transfer_properties}
 describe the properties of service request and service response transfers, respectively.
 
 Both the client and the server must have node ID values that are unique within the network;
 service invocation is not available to passive nodes.
+The client and the server must be two distinct nodes.
 
 \begin{UAVCANSimpleTable}{Service request transfer properties}{|l X|}\label{table:service_request_transfer_properties}
     Property                        & Description \\
     Payload                         & The serialized service request data structure. \\
-    Data type ID                    & See the table \ref{table:common_transfer_properties}. \\
-    Data type major version number  & See the table \ref{table:common_transfer_properties}. \\
+    Service ID                      & See the table \ref{table:common_transfer_properties}. \\
     Source node ID                  & The node ID of the client (the invoking node). \\
     Destination node ID             & The node ID of the server (the invoked node). \\
     Priority                        & See the table \ref{table:common_transfer_properties}. \\
@@ -125,8 +143,7 @@ service invocation is not available to passive nodes.
 \begin{UAVCANSimpleTable}{Service response transfer properties}{|l X|}\label{table:service_response_transfer_properties}
     Property                        & Description \\
     Payload                         & The serialized service response data structure. \\
-    Data type ID                    & Same value as in the request transfer. \\
-    Data type major version number  & Same value as in the request transfer. \\
+    Service ID                      & Same value as in the request transfer. \\
     Source node ID                  & The node ID of the server (the invoked node). \\
     Destination node ID             & The node ID of the client (the invoking node). \\
     Priority                        & Same value as in the request transfer. \\
@@ -135,7 +152,7 @@ service invocation is not available to passive nodes.
 
 \subsubsection{Service timing requirements}
 
-Applications should follow the service invocation timing recommendations specified below.
+Applications are recommended to follow the service invocation timing recommendations specified below.
 Applications are allowed to deviate from these recommendations,
 provided that every such deviation is explicitly documented.
 
@@ -152,22 +169,53 @@ It is recommended to ensure that the server will be able to process any request 
 
 UAVCAN transfers are prioritized by means of the transfer priority property,
 which allows at least eight different priority levels for all types of transfers.
-The priority level mnemonics are specified in the following list.
-The mapping between the mnemonics and actual numeric identifiers is transport-dependent.
-
-\begin{itemize}
-    \item Foreground (highest)
-    \item Super
-    \item Urgent
-    \item High
-    \item Normal
-    \item Low
-    \item Diagnostic
-    \item Background (lowest)
-\end{itemize}
-
 Transfers with higher priority levels preempt transfers with lower priority levels,
 delaying their transmission until there are no more higher priority transfers to exchange.
+
+The priority level mnemonics and their usage recommendations are specified in the following list.
+The mapping between the mnemonics and actual numeric identifiers is transport-dependent.
+
+% https://forum.uavcan.org/t/transfer-priority-level-mnemonics/218/6?u=pavel.kirienko
+\begin{description}
+    \item[Exceptional] -- The bus designer can ignore these messages when calculating bus load since they
+    should only be sent when a total system failure has occurred.
+    For example, a self-destruct message on a rocket would use this priority.
+    Another analogy is an NMI on a microcontroller.
+
+    \item[Immediate] -- Immediate is a ``high priority message'' but with additional latency constraints.
+    Since exceptional messages are not considered when designing a bus, the latency of immediate messages
+    can be determined by considering only immediate messages.
+
+    \item[Fast] -- Fast and immediate are both ``high priority messages'' but with additional latency constraints.
+    Since exceptional messages are not considered when designing a bus,
+    the latency of fast messages can be determined by considering only immediate and fast messages.
+
+    \item[High] -- High priority messages are more important than nominal messages but have looser
+    latency requirements than fast messages. This priority is used so that,
+    in the presence of rogue nominal messages, important commands can be received.
+    For example, one might envision a failure mode where a temperature sensor starts to
+    load a vehicle bus with nominal messages.
+    The vehicle remains operational (for a time) because the controller is exchanging fast and
+    immediate messages with sensors and actuators.
+    A system safety monitor is able to detect the distressed bus and command the vehicle to a
+    safe state by sending high priority messages to the controller.
+
+    \item[Nominal] -- This is what all messages should use by default.
+    Specifically the heartbeat messages should use this priority.
+
+    \item[Low] -- Low priority messages are expected to be sent on a bus under all conditions but cannot
+    prevent the delivery of nominal messages.
+    They are allowed to be delayed but latency should be constrained by the bus designer.
+
+    \item[Slow] -- Slow messages are low priority messages that have no time sensitivity at all.
+    The bus designer need only ensure that, for all possible system states,
+    these messages will eventually be delivered.
+
+    \item[Optional] -- These messages might never be sent (theoretically) for some possible system states.
+    The system must tolerate never exchanging optional messages in every possible state.
+    The bus designer can ignore these messages when calculating bus load.
+    This should be the priority used for diagnostic or debug messages that are not required on an operational system.
+\end{description}
 
 \section{Transfer emission}
 
@@ -201,7 +249,7 @@ specifically:
     allow applications to circumvent this problem.} (multi-frame transfers combat the frame duplication
     problem using the toggle bit).
 
-    \item[Multi-frame transfer reassembly] - more info is provided in the section \ref{sec:transfer_reception}.
+    \item[Multi-frame transfer reassembly] - more info is provided in section \ref{sec:transfer_reception}.
 
     \item[Automatic management of redundant interfaces] - the transfer ID parameter allows the UAVCAN protocol
     stack to perform automatic switchover to a back-up interface shall the primary interface fail.
@@ -212,14 +260,13 @@ specifically:
 For message transfers and service request transfers the ID value should be computed as described below.
 For service response transfers this value must be directly copied from the corresponding service request transfer.
 
-The logic to compute the transfer ID relies on the concept of \emph{transfer descriptor}.
+The transfer ID computation logic relies on the concept of \emph{transfer descriptor}.
 A transfer descriptor is a set of properties that identify a particular set of transfers that originate
-from the same node, share the same data type ID, same data type major version number, and the same type.
+from the same node, share the same port ID, and the same kind.
 The properties that constitute a transfer descriptor are listed below:
 \begin{itemize}
-    \item Transfer type (message broadcast, service request, etc.).
-    \item Data type ID.
-    \item Data type major version number.
+    \item Transfer kind (message publication, service request, or service response).
+    \item Port ID (subject ID or service ID).
     \item Source node ID.
     \item Destination node ID (only for unicast\footnote{I.e., service requests and service responses.} transfers).
 \end{itemize}
@@ -233,12 +280,12 @@ The node will use the current value of the transfer ID from the map for the tran
 and then the value stored in the map will be incremented by one.
 When the stored transfer ID exceeds its maximum value, it will roll over to zero.
 
-It is expected that some nodes will need to publish certain transfers aperiodically or on an ad-hoc basis,
+It is expected that some nodes will need to emit certain transfers aperiodically or on an ad-hoc basis,
 thereby creating unused entries in the transfer ID map.
 In order to avoid keeping unused entries in the map, the nodes are allowed, but not required,
 to remove entries from the map that were not used for more than 2 seconds.
-Therefore, it is possible that a node may publish a transfer with an out-of-order transfer ID value,
-if the previous transfer of the same descriptor has been published more than 2 seconds earlier.
+Therefore, it is possible that a node may emit a transfer with an out-of-order transfer ID value,
+if the previous transfer of the same descriptor was emitted more than 2 seconds ago.
 
 \subsection{Single frame transfers}
 
@@ -262,33 +309,47 @@ Two new concepts are introduced in the context of multi-frame transfers, both of
 \end{itemize}
 
 In order to emit a multi-frame transfer, the node must first compute the CRC for the entirety of the transfer payload.
-The node appends the CRC value at the end of the transfer payload,
-and then emits the resulting byte set in chunks as an ordered sequence of transport frames
-(i.e. the last transport frame contains the last bytes of the payload and the transfer CRC).
-The data field of all transport frames of a multi-frame transfer, except the last one, must be fully utilized.
+The node appends the resulting CRC value at the end of the transfer payload in the big-endian byte order,
+and then emits the resulting byte set in chunks as an ordered sequence of transport frames,
+where the first transport frame contains the beginning of the payload bytes,
+and the last transport frame contains the last bytes of the payload (possibly none) plus the transfer CRC.
+
+The data field of all transport frames of a multi-frame transfer, except the last one, should be fully utilized.
+Applications are allowed to limit the maximum amount of data transferred per transport frame in order to
+improve the preemption granularity, thus reducing the worst case latency of higher priority
+transfers\footnote{For example, some CAN FD applications may choose to restrict the maximum payload size to 32 bytes
+rather than the protocol limit of 64 bytes, as that provides more opportunities for higher-priority frames to
+take over the bus. The trade-off is that smaller frames lead to higher transfer fragmentation, increase the bus load,
+and increase the overall average latency.}.
+Receiving nodes must be prepared to reconstruct multi-frame transfers that utilize the
+available payload space partially.
 
 All frames of a multi-frame transfer should be pushed to the transmission queue at once,
 in the proper order from the first frame to the last frame.
-Explicit gap time between transport frames belonging to the same transfer should not be introduced.
+Explicit gap time between transport frames belonging to the same transfer should not be introduced;
+rather, implementations always should strive to minimize it.
+Re-ordering of frames belonging to the same multi-frame transfer is prohibited.
 
 \subsubsection{Transfer CRC}\label{sec:transfer_crc}
 
-The objective of the transfer CRC is to allow receiving nodes to validate correctness of
-multi-frame transfer reassembly.
+Transfer CRC allows receiving nodes to ensure that a received multi-frame transfer has been reassembled correctly.
+
 It should be understood that the transfer CRC is not intended for bit-level data integrity checks,
-as that must be managed by the transport layer implementation on a per-frame basis.
+as that must be managed by the transport layer implementation on a per-frame
+basis\footnote{A possibility of bit-level errors at the transport frame level may compromise the error-detecting
+properties of the transfer CRC.}.
 As such, the transfer CRC allows receiving nodes to ensure that all of the frames of a multi-frame
 transfer were received, all of the received frames were reassembled in the correct order,
 and that all of the received frames belong to the same multi-frame transfer.
 
 The transfer CRC is computed over the entire payload of the transfer.
-Certain transport implementations, such as CAN FD, may require a short sequence of padding bytes to be added
-at the end of the transfer payload due to low granularity of the frame payload length property;
+Certain transport implementations\footnote{Such as CAN FD.} may require a short sequence of padding bytes
+to be added at the end of the transfer payload due to the low granularity of the frame payload length property;
 in that case, the padding bytes are not to be included in the CRC computation.
 
 The resulting CRC value is appended to the transfer in the \emph{big-endian byte order}
 (most significant byte first),
-in order to take advantage of the CRC residue check intrinsic to this algorithm.
+in order to take advantage of the CRC residue check intrinsic to the used algorithm.
 
 The transfer CRC algorithm specification is provided in the table \ref{table:transfer_crc_params}.
 
@@ -305,7 +366,7 @@ The transfer CRC algorithm specification is provided in the table \ref{table:tra
 \end{UAVCANSimpleTable}
 \end{minipage}
 
-The following code snippet provides an implementation of the transfer CRC algorithm in C++.
+The following code snippet provides a basic implementation of the transfer CRC algorithm in C++.
 
 \begin{minipage}{0.9\textwidth}
 \begin{minted}{cpp}
@@ -390,11 +451,15 @@ should be handled in the first order.
 An exception to the above rule applies if the payload of the transfer depends on some properties
 of the interface through which the transfer is emitted.
 An example of such a special case is the time synchronization algorithm leveraged by UAVCAN
-(documented in the chapter \ref{sec:application_layer} of the specification).
+(documented in chapter \ref{sec:application_layer} of the specification).
 
 Redundant interfaces are used for increased fault tolerance, not for load sharing reasons.
 Whenever a node is connected to an interface the likelihood of the interface failing is increased.
-This suggests that backup interfaces may only interconnect with mission-critical equipment.
+This suggests that backup interfaces may only interconnect with mission-critical equipment,
+unless a homogeneous network architecture is desired\footnote{Heterogeneous transport configuration
+complicates the analysis of the network, which might make it impractical in safety-critical deployments.
+In that case, a simpler configuration where each available redundant bus is connected to every node may be
+preferred.}.
 See section \ref{sec:phy_non_uniform_transport_redundancy}.
 
 \section{Transfer reception}\label{sec:transfer_reception}
