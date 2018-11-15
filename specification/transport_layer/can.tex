@@ -14,7 +14,7 @@ therefore, backward compatibility with other protocols is not guaranteed.
 \subsection{CAN ID structure}
 
 UAVCAN utilizes three different CAN ID formats for different types of transfers:
-message transfers, service transfers, and anonymous message transfers.
+message transfers, anonymous message transfers, and service transfers.
 The structure is summarized on the figure~\ref{fig:can_id_structure}.
 
 The fields are described in detail in the following sections.
@@ -23,144 +23,194 @@ The tables \ref{table:can_id_fields_message_transfer},
 summarize the purpose of the fields and their permitted values
 for message transfers, anonymous message transfers, and service transfers, respectively.
 
-
 % Please do not remove the hard placement specifier [H], it is needed to keep elements ordered.
 \begin{figure}[H]
-\centering
-\resizebox{\textwidth}{!}{
-\begin{tabular}{|l|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|}  \hline
-\multirow{3}{*}{\textbf{Anonymous}} &
-\multicolumn{3}{c|}{\multirow{2}{*}{Priority}} &
-\multicolumn{5}{c|}{\multirow{2}{*}{Reserved}} &
-\multicolumn{3}{c|}{\multirow{2}{*}{Subject ID}} &
-\multicolumn{10}{c|}{\multirow{2}{*}{Discriminator}} &
-\multicolumn{8}{c|}{Protocol Version} \\
-\cline{23-29}
+    \centering
+    \resizebox{\textwidth}{!}{
+        \footnotesize
+        \begin{tabular}{|l|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|} \hline
+            %
+            % Message transfer
+            %
+            \multirow{2}{*}{\textbf{Message}} &
+            \multicolumn{4}{c|}{Service, not message} &
+            \multicolumn{5}{c|}{Reserved} &
+            \multicolumn{12}{c|}{\multirow{2}{*}{Subject ID}} &
+            \multicolumn{8}{c|}{Protocol version}
+            \\\cline{2-4} \cline{7-10} \cline{23-29}
 
- &
-\multicolumn{3}{c|}{} & \multicolumn{5}{c|}{} & \multicolumn{3}{c|}{} & \multicolumn{10}{c|}{} &
-\multicolumn{7}{c|}{Anonymous Node ID} &  \\
+            &
+            \multicolumn{3}{c|}{Priority}
+            &
+            &
+            &
+            \multicolumn{16}{c|}{} &
+            \multicolumn{7}{c|}{Source node ID} &
+            \\
 
- &
-\multicolumn{3}{c|}{[0, 7]} &
-\multicolumn{5}{c|}{0x00} &
-\multicolumn{3}{c|}{[0, 7]} &
-\multicolumn{10}{c|}{[0, 1023]} &
-\multicolumn{7}{c|}{0x00} & 1 \\ \hline
+            \textbf{Values} &
+            \multicolumn{3}{c|}{$[0, 7]$} &
+            $0$ &
+            $0$ &
+            \multicolumn{4}{c}{} &
+            \multicolumn{12}{c|}{$[0, 65535]$} &
+            \multicolumn{7}{c|}{$[1, 127]$} &
+            $1$
+            \\\hline
 
-\textbf{CAN ID Bit} &
-28 & 27 & 26 & 25 & 24 & 23 & 22 & 21 & 20 & 19 & 18 & 17 & 16 & 15 &
-14 & 13 & 12 & 11 & 10 &  9 &  8 & 7 &  6 &  5 &  4 &  3 &  2 &  1 &  0 \\
-\hline
+            \textbf{CAN ID bit} &
+            28 & 27 & 26 & 25 & 24 & 23 & 22 & 21 & 20 & 19 & 18 & 17 & 16 & 15 &
+            14 & 13 & 12 & 11 & 10 &  9 &  8 &  7 &  6 &  5 &  4 &  3 &  2 &  1 &  0
+            \\\hline
 
-\multicolumn{30}{c}{} \\ \hline %% Table seperator
+            \multicolumn{30}{c}{} \\ \hline % Table separator
 
-\multirow{3}{*}{\textbf{Message}} &
-\multicolumn{4}{c|}{service/!message} &
-\multicolumn{5}{c|}{Reserved} &
-\multicolumn{12}{c|}{\multirow{2}{*}{Subject ID}} &
-\multicolumn{8}{c|}{Protocol Version} \\
-\cline{2-4} \cline{7-10} \cline{23-29}
+            %
+            % Anonymous message transfer
+            %
+            \multirow{2}{*}{\textbf{\shortstack[l]{Anonymous \\ message}}} &
+            \multicolumn{4}{c|}{Service, not message} &
+            \multicolumn{4}{c|}{Subject ID inversion} &
+            \multicolumn{3}{c|}{\multirow{2}{*}{Subject ID}} &
+            \multicolumn{10}{c|}{\multirow{2}{*}{Discriminator}} &
+            \multicolumn{8}{c|}{Protocol version}
+            \\\cline{2-4} \cline{7-9} \cline{23-29}
 
- &
-\multicolumn{3}{c|}{Priority}
- &
- &
- &
-\multicolumn{16}{c|}{} &
-\multicolumn{7}{c|}{Source Node ID} &
-\\
+            &
+            \multicolumn{3}{c|}{Priority} &
+            \multicolumn{1}{c|}{} &
+            \multicolumn{1}{c|}{} &
+            \multicolumn{3}{c|}{Reserved} &
+            \multicolumn{3}{c|}{} &
+            \multicolumn{10}{c|}{} &
+            \multicolumn{7}{c|}{Anonymous node ID} &
+            \\
 
- &
-\multicolumn{3}{c|}{[0, 7]} &
-0 &
-0 &
-\multicolumn{4}{c}{} &
-\multicolumn{12}{c|}{[0, 65535]} &
-\multicolumn{7}{c|}{[1, 127]} & 1 \\
-\hline
+            \textbf{Values} &
+            \multicolumn{3}{c|}{$[0, 7]$} &
+            \multicolumn{1}{c|}{$0$} &
+            \multicolumn{1}{c|}{$\mathbb{B}$} &
+            \multicolumn{3}{c|}{$0$} &
+            \multicolumn{3}{c|}{$[0, 7]$} &
+            \multicolumn{10}{c|}{$[0, 1023]$} &
+            \multicolumn{7}{c|}{$0$} &
+            $1$
+            \\\hline
 
-\textbf{CAN ID Bit} &
-28 & 27 & 26 & 25 & 24 & 23 & 22 & 21 & 20 & 19 & 18 & 17 & 16 & 15 &
-14 & 13 & 12 & 11 & 10 &  9 &  8 &  7 &  6 &  5 &  4 &  3 &  2 &  1 &  0 \\
-\hline
+            \textbf{CAN ID bit} &
+            28 & 27 & 26 & 25 & 24 & 23 & 22 & 21 & 20 & 19 & 18 & 17 & 16 & 15 &
+            14 & 13 & 12 & 11 & 10 &  9 &  8 & 7 &  6 &  5 &  4 &  3 &  2 &  1 &  0
+            \\\hline
 
-\multicolumn{30}{c}{} \\ \hline %% Table seperator
+            \multicolumn{30}{c}{} \\ \hline % Table separator
 
-\multirow{3}{*}{\textbf{Service}} &
-\multicolumn{4}{c|}{service/!message} &
-\multicolumn{5}{c|}{request/!response} &
-\multicolumn{5}{c|}{} &
-\multicolumn{7}{c|}{\multirow{2}{*}{Destination Node ID}} &
-\multicolumn{8}{c|}{Protocol Version} \\
-\cline{2-4} \cline{7-10} \cline{23-29}
+            %
+            % Service transfer
+            %
+            \multirow{2}{*}{\textbf{Service}} &
+            \multicolumn{4}{c|}{Service, not message} &
+            \multicolumn{5}{c|}{Request, not response} &
+            \multicolumn{5}{c|}{} &
+            \multicolumn{7}{c|}{\multirow{2}{*}{Destination node ID}} &
+            \multicolumn{8}{c|}{Protocol version}
+            \\\cline{2-4} \cline{7-10} \cline{23-29}
 
- &
-\multicolumn{3}{c|}{Priority} &
-\cellcolor{red} &
- &
-\multicolumn{9}{c|}{Service ID} &
-\multicolumn{7}{c|}{} &
-\multicolumn{7}{c|}{Source Node ID} &  \\
- &
-\multicolumn{3}{c|}{[0, 7]} &
-1 &
-0|1 &
-\multicolumn{9}{c|}{[0, 511]} &
-\multicolumn{7}{c|}{[1, 127]} &
-\multicolumn{7}{c|}{[1, 127]} & 1 \\
-\hline
+            &
+            \multicolumn{3}{c|}{Priority} &
+            \cellcolor{red} &
+            &
+            \multicolumn{9}{c|}{Service ID} &
+            \multicolumn{7}{c|}{} &
+            \multicolumn{7}{c|}{Source node ID} &
+            \\
 
-\textbf{CAN ID Bit} &
-28 & 27 & 26 & 25 & 24 & 23 & 22 & 21 & 20 & 19 & 18 & 17 & 16 & 15 &
-14 & 13 & 12 & 11 & 10 &  9 &  8 &  7 &  6 &  5 &  4 &  3 &  2 &  1 &  0 \\
-\hline
+            \textbf{Values} &
+            \multicolumn{3}{c|}{$[0, 7]$} &
+            $1$ &
+            $\mathbb{B}$ &
+            \multicolumn{9}{c|}{$[0, 511]$} &
+            \multicolumn{7}{c|}{$[1, 127]$} &
+            \multicolumn{7}{c|}{$[1, 127]$} &
+            $1$
+            \\\hline
 
-\end{tabular}
-}
-
-\caption{CAN ID structure}\label{fig:can_id_structure}
+            \textbf{CAN ID bit} &
+            28 & 27 & 26 & 25 & 24 & 23 & 22 & 21 & 20 & 19 & 18 & 17 & 16 & 15 &
+            14 & 13 & 12 & 11 & 10 &  9 &  8 &  7 &  6 &  5 &  4 &  3 &  2 &  1 &  0
+            \\\hline
+        \end{tabular}
+    }
+    \caption{CAN ID structure}\label{fig:can_id_structure}
 \end{figure}
 
 \begin{UAVCANSimpleTable}{CAN ID fields for message transfers}{|l l l X|}
     \label{table:can_id_fields_message_transfer}
     Field               & Width & Permitted values  & Description \\
-    Transfer priority   & 3     & [0, 7] (any)      & Section \ref{sec:transfer_prioritization}. \\
-    Service not message & 1     & 0                 & Always zero for message transfers. \\
-    Reserved Field      & 1     & 0                 & Set to zero when emitting. When receiving, ignore the frame if this field is not zero. \\
-    Subject ID          & 16    & [0, 65535] (any)  & Used for identifying the Subject this message was transmitted on. \\
-    Source node ID      & 7     & [1, 127]          & Node ID of the origin. \\
-    Protocol version    & 1     & 1                 & Protocol version, ignore frame (or use according to a newer specification) if this field is not 1. \\
+
+    Transfer priority   & 3     & $[0, 7]$ (any)    & Section \ref{sec:transfer_prioritization}. \\
+
+    Service not message & 1     & $0$               & Always zero for message transfers. \\
+
+    Reserved field      & 1     & $0$               & Set to zero when emitting.
+                                                      When receiving, ignore the frame if this field is not zero. \\
+
+    Subject ID          & 16    & $[0, 65535]$ (any)& Subject identifier of the current message. \\
+
+    Source node ID      & 7     & $[1, 127]$        & Node ID of the origin. \\
+
+    Protocol version    & 1     & $1$               & Protocol version, ignore frame
+                                                      (or use according to a newer specification)
+                                                      if this field is not 1. \\
 \end{UAVCANSimpleTable}
 
 \begin{UAVCANSimpleTable}{CAN ID fields for anonymous message transfers}{|l l l X|}
     \label{table:can_id_fields_anonymous_message_transfer}
     Field               & Width & Permitted values  & Description \\
-    Transfer priority   & 3     & [0, 7] (any)      & Section \ref{sec:transfer_prioritization}. \\
-    Reserved field      & 4     & 0                 & Set to zero when emitting. When receiving, ignore the
+
+    Transfer priority   & 3     & $[0, 7]$ (any)    & Section \ref{sec:transfer_prioritization}. \\
+
+    Service not message & 1     & $0$               & Always zero for message transfers. \\
+
+    Subject ID inversion& 1     & $0$               & TODO. \\
+
+    Reserved field      & 3     & $0$               & Set to zero when emitting. When receiving, ignore the
                                                       frame if this field is not zero. \\
-    Subject ID          & 3     & [0, 7] (any)      & Used for identifying the Subject this message was transmitted on.
-                                                      Subject with ID 0-7 is special in regards that anonymous nodes are also allowed to communicate over them. \\
-    Payload discriminator & 10  & [0, 1023] (any)   & Used for CAN ID conflict avoidance;
+
+    Subject ID          & 3     & $[0, 7]$ (any)    & TODO. \\
+
+    Payload discriminator & 10  & $[0, 1023]$ (any) & Used for CAN ID conflict avoidance;
                                                       see section \ref{sec:can_payload_discriminator}. \\
-    Anonymous node ID   & 7     & 0                 & Set to zero. This field is used to distinguish anonymous message
+
+    Anonymous node ID   & 7     & $0$               & Set to zero. This field is used to distinguish anonymous message
                                                       transfers from regular message transfers. \\
-    Protocol version    & 1     & 1                 & Protocol version, ignore frame (or use according to a newer specification) if this field is not 1. \\
+
+    Protocol version    & 1     & $1$               & Protocol version, ignore frame
+                                                      (or use according to a newer specification)
+                                                      if this field is not 1. \\
 \end{UAVCANSimpleTable}
 
 \begin{UAVCANSimpleTable}{CAN ID fields for service transfers}{|l l l X|}
     \label{table:can_id_fields_service_transfer}
     Field               & Width & Permitted values  & Description \\
-    Transfer priority   & 3     & [0, 7] (any)      & Section \ref{sec:transfer_prioritization}. \\
-    Service not message & 1     & 1                 & Always one for service transfers. \\
-    Request not response& 1     & \{0, 1\} (any)    & 1 for service request, 0 for service response. \\
-    Service ID          & 9     & [0, 255] (any)    & Service ID of the encoded service data structure
+
+    Transfer priority   & 3     & $[0, 7]$ (any)    & Section \ref{sec:transfer_prioritization}. \\
+
+    Service not message & 1     & $1$               & Always one for service transfers. \\
+
+    Request not response& 1     & $\{0, 1\}$ (any)  & 1 for service request, 0 for service response. \\
+
+    Service ID          & 9     & $[0, 255]$ (any)  & Service ID of the encoded service data structure
                                                       (request or response). \\
-    Destination node ID & 7     & [1, 127]          & Node ID of the destination
+
+    Destination node ID & 7     & $[1, 127]$        & Node ID of the destination
                                                       (i.e., server for requests, client for responses). \\
-    Source node ID      & 7     & [1, 127]          & Node ID of the origin
+
+    Source node ID      & 7     & $[1, 127]$        & Node ID of the origin
                                                       (i.e., client for requests, server for responses). \\
-    Protocol version    & 1     & 1                 & Protocol version, ignore frame (or use according to a newer specification) if this field is not 1. \\
+
+    Protocol version    & 1     & $1$               & Protocol version, ignore frame
+                                                      (or use according to a newer specification)
+                                                      if this field is not 1. \\
 \end{UAVCANSimpleTable}
 
 \subsubsection{Transfer priority}
