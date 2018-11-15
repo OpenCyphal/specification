@@ -650,14 +650,15 @@ A receiver state must be reset when any of the following conditions are met:
     \item A transfer ID timeout condition is reached (section \ref{sec:transfer_id_timeout_condition}).
 
     \item A first frame of a transfer (either a multi-frame or a single-frame; in the latter case, the same frame
-    would also be the last frame of the transfer) is received from the same interface as the previous frame,
+    would also be the last frame of the transfer) is received from the same interface as the previous frame
+    (does not apply to non-redundantly interfaced nodes),
     and the transfer ID forward distance (section \ref{sec:transfer_id_forward_distance}) from the received
     transfer ID to the stored transfer ID is greater than one.
 
-    \item A first frame of a transfer is received, an interface switchover condition is reached (section
-    \ref{sec:transfer_interface_switchover_condition}), and the transfer ID forward distance from the stored
-    transfer ID to the received transfer ID is less than the transfer ID half range (section
-    \ref{sec:transfer_id_forward_distance}).
+    \item Only for redundantly interfaced nodes: A first frame of a transfer is received,
+    an interface switchover condition is reached (section \ref{sec:transfer_interface_switchover_condition}),
+    and the transfer ID forward distance from the stored transfer ID to the received transfer ID is
+    less than the transfer ID half range (section \ref{sec:transfer_id_forward_distance}).
 \end{itemize}
 
 \subsubsection{Transfer ID timeout condition}\label{sec:transfer_id_timeout_condition}
