@@ -17,7 +17,7 @@ A transfer that is addressed to one particular node is a \emph{unicast transfer}
 
 In the case of broadcast transfers, the sending node makes the data widely available on the bus,
 allowing any interested node to freely opt-in and process
-it\footnote{The word "broadcast" should not lead one to believe that every node is required to
+it\footnote{The word ``broadcast'' should not lead one to believe that every node is required to
 process such transfers. The opt-in logic is facilitated by automatic acceptance filtering features
 implemented on the transport layer.}.
 The decision of whether to process any given transfer or not is made by receiving nodes.
@@ -235,7 +235,7 @@ The properties that constitute a transfer descriptor are listed below:
 \end{itemize}
 
 For convenience, two derived definitions are introduced.
-Their objective is to simplify the description of transfer reception and emission logic that appear later in this
+Their objective is to simplify the description of transfer reception and emission logic that appears later in this
 specification.
 \begin{description}
     \item[Emitted transfer descriptor] -- a transfer descriptor where the source node ID equals the local node's ID.
@@ -342,11 +342,13 @@ and data overhead.
 for payload in a single transport frame.
 
 Two new concepts are introduced in the context of multi-frame transfers, both of which are reviewed below in detail:
+\begin{samepage}
 \begin{itemize}
-    \item Transfer CRC\footnote{CRC stands for "cyclic redundancy check", an error-detecting code
+    \item Transfer CRC\footnote{CRC stands for ``cyclic redundancy check'', an error-detecting code
     added to data transmissions to reduce the likelihood of undetected data corruption.}.
     \item Toggle bit.
 \end{itemize}
+\end{samepage}
 
 In order to emit a multi-frame transfer, the node must first compute the CRC for the entirety of the transfer payload.
 The node appends the resulting CRC value at the end of the transfer payload in the big-endian byte order,
@@ -637,7 +639,7 @@ When this condition is reached, the receiver must accept the next transfer disre
 Nodes are allowed to use different timeout values, if that is believed to benefit the application;
 however, the chosen timeout value must be strictly lower than the emitted transfer ID map entry timeout
 value specified in section \ref{sec:transfer_id} (1 minute).
-The "strictly lower" requirement is to protect the protocol against possible clock rate discrepancies
+The ``strictly lower'' requirement is to protect the protocol against possible clock rate discrepancies
 on communicating nodes.
 
 If a different timeout value is used, it must be explicitly documented.
