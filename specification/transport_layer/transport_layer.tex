@@ -4,9 +4,14 @@ This chapter defines the transport layer of UAVCAN.
 First, general implementation-agnostic concepts are introduced.
 Afterwards, they are further defined for each supported transport medium, e.g., CAN FD.
 
-\section{The concept of transfer}
+As the specification is extended to add support for new transport protocols,
+some of the generic aspects may be pushed to lower-level transport-specific sections
+if they are found to map poorly on the newly added transports.
+Such changes are guaranteed to preserve full backward compatibility of the existing transport protocols.
 
-\subsection{Fundamentals}
+\section{Core concepts}
+
+\subsection{Transfer}
 
 A \emph{transfer} is an act of data transmission between nodes.
 
@@ -44,6 +49,13 @@ The amount of data that can be exchanged using single-frame transfers is depende
 A \emph{multi-frame transfer} is a transfer that has its payload distributed over multiple transport frames.
 The UAVCAN protocol stack handles transfer decomposition and reassembly automatically.
 
+The choice between single-frame and multi-frame transfers is made by the UAVCAN protocol logic on
+the transmitting node based on the amount of payload data to be transferred.
+The application does not have any control over the type of transfer that will be used
+except limiting the amount of payload data.
+UAVCAN protocol implementations must always choose single-frame transfers if possible;
+multi-frame transfers can be used only if all of the requested payload cannot be allocated in one transport frame.
+
 \subsubsection{Common properties}
 
 The properties listed in the table \ref{table:common_transfer_properties} are common to all types of transfers.
@@ -79,7 +91,7 @@ This kind of message transfer is especially useful for facilitation of \emph{plu
 
 A node that does not have a node ID is said to be in \emph{passive mode}.
 Passive nodes are unable to initiate regular data exchanges,
-but they can listen to the data exchanged over the bus,
+but they can listen to the transfers exchanged over the bus,
 and they can emit anonymous message transfers.
 
 An anonymous message has the same properties as a regular message, except for the source node ID,
@@ -106,7 +118,7 @@ Generally, a message transmission should be aborted if it cannot be completed in
 Applications are allowed to deviate from this recommendation,
 provided that every such deviation is explicitly documented.
 It is expected that high-frequency high-priority messages may opt for lower timeout values,
-whereas low-priority delayable data may opt for higher timeout values to account for the network congestion.
+whereas low-priority delayable data may opt for higher timeout values to account for network congestion.
 
 \subsection{Service invocation}
 
@@ -165,10 +177,11 @@ If the server uses a significant part of the timeout period to process the reque
 the client might drop the request before receiving the response.
 It is recommended to ensure that the server will be able to process any request in less than 0.5 seconds.
 
-\subsection{Transfer prioritization}\label{sec:transfer_prioritization}
+\subsection{Transfer priority}\label{sec:transfer_prioritization}
 
 UAVCAN transfers are prioritized by means of the transfer priority property,
-which allows at least eight different priority levels for all types of transfers.
+which allows at least 8 (eight) different priority levels for all types of transfers
+(some transports may support more than eight priority levels).
 Transfers with higher priority levels preempt transfers with lower priority levels,
 delaying their transmission until there are no more higher priority transfers to exchange.
 
@@ -209,7 +222,7 @@ The mapping between the mnemonics and actual numeric identifiers is transport-de
 
     \item[Slow] -- Slow messages are low priority messages that have no time sensitivity at all.
     The bus designer need only ensure that, for all possible system states,
-    these messages will eventually be delivered.
+    these messages will eventually be sent.
 
     \item[Optional] -- These messages might never be sent (theoretically) for some possible system states.
     The system must tolerate never exchanging optional messages in every possible state.
@@ -294,7 +307,7 @@ specifically:
     in which case it will be duplicated on the side of the receiver.
     Sequence counting mechanisms such as the transfer ID or the toggle bit (both of which are used in UAVCAN)
     allow applications to circumvent this problem.} (multi-frame transfers combat the frame duplication
-    problem using the toggle bit).
+    problem using the toggle bit, which is introduced later).
 
     \item[Multi-frame transfer reassembly] - more info is provided in section \ref{sec:transfer_reception}.
 
@@ -307,8 +320,8 @@ specifically:
 For message transfers and service request transfers the ID value should be computed as described below.
 For service response transfers this value must be directly copied from the corresponding service request transfer.
 
-Every non-passive node must maintain a mapping (or a similar functionally equivalent static
-structure\footnote{For example, simple static variables.})
+Every node that is interested in emitting transfers must maintain a mapping
+(or a similar functionally equivalent static structure\footnote{For example, simple static variables.})
 from emitted transfer descriptors (section \ref{sec:transfer_descriptor}) to transfer ID counters.
 This mapping is referred to as the \emph{emitted transfer ID map}.
 
@@ -378,7 +391,7 @@ Transfer CRC allows receiving nodes to ensure that a received multi-frame transf
 
 It should be understood that the transfer CRC is not intended for bit-level data integrity checks,
 as that must be managed by the transport layer implementation on a per-frame
-basis\footnote{A possibility of bit-level errors at the transport frame level may compromise the error-detecting
+basis\footnote{Bit-level errors at the transport frame level may compromise the error-detecting
 properties of the transfer CRC.}.
 As such, the transfer CRC allows receiving nodes to ensure that all of the frames of a multi-frame
 transfer were received, all of the received frames were reassembled in the correct order,
@@ -506,7 +519,7 @@ See section \ref{sec:phy_non_uniform_transport_redundancy}.
 
 \section{Transfer reception}\label{sec:transfer_reception}
 
-\subsection{Transfer ID comparison}
+\subsection{Transfer ID comparison}\label{sec:transfer_id_forward_distance}
 
 The following explanation relies on the concept of the \emph{transfer ID forward distance}.
 Transfer ID forward distance $F$ is a function of two transfer ID values,
@@ -590,10 +603,10 @@ and section \ref{sec:transfer_reception_state_update_non_redundant} for non-redu
 It is expected that some transfers will be aperiodic or ad-hoc,
 which implies that the receiver map may over time accumulate receiver states that are no longer used.
 Therefore, nodes are allowed, but not required, to remove any receiver state from the receiver map
-as soon as the state reaches the \emph{transfer ID timeout condition},
-as defined in section \ref{sec:transfer_id_timeout_condition}
-(such behavior is not recommended for hard real-time applications, where deterministic static look-up tables
-should be preferred instead).
+as soon as the state reaches the \emph{transfer ID timeout condition}\footnote{Such behavior is
+not recommended for hard real-time applications, where deterministic static look-up tables
+should be preferred instead.},
+as defined in section \ref{sec:transfer_id_timeout_condition}.
 
 Receiver state can only be modified when a new transport frame of a matching transfer is received.
 This guarantee simplifies implementation, as it implies that the receiver states will not
@@ -602,8 +615,7 @@ require any periodic background maintenance activities.
 \begin{UAVCANSimpleTable}{Transfer reception state variables}{|l X|}
     State               & Description \label{table:transfer_receiver_state_variables} \\
     Transfer payload    & Useful payload byte sequence; extended upon reception of new matching transport frames. \\
-    Transfer ID         & The transfer ID value of the current transfer or the next expected transfer.
-                          Section \ref{sec:transfer_id}. \\
+    Transfer ID         & The transfer ID value of the next expected transport frame. Section \ref{sec:transfer_id}. \\
     Next toggle bit     & Expected value of the toggle bit in the next transport frame.
                           Section \ref{sec:toggle_bit}. \\
     Transfer timestamp  & The local monotonic timestamp sampled when the first frame of the transfer arrived.
@@ -630,6 +642,24 @@ Upon reset, the receiver state will meet the following conditions:
     (for nodes with redundant interfaces only).
 \end{itemize}
 
+A receiver state must be reset when any of the following conditions are met:
+
+\begin{itemize}
+    \item A new receiver state instance is created.
+
+    \item A transfer ID timeout condition is reached (section \ref{sec:transfer_id_timeout_condition}).
+
+    \item A first frame of a transfer (either a multi-frame or a single-frame; in the latter case, the same frame
+    would also be the last frame of the transfer) is received from the same interface as the previous frame,
+    and the transfer ID forward distance (section \ref{sec:transfer_id_forward_distance}) from the received
+    transfer ID to the stored transfer ID is greater than one.
+
+    \item A first frame of a transfer is received, an interface switchover condition is reached (section
+    \ref{sec:transfer_interface_switchover_condition}), and the transfer ID forward distance from the stored
+    transfer ID to the received transfer ID is less than the transfer ID half range (section
+    \ref{sec:transfer_id_forward_distance}).
+\end{itemize}
+
 \subsubsection{Transfer ID timeout condition}\label{sec:transfer_id_timeout_condition}
 
 A state is said to have reached the transfer ID timeout condition
@@ -652,16 +682,20 @@ map state loss (e.g., due to the whole node being restarted).
 However, the effects of such a transfer loss caused by a loss of state on a remote node
 are always constrained to the first transfer only.
 
-\subsubsection{Interface switchover condition}
+\subsubsection{Interface switchover condition}\label{sec:transfer_interface_switchover_condition}
 
 This condition is only applicable for configurations with redundant transport interfaces.
 It means that the node is allowed to receive the next transfer from an interface that is not the same
 the previous transfer was received from.
-The condition is reached when the last matching transfer has been successfully received more than
-$T_\text{switch}$ seconds ago. The value of $T_\text{switch}$ must not exceed the reception transfer
-ID timeout, as defined in section \ref{sec:transfer_id_timeout_condition}.
+
+The condition is reached when the last matching transfer was successfully received more than
+$T_\text{switch}$ seconds ago. The value of $T_\text{switch}$ should not exceed the reception transfer
+ID timeout, as defined in section \ref{sec:transfer_id_timeout_condition},
+because if $T_\text{switch}$ were to exceed the transfer ID timeout, an interface switchover would be
+performed by the normal receiver state reset procedure, rendering $T_\text{switch}$ useless.
+
 The actual value of $T_\text{switch}$ can be either a constant chosen by the designer according
-to the application requirements (e.g., maximum recovery time in the event of an interface failure),
+to the application requirements (e.g., the maximum recovery time in the event of an interface failure),
 or the protocol stack can estimate this value automatically by analyzing the transfer intervals.
 
 Nodes are required to let the first interface time out before using the next one because the
