@@ -95,7 +95,7 @@ or with a sequence consisting of the ASCII carriage return character followed by
 The following types of statements are defined:
 
 \begin{description}
-    \item[Attribute] - used to define entities of the data type, such as data fields and constants.
+    \item[Attribute] - used to define entities of the data type, such as data fields and associated constants.
     \item[Directive] - directives provide instructions to the DSDL compiler.
     \item[Service response marker] - separates the request and response parts of a service data type definition.
 \end{description}
@@ -133,29 +133,31 @@ directives apply only to the part of the service type definition where they are 
 not crossing the boundary of the service response marker.
 
 \subsection{Attribute definition}
-
-Field definitions follow one of the below specified declaration patterns:
-
+Attribute definitions are instructions to the DSDL compiler
+that defines different aspects of the enclosing type definition.
+Field definitions adds a field to the datatype and serialization code,
+a field definition follows the following declaration patterns:
 \begin{itemize}
     \item \verb|cast_mode field_type field_name|
-    \item \verb|cast_mode field_type[X] field_name|
-    \item \verb|cast_mode field_type[<X] field_name|
-    \item \verb|cast_mode field_type[<=X] field_name|
+\end{itemize}
+
+Void definitions instructs the serialization code to discard a small chunk of bits, it is declared as following:
+\begin{itemize}
     \item \verb|void_type|
 \end{itemize}
 
-Constant definitions are formed using the following declaration patterns:
-
+Associated constant definitions instructs the compiler to create a constant associated with the enclosing type,
+the following declaration pattern applies:
 \begin{itemize}
-    \item \verb|cast_mode constant_type constant_name = constant_initializer|
+    \item \verb|associated_constant_type associated_constant_name = constant_expression|
 \end{itemize}
 
 Each component of the specified patterns is reviewed in detail below.
 
 \subsubsection{Field type}
 
-A field type declaration can be either a primitive data type
-(primitive data types are defined in section \ref{sec:dsdl_primitive_data_types}) or a nested data structure.
+A field type declaration can be either a primitive data type (defined in section \ref{sec:dsdl_primitive_data_types}),
+an array type (defined in section \ref{sec:dsdl_array_data_types}) or a nested data structure.
 
 A primitive data type is referred simply by its name, e.g., \verb|float16|, \verb|bool|.
 
@@ -178,21 +180,10 @@ uavcan.protocol.NodeStatus.1
 uavcan.protocol.NodeStatus.1.0
 \end{minted}
 
-A field type name can be appended with a statement in square brackets to define an array:
+An array field uses its type constructor to specify the type e.g.,
+\verb|float16[5]|, \verb|Type.0.1[<10]| \verb|Type2.0[<=12]|.
 
-\begin{itemize}
-    \item Syntax \verb|[X]| is used to define a static array of size exactly X items.
-    \item Syntax \verb|[<X]| is used to define a dynamic array of size from 0 to X-1 items, inclusively.
-    \item Syntax \verb|[<=X]| is used to define a dynamic array of size from 0 to X items, inclusively.
-\end{itemize}
-
-In the array definition statements above, \verb|X| must be a valid
-integer literal according to the rules defined in the section \ref{sec:dsdl_constant_definition}.
-
-Observe that the maximum size of dynamic arrays is always bounded,
-this ensures that the worst case memory footprint and associated computational complexity are predictable.
-
-\subsubsection{Field name and constant name}
+\subsubsection{Field name and associated constant name}
 
 For a message data type, all attributes must have a unique name within the data type definition.
 
@@ -225,34 +216,49 @@ The possible cast modes are defined below.
           For floating point values, overflow during downcasting will produce an infinity.
 \end{itemize}
 
-\subsubsection{Constant definition}\label{sec:dsdl_constant_definition}
+\subsubsection{Associated Constant definition}\label{sec:dsdl_constant_definition}
+A constant attribute definition both defines a constant to be used in const evaluation context,
+and instructs the DSDL compiler to generate an associated constant.
 
-A constant must be of a primitive (section \ref{sec:dsdl_primitive_data_types}) scalar type.
-Arrays and nested data structures are not allowed as constant types.
+Whenever the constant is used in a context where a const type is expected, its const type is used.
+As a result, associated constant definitions can be used for assertions,
+define array lengths, and defining other associated constants.
 
-A constant must be assigned with a constant initializer, which must be one of the following:
+When all constant evaluations are finished and the DSDL is to be compiled,
+the resulting associated const will have the type defined by the \verb|associated_constant_type|.
+Since the range of the associated const types ranges are subsets of the their compatible const counterparts ranges,
+checks related to data loss must be done before/when converting from the const type to the associated const type.
+If the bounds check fails,
+the DSDL compiler must refuse to compile the type encapsulating the associated constant definition.
 
-\begin{itemize}
-    \item Integer zero (0).
-    \item Integer literal in base 10, starting with a non-zero character. E.g., \verb|123|, \verb|-12|.
-    \item Integer literal in base 16 prefixed with \verb|0x|. E.g., \verb|0x123|, \verb|-0x12|, \verb|+0x123|.
-    \item Integer literal in base 2 prefixed with \verb|0b|. E.g., \verb|0b1101|, \verb|-0b101101|, \verb|+0b101101|.
-    \item Integer literal in base 8 prefixed with \verb|0o|. E.g., \verb|0o123|, \verb|-0o777|, \verb|+0o777|.
-    \item Floating point literal. Fractional part with an optional exponent part,
-          e.g., \verb|15.75|, \verb|1.575E1|, \verb|1575e-2|, \verb|-2.5e-3|, \verb|+25E-4|.
-          Not-a-number (NaN), positive infinity, and negative infinity are intentionally not supported
-          in order to maximize cross-platform compatibility.
-    \item Boolean \verb|true| or \verb|false|.
-    \item Single ASCII character, ASCII escape sequence, or ASCII hex literal in single quotes. E.g.,
-          \verb|'a'|, \verb|'\x61'|, \verb|'\n'|.
-\end{itemize}
+The compatbility between const types and associated const types,
+and the concrete checks that must be performed are as follows:
 
-The DSDL compiler must convert the initializer expression to its constant type
-if the target type can allocate the value with no data loss.
-If a data loss occurs (e.g., integer overflow, floating point number decays to infinity, etc.),
-the DSDL compiler must refuse to compile such data type.
+\begin{UAVCANSimpleTable}{Compatibility between associated const and const type}{|l l l|}
+    \label{table:dsdl_associated_const_compatibility}
+    Const type & Associated Const type & Conversion checks \\
+    \texttt{const bool} &
+        \texttt{bool} &
+        Only Type checking, will always convert successfully to \texttt{bool}. \\
 
-Note that constants do not affect the serialized data layout as they are never exchanged via the network.
+    \texttt{const int} &
+        \texttt{int\textbf{X}} &
+        Type checking, Bounds checking. \\
+
+    \texttt{const int} &
+        \texttt{uint\textbf{X}} &
+        Type checking, Bounds checking. \\
+
+    \texttt{const float} &
+        \texttt{float\textbf{X}} &
+        Type checking, Bounds checking. \\
+
+    \texttt{const char} &
+        \texttt{uint8 | uint7} &
+        Only Type checking, can always be converted to both \texttt{uint8} and \texttt{uint7}.
+\end{UAVCANSimpleTable}
+
+Note that associated constants do not affect the serialized data layout as they are never exchanged via the network.
 
 \subsubsection{Void type}
 
@@ -337,10 +343,14 @@ The request part precedes the marker, and the response part follows the marker.
 The presence of a service response marker indicates that the current definition is a
 service type definition rather than a message type definition.
 
-\section{Primitive data types}\label{sec:dsdl_primitive_data_types}
+\section{Built in data types}
 
-These types are assumed to be built-in.
+The following types are assumed to be built-in.
 They can be directly referenced from any data type of any namespace.
+
+\subsection{Primitive data types}\label{sec:dsdl_primitive_data_types}
+
+The primitive data types are the most basic building blocks for defining complex types.
 The DSDL compiler should implement these types using the native types of the target programming language.
 An example mapping to native types is given here for C/C++.
 
@@ -375,6 +385,76 @@ An example mapping to native types is given here for C/C++.
                             & \emph{N/A}
                             \\
 \end{UAVCANSimpleTable}
+
+\subsection{Primitive constant data types}\label{sec:dsdl_primitive_constant_data_types}
+
+In addition to the ordinary data types that are used for defining types to be transmitted over the wire,
+there also exists data types only used for constant evaluation.
+The const data types are used for things that can be calculated only with the information self contained in the dsdl,
+such as defining array lengths, assertions and constant definitions.
+All the primitive const types are given below together with the literal used for construction.
+
+\begin{UAVCANSimpleTable}{Primitive constant data types}{|l l l|}
+    \label{table:dsdl_constant_primitive_data_types}
+    Name &
+        Legal Values &
+        Literal (regex) \\
+
+    \footnotesize \texttt{const bool} &
+        \footnotesize $\{true, false\}$ &
+        \footnotesize \texttt{true | false} \\
+
+    \footnotesize \texttt{const int} &
+        \footnotesize $\supseteq \lbrack -\frac{2^{64}}{2}, 2^64 - 1\rbrack$ &
+        \footnotesize \texttt{0 |
+                            (\textbackslash+|-)?[1-9][0-9]* |
+                            (\textbackslash+|-)?0x([0-9]|[a-f])+ |
+                            (\textbackslash+|-)?0o[0-7]+ |
+                            (\textbackslash+|-)?0b(1|2)+ } \\
+
+    \footnotesize \texttt{const float} &
+        \footnotesize \texttt{IEEE 754-2008 (binary64)} &
+        \footnotesize \texttt{(\textbackslash+|-)?[0-9]*.[0-9]* |
+                            \textbackslash+|-)?[0-9]*((e|E)-?[0-9]+) |
+                            \textbackslash+|-)?[0-9]*.[0-9]*((e|E)-?[0-9]+) } \\
+
+    \footnotesize \texttt{const char} &
+        \footnotesize $\lbrack0, 127\rbrack$ &
+        \footnotesize
+            \texttt{ '[\^{}'\textbackslash\textbackslash]' |
+                'x[0-9]+' |
+                '\textbackslash n' |
+                '\textbackslash r' |
+                '\textbackslash\textbackslash' |
+                '\textbackslash t' |
+                '\textbackslash ''} \\
+
+\end{UAVCANSimpleTable}
+
+Notice that the type are uniquely defined by the literals.
+This is done to avoid both explicitly noting const types and non-trivial type inference.
+
+
+\subsection{Array types}\label{sec:dsdl_array_data_types}
+DSDL contains a class of types that are somewhat in-between primitive and composite types, the arrays.
+The array types are similar to the primitive types that they are in fact built in to the DSDL language definition,
+on the other hand they're actually defined using primitive types.
+
+The class of array types in DSDL can be generated from two array kinds, the fixed size array and the dynamic array.
+Each of them needs a type (not restricted to primitive types)
+and a non-negative \texttt{const int} to define an array type.
+
+The type of an array with elements of type \verb|T| is denoted as the following:
+\begin{itemize}
+    \item Syntax \verb|T[S]| is a static array of size exactly S items.
+    \item Syntax \verb|T[<S]| is a dynamic array of size from 0 to S-1 items, inclusively.
+    \item Syntax \verb|T[<=S]| is a dynamic array of size from 0 to S items, inclusively.
+\end{itemize}
+
+In the array definition statements above, \verb|S| is a non-negative \verb|const int|.
+
+Observe that the maximum size of dynamic arrays is always bounded,
+this ensures that the worst case memory footprint and associated computational complexity are predictable.
 
 \section{Naming rules}\label{sec:dsdl_naming_rules}
 
