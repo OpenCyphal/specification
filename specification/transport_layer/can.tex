@@ -396,13 +396,15 @@ The resulting data field segmentation is shown in the table \ref{table:can_data_
 
 For multi-frame transfers, all frames except the last one contain only a fragment
 of the useful payload and the tail byte.
-Notice that the padding bytes are not used in multi-frame transfers, excepting the last frame.
+Notice that the padding bytes are not used in multi-frame transfers, excepting the last frame;
+instead of padding, every frame except the last one must use the number of payload bytes that
+satisfies the length granularity constraints.
 
 The useful payload is fragmented in the forward order: the first CAN frame of a multi-frame transfer
 contains the beginning of the payload (the first fragment),
 the following frames contain the subsequent fragments of the useful payload.
 The last CAN frame of a multi-frame transfer contains the last fragment, unless
-the last fragment was fully accommodated by the previous CAN frame of the transfer.
+the last fragment was fully accommodated by the second-to-last CAN frame of the transfer.
 In the latter case, the last CAN frame will contain only the metadata,
 as specified below in this section.
 
@@ -410,9 +412,9 @@ Each CAN frame of a multi-frame transfer except the last one
 should use the maximum CAN data length permitted by the transport.
 Observe that this is not a hard requirement;
 some systems that utilize CAN FD may opt for shorter CAN frames in order to reduce the worst case
-preemption latency.
-Therefore, UAVCAN implementations must be able to correctly process multi-frame transfers with arbitrary
-CAN frame data lengths.
+preemption latency, as explained in section \ref{sec:transport_multi_frame_transfers}.
+Therefore, UAVCAN implementations must be able to correctly process incoming multi-frame transfers with
+arbitrary CAN frame data lengths.
 
 The resulting data field segmentation for all frames of a multi-frame transfer except the last one is
 shown in the table \ref{table:can_data_segments_multi_frame_not_last}.
@@ -425,7 +427,8 @@ shown in the table \ref{table:can_data_segments_multi_frame_not_last}.
     Offset                  & Length                & Segment \\\hline
     $0$                     & $L_\text{payload}>0$  & A fragment of the useful payload (serialized data structure).
                                                       This segment occupies the entirety of the CAN data field
-                                                      except the last byte, which is used by the tail byte. \\\hline
+                                                      except the last byte, which is used by the tail byte.
+                                                      No padding is allowed. \\\hline
     $L_\text{payload}$      & $1$                   & Tail byte. \\\hline
 \end{tabu}
 \end{table}
