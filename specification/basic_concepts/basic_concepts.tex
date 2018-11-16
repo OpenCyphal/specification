@@ -16,7 +16,7 @@ Nodes of a UAVCAN network can communicate using the following communication meth
 
 For each type of communication, a predefined set of data types is used,
 where each data type has a unique name.
-Additionally, every data type definition has a pair of major and minor semantic version numbers,
+Additionally, every data type definition has a pair of major and minor version numbers,
 which enable data type definitions to evolve in arbitrary ways while ensuring a well-defined
 migration path if backward-incompatible changes are introduced.
 Some data types are standard and defined by the protocol specification (of which only a small
@@ -34,9 +34,9 @@ of a service response may differ from that of its corresponding request) and per
 
 Each message subject is identified by a unique natural number -- a \emph{subject ID};
 likewise, each service is identified by a unique \emph{service ID}.
-An umbrella term \emph{port ID} is used to refer either to a subject ID or to a service ID.
-Port identifiers have no direct manifestation in the construction of the protocol,
-but they are convenient for discussion.
+An umbrella term \emph{port ID} is used to refer either to a subject ID or to a service ID
+(port identifiers have no direct manifestation in the construction of the protocol,
+but they are convenient for discussion).
 
 Message and service data types\footnote{Data types are the core concept of UAVCAN.}
 are defined using the \emph{data structure description language} (DSDL) (chapter \ref{sec:dsdl}).
