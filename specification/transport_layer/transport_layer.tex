@@ -332,12 +332,10 @@ When the stored transfer ID exceeds its maximum value, it will roll over to zero
 
 It is expected that some nodes will need to emit certain transfers aperiodically or on an ad-hoc basis,
 thereby creating unused entries in the emitted transfer ID map.
-In order to avoid keeping unused entries in the map, the nodes are allowed, but not required,
-to remove entries from the map that were not used for more than 1 (one) minute
-(such behavior is not recommended for hard real-time applications, where constant-complexity deterministic
-static structures should be preferred instead).
-Therefore, it is possible that a node may emit a transfer with an out-of-order transfer ID value,
-if the previous transfer of the same descriptor was emitted more than 1 minute ago.
+If such aperiodic or ad-hoc transfers are of interest,
+the worst case number of unused entries can be determined statically as a function of the number of
+port identifiers used and the number of addressed nodes on the bus (the latter applies to services only).
+Nodes are not allowed to remove any entries from the transfer ID map as long as they are running.
 
 \subsection{Single frame transfers}
 
@@ -666,12 +664,7 @@ A state is said to have reached the transfer ID timeout condition
 if the last matching transfer was seen more than 2 (two) seconds ago.
 When this condition is reached, the receiver must accept the next transfer disregarding its transfer ID value.
 
-Nodes are allowed to use different timeout values, if that is believed to benefit the application;
-however, the chosen timeout value must be strictly lower than the emitted transfer ID map entry timeout
-value specified in section \ref{sec:transfer_id} (1 minute).
-The ``strictly lower'' requirement is to protect the protocol against possible clock rate discrepancies
-on communicating nodes.
-
+Nodes are allowed to use different timeout values, if that is believed to benefit the application.
 If a different timeout value is used, it must be explicitly documented.
 
 Low timeout values increase the risk of undetected transfer duplication when such transfers are significantly
