@@ -94,8 +94,7 @@ Passive nodes are unable to initiate regular data exchanges,
 but they can listen to the transfers exchanged over the bus,
 and they can emit anonymous message transfers.
 
-An anonymous message has the same properties as a regular message, except for the source node ID,
-which in the case of anonymous message transfers is always assumed to be zero.
+An anonymous message has the same properties as a regular message, except for the source node ID.
 
 An anonymous transfer can only be a single-frame transfer. Multi-frame anonymous message transfers are not allowed.
 This restriction must be kept in mind when designing message data types

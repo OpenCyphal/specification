@@ -34,7 +34,7 @@ for message transfers, anonymous message transfers, and service transfers, respe
             %
             \multirow{2}{*}{\textbf{Message}} &
             \multicolumn{4}{c|}{Service, not message} &
-            \multicolumn{5}{c|}{Reserved} &
+            \multicolumn{5}{c|}{Anonymous message} &
             \multicolumn{12}{c|}{\multirow{2}{*}{Subject ID}} &
             \multicolumn{8}{c|}{Protocol version}
             \\\cline{2-4} \cline{7-10} \cline{23-29}
@@ -54,13 +54,17 @@ for message transfers, anonymous message transfers, and service transfers, respe
             $0$ &
             \multicolumn{4}{c}{} &
             \multicolumn{12}{c|}{$[0, 65535]$} &
-            \multicolumn{7}{c|}{$[1, 127]$} &
+            \multicolumn{7}{c|}{$[0, 127]$} &
             $1$
             \\\hline
 
             \textbf{CAN ID bit} &
             28 & 27 & 26 & 25 & 24 & 23 & 22 & 21 & 20 & 19 & 18 & 17 & 16 & 15 &
             14 & 13 & 12 & 11 & 10 &  9 &  8 &  7 &  6 &  5 &  4 &  3 &  2 &  1 &  0
+            \\\hline
+
+            \textbf{CAN ID byte} &
+            \multicolumn{5}{c|}{3} & \multicolumn{8}{c|}{2} & \multicolumn{8}{c|}{1} & \multicolumn{8}{c|}{0}
             \\\hline
 
             \multicolumn{30}{c}{} \\ \hline % Table separator
@@ -70,36 +74,37 @@ for message transfers, anonymous message transfers, and service transfers, respe
             %
             \multirow{2}{*}{\textbf{\shortstack[l]{Anonymous \\ message}}} &
             \multicolumn{4}{c|}{Service, not message} &
-            \multicolumn{4}{c|}{Subject ID inversion} &
-            \multicolumn{3}{c|}{\multirow{2}{*}{Subject ID}} &
-            \multicolumn{10}{c|}{\multirow{2}{*}{Discriminator}} &
+            \multicolumn{5}{c|}{Anonymous message} &
+            \multicolumn{12}{c|}{\multirow{2}{*}{Subject ID}} &
             \multicolumn{8}{c|}{Protocol version}
-            \\\cline{2-4} \cline{7-9} \cline{23-29}
+            \\\cline{2-4} \cline{7-10} \cline{23-29}
 
             &
-            \multicolumn{3}{c|}{Priority} &
-            \multicolumn{1}{c|}{} &
-            \multicolumn{1}{c|}{} &
-            \multicolumn{3}{c|}{Reserved} &
-            \multicolumn{3}{c|}{} &
-            \multicolumn{10}{c|}{} &
-            \multicolumn{7}{c|}{Anonymous node ID} &
+            \multicolumn{3}{c|}{Priority}
+            &
+            &
+            &
+            \multicolumn{16}{c|}{} &
+            \multicolumn{7}{c|}{Discriminator} &
             \\
 
             \textbf{Values} &
             \multicolumn{3}{c|}{$[0, 7]$} &
-            \multicolumn{1}{c|}{$0$} &
-            \multicolumn{1}{c|}{$\mathbb{B}$} &
-            \multicolumn{3}{c|}{$0$} &
-            \multicolumn{3}{c|}{$[0, 7]$} &
-            \multicolumn{10}{c|}{$[0, 1023]$} &
-            \multicolumn{7}{c|}{$0$} &
+            $0$ &
+            $1$ &
+            \multicolumn{4}{c}{} &
+            \multicolumn{12}{c|}{$[0, 65535]$} &
+            \multicolumn{7}{c|}{$[0, 127]$} &
             $1$
             \\\hline
 
             \textbf{CAN ID bit} &
             28 & 27 & 26 & 25 & 24 & 23 & 22 & 21 & 20 & 19 & 18 & 17 & 16 & 15 &
             14 & 13 & 12 & 11 & 10 &  9 &  8 & 7 &  6 &  5 &  4 &  3 &  2 &  1 &  0
+            \\\hline
+
+            \textbf{CAN ID byte} &
+            \multicolumn{5}{c|}{3} & \multicolumn{8}{c|}{2} & \multicolumn{8}{c|}{1} & \multicolumn{8}{c|}{0}
             \\\hline
 
             \multicolumn{30}{c}{} \\ \hline % Table separator
@@ -129,14 +134,18 @@ for message transfers, anonymous message transfers, and service transfers, respe
             $1$ &
             $\mathbb{B}$ &
             \multicolumn{9}{c|}{$[0, 511]$} &
-            \multicolumn{7}{c|}{$[1, 127]$} &
-            \multicolumn{7}{c|}{$[1, 127]$} &
+            \multicolumn{7}{c|}{$[0, 127]$} &
+            \multicolumn{7}{c|}{$[0, 127]$} &
             $1$
             \\\hline
 
             \textbf{CAN ID bit} &
             28 & 27 & 26 & 25 & 24 & 23 & 22 & 21 & 20 & 19 & 18 & 17 & 16 & 15 &
             14 & 13 & 12 & 11 & 10 &  9 &  8 &  7 &  6 &  5 &  4 &  3 &  2 &  1 &  0
+            \\\hline
+
+            \textbf{CAN ID byte} &
+            \multicolumn{5}{c|}{3} & \multicolumn{8}{c|}{2} & \multicolumn{8}{c|}{1} & \multicolumn{8}{c|}{0}
             \\\hline
         \end{tabular}
     }
@@ -151,12 +160,11 @@ for message transfers, anonymous message transfers, and service transfers, respe
 
     Service not message & 1     & $0$               & Always zero for message transfers. \\
 
-    Reserved field      & 1     & $0$               & Set to zero when emitting.
-                                                      When receiving, ignore the frame if this field is not zero. \\
+    Anonymous message   & 1     & $0$               & Always zero for regular (non-anonymous) message transfers. \\
 
-    Subject ID          & 16    & $[0, 65535]$ (any)& Subject identifier of the current message. \\
+    Subject ID          & 16    & $[0, 65535]$ (any) & Subject identifier of the current message. \\
 
-    Source node ID      & 7     & $[1, 127]$        & Node ID of the origin. \\
+    Source node ID      & 7     & $[0, 127]$ (any)  & Node ID of the origin. \\
 
     Protocol version    & 1     & $1$               & Protocol version, ignore frame
                                                       (or use according to a newer specification)
@@ -171,18 +179,12 @@ for message transfers, anonymous message transfers, and service transfers, respe
 
     Service not message & 1     & $0$               & Always zero for message transfers. \\
 
-    Subject ID inversion& 1     & $0$               & TODO. \\
+    Anonymous message   & 1     & $1$               & Always one for anonymous message transfers. \\
 
-    Reserved field      & 3     & $0$               & Set to zero when emitting. When receiving, ignore the
-                                                      frame if this field is not zero. \\
+    Subject ID          & 16    & $[0, 65535]$ (any) & Subject identifier of the current message. \\
 
-    Subject ID          & 3     & $[0, 7]$ (any)    & TODO. \\
-
-    Payload discriminator & 10  & $[0, 1023]$ (any) & Used for CAN ID conflict avoidance;
+    Payload discriminator & 7   & $[0, 127]$ (any)  & Used for CAN ID conflict avoidance;
                                                       see section \ref{sec:can_payload_discriminator}. \\
-
-    Anonymous node ID   & 7     & $0$               & Set to zero. This field is used to distinguish anonymous message
-                                                      transfers from regular message transfers. \\
 
     Protocol version    & 1     & $1$               & Protocol version, ignore frame
                                                       (or use according to a newer specification)
@@ -199,13 +201,13 @@ for message transfers, anonymous message transfers, and service transfers, respe
 
     Request not response& 1     & $\{0, 1\}$ (any)  & 1 for service request, 0 for service response. \\
 
-    Service ID          & 9     & $[0, 255]$ (any)  & Service ID of the encoded service data structure
+    Service ID          & 9     & $[0, 511]$ (any)  & Service ID of the encoded service data structure
                                                       (request or response). \\
 
-    Destination node ID & 7     & $[1, 127]$        & Node ID of the destination
+    Destination node ID & 7     & $[0, 127]$ (any)  & Node ID of the destination
                                                       (i.e., server for requests, client for responses). \\
 
-    Source node ID      & 7     & $[1, 127]$        & Node ID of the origin
+    Source node ID      & 7     & $[0, 127]$ (any)  & Node ID of the origin
                                                       (i.e., client for requests, server for responses). \\
 
     Protocol version    & 1     & $1$               & Protocol version, ignore frame
@@ -217,18 +219,37 @@ for message transfers, anonymous message transfers, and service transfers, respe
 
 Valid values for priority range from 0 to 7, inclusively,
 where 0 corresponds to the highest priority, and 7 corresponds to the lowest priority.
-Mnemonics for transfer priority levels are provided in the section \ref{sec:transfer_prioritization}.
+Mnemonics for transfer priority levels are provided in the section \ref{sec:transfer_prioritization},
+and their mapping to the priority field for CAN bus is shown in the table \ref{table:can_id_priority_field}.
+
+\begin{minipage}{0.9\textwidth}
+\begin{UAVCANSimpleTable}{CAN transfer priority level mapping}{|l X|}
+    \label{table:can_id_priority_field}
+    Priority field value & Mnemonic name \\
+    0 & Exceptional \\
+    1 & Immediate \\
+    2 & Fast \\
+    3 & High \\
+    4 & Nominal \\
+    5 & Low \\
+    6 & Slow \\
+    7 & Optional \\
+\end{UAVCANSimpleTable}
+\end{minipage}
 
 In multi-frame transfers, the value of the priority field must be identical for all frames of the transfer.
 
 Shall there be multiple transfers of different types at the same priority level contesting for the bus access,
 the following precedence is ensured, from higher priority to lower priority:
 
+\begin{samepage}
 \begin{enumerate}
     \item Message transfers.
+    \item Anonymous message transfers.
     \item Service response transfers.
     \item Service request transfers.
 \end{enumerate}
+\end{samepage}
 
 Message transfers take precedence over service transfers because message broadcasting is the primary method of
 communication in UAVCAN networks.
@@ -236,62 +257,8 @@ Service responses take precedence over service requests in order to make service
 and reduce the number of pending states in the system.
 
 Within the same type and the same priority level,
-transfers are prioritized according to the data type ID:
-transfers with lower data type ID values preempt those with higher data type ID values.
-
-\subsubsection{Data type ID}
-
-A higher-level review of the concept of data type ID is available in the chapter \ref{sec:dsdl}.
-
-For anonymous message transfers, the range of usable message type ID values is limited to [0,~7];
-messages with data type ID outside of this range cannot be used with anonymous message
-transfers with this transport.
-
-\subsubsection{Data type major version number}
-
-As explained in the section \ref{sec:dsdl_versioning},
-the difference between the lowest and the highest released major version numbers of any given data type
-may never exceed three.
-
-Having made certain assumptions about the data type release cadence and the deprecation strategy,
-one can see that the transport layer can represent the data type major version number using a reduced
-modulo 4 representation; i.e., instead of carrying the whole version number, the transport layer
-can carry only the major version number modulo four:
-$$V^\prime{} = V \bmod 4 \Leftrightarrow{} V \geq{} 0$$
-where $V$ is the data type major version number and $V^\prime{}$ is its reduced representation used by
-the transport layer.
-
-Taking advantage of the fact that the transport layer representation of the major data type version number
-belongs to [0, 3], UAVCAN uses only a two-bit wide field in the CAN identifier to represent the major
-version number.
-
-The bit width saving measures described here warrant certain special handling rules for the major version
-number at the transport layer.
-When emitting a transfer, the node must compute the modulo of the major data type version number
-as described above, and populate the corresponding CAN ID field with the resulting value.
-When receiving a transfer, the node must search for an appropriate data type definition
-among the known definitions by looking for the one which has the same major version number modulus
-as the received modulus:
-$$V_\text{local} \bmod 4 = V^\prime{}$$
-where $V_\text{local}$ is the major version number of the locally available data type definition that will be used
-to process the transfer.
-
-From the above description one can see that a data type mismatch will occur if the absolute difference between
-the major data type version used by the emitter and that used by the receiver exceeds three:
-$$V_\text{local} \neq V \Leftrightarrow{} \vert{}V_\text{local} - V\vert{} \geq 4$$
-However, due to the implicit deprecation policy defined in the section \ref{sec:dsdl_versioning},
-the risk of version conflict is easy to avoid, and the limitation is therefore deemed acceptable.
-
-\subsubsection{Node ID}
-
-Valid values of node ID belong to the range [1, 127].
-
-Node ID is represented by a 7-bit unsigned integer value; zero is reserved.
-A node ID of zero is used to represent either an unknown node or all nodes, depending on the context.
-
-As such, for anonymous message transfers, the source node ID field is always set to zero.
-By observing a source node ID of zero, receiving nodes can distinguish
-anonymous message transfers from other types of transfers.
+transfers are prioritized according to the port ID\footnote{Subject ID or service ID.}:
+transfers with lower port ID values preempt those with higher port ID values.
 
 \subsubsection{Payload discriminator}\label{sec:can_payload_discriminator}
 
@@ -299,9 +266,9 @@ CAN bus does not allow different nodes to transmit CAN frames with different dat
 Owing to the fact that the CAN ID includes the node ID value of the transmitting node,
 this restriction does not affect regular UAVCAN transfers.
 However, anonymous message transfers would violate this restriction,
-because they all share the same node ID of zero.
+because they don't have unique node ID.
 
-In order to work-around this problem,
+In order to work around this problem,
 UAVCAN adds a \emph{payload discriminator} to the CAN ID of anonymous message transfers,
 and defines special logic for handling CAN bus errors during transmission of anonymous frames.
 
@@ -311,23 +278,25 @@ The source of the pseudorandom data must be likely to produce different discrimi
 for different data field values.
 A possible way of initializing the payload discriminator value is to apply the transfer CRC function
 (as defined in the section \ref{sec:transfer_crc})
-to the contents of the anonymous message, and then use any 10 bits of the result.
+to the contents of the anonymous message, and then use the seven least significant bits of the result.
 Nodes that adopt this approach will be using the same payload discriminator value for identical messages,
 which is acceptable since this will not trigger an error on the bus.
 
-Since the discriminator is only 10 bits long,
-the probability of having multiple nodes emitting CAN frames with the same CAN ID
-but different data can exceed 0.1\%, which is significant.
+Since the discriminator is only seven bits long (128 possible values),
+a collision where multiple nodes emit CAN frames with different data but same CAN ID is likely to happen
+despite the randomization measures described earlier.
 Therefore, the protocol must account for possible errors on the CAN bus triggered by CAN ID collisions.
 In order to comply with this requirement,
 UAVCAN requires all nodes to immediately abort transmission of all anonymous transfers once an error on
 the CAN bus is detected.
 This measure allows the protocol to prevent the bus deadlock that may occur if the automatic
 retransmission on bus error is not suppressed.
+Applications should use some form of CSMA/CD\footnote{Carrier-sense multiple access with collision detection
+-- a method of media access control.} for further conflict resolution.
 
 \subsection{CAN frame data}
 
-The CAN frame data field may contain the following data items, in the listed order:
+The CAN frame data field may contain the following segments, in the listed order:
 \begin{enumerate}
     \item The useful payload (serialized data structure). This segment may be empty.
     \item Possible padding bytes.
