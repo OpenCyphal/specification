@@ -456,6 +456,36 @@ In the array definition statements above, \verb|S| is a non-negative \verb|const
 Observe that the maximum size of dynamic arrays is always bounded,
 this ensures that the worst case memory footprint and associated computational complexity are predictable.
 
+\subsection{Constant set types}
+The constant set kind generates homogenous set of values of constant type from a primitive constant type.
+If multiple items of the same value is inserted (equality checked with the \verb|==| operator),
+it will have the same result as if only one item with that value was inserted.
+
+An instance of the constant set can be constructed by placing comma separated constant expressions inside braces.
+The element type is automatically resolved from the elements,
+making it currently impossible to express the empty set in a convenient way as
+there would be no way to know the type of \verb|{}|.
+
+Examples of legal literals to construct sets are the following:
+\begin{itemize}
+    \item \texttt{ \{ 1, 2, 3 \} }
+    \item \texttt{ \{ 1\%3, 2\%3, 3\%3 \} }
+    \item \texttt{ \{ 1, 2, 3 , 3, 3, 3, 3\} }
+    \item \texttt{ \{ 0x201, 0b2, -301 \} }
+    \item \texttt{ \{ true, false, true \} }
+\end{itemize}
+
+Examples of illegal set constructors follows:
+\begin{itemize}
+    \item \texttt{ \{ 1, true \} } - Non-homogenous
+    \item \texttt{ \{ \} } - Non-trivial to resolve type
+    \item \texttt{ \{ uint3 \} } - Only const expressions (including literals) allowed in set.
+\end{itemize}
+
+The constant set types are designed to not be able to have any influence of the types compiled from the DSDL.
+A minimal implementation of DSDL that only executes the needed statements for generating code,
+and relies on external validation of assertions, can choose not to implement the constant set type.
+
 \section{Naming rules}\label{sec:dsdl_naming_rules}
 
 \subsection{Mandatory}
