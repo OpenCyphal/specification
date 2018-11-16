@@ -58,8 +58,10 @@ the specification.
 
 UAVCAN-based networks can accommodate up to 127 nodes on the same logical bus.
 
-UAVCAN supports an unlimited number of data types, which can be either standard (defined by the specification)
-or vendor-specific (defined by third parties for private use or for public release).
+UAVCAN supports an unlimited number of data types, which can be defined by the specification (such definitions
+are called ``standard data types'') or by a third party for private use or for public release
+(in which case they are said to be ``application-specific'' or ``vendor-specific'',
+depending on whether the party is a vendor).
 There can be up to 256 major versions of a data type, and up to 256 minor versions per major version.
 More information is provided in chapter \ref{sec:dsdl}.
 
