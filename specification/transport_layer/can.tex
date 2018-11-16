@@ -470,19 +470,19 @@ must be transmitted in their order of appearance in the transmission queue.
 Some CAN controllers will not meet this requirement by default,
 so the designer must take special care to ensure the correct behavior, and apply workarounds if necessary.
 
-\subsubsection{Transmission time-stamping}
+\subsubsection{Transmission timestamping}
 
-Certain advanced features of UAVCAN may require the driver to time-stamp outgoing transport frames, e.g.,
+Certain advanced features of UAVCAN may require the driver to timestamp outgoing transport frames, e.g.,
 the time synchronization feature.
-A sensible approach to transmission time-stamping is built around the concept of \emph{loop-back frames},
+A sensible approach to transmission timestamping is built around the concept of \emph{loop-back frames},
 which is described here.
 
-If the application needs to time-stamp an outgoing frame, it sets a special flag -- the \emph{loop-back flag} --
+If the application needs to timestamp an outgoing frame, it sets a special flag -- the \emph{loop-back flag} --
 on the frame before sending it to the driver.
 The driver would then automatically re-enqueue this frame back into the reception queue once it is transmitted
 (keeping the loop-back flag set so that the application is able to distinguish the loop-back
 frame from regular received traffic).
-The time-stamp of the loop-backed frame would be of the moment when it was delivered to the bus.
+The timestamp of the loop-backed frame would be of the moment when it was delivered to the bus.
 
 The advantage of the loop-back based approach is that it relies on the same interface between
 the application and the driver that is used for regular communications.
