@@ -100,11 +100,11 @@ The following types of statements are defined:
     \item[Service response marker] - separates the request and response parts of a service data type definition.
 \end{description}
 
-An attribute can be either of the following:
+An attribute defines one of the following:
 
 \begin{description}
     \item[Field] - a variable that can be modified by the application and exchanged via the network.
-    \item[Constant] - an immutable value that does not participate in network exchange.
+    \item[Associated Constant] - an immutable value that does not participate in network exchange.
 \end{description}
 
 DSDL source files may also contain human-readable comments, which are ignored by the compiler.
@@ -457,8 +457,9 @@ Observe that the maximum size of dynamic arrays is always bounded,
 this ensures that the worst case memory footprint and associated computational complexity are predictable.
 
 \subsection{Constant set types}
-The constant set kind generates homogenous set of values of constant type from a primitive constant type.
-If multiple items of the same value is inserted (equality checked with the \verb|==| operator),
+The constant set kind generates homogenous set of values of constant type from a primitive constant type
+which the equality operation (equality checked with the \verb|==| operator) is defined for.
+If multiple items of the same value is inserted (related to the \verb|==| operator),
 it will have the same result as if only one item with that value was inserted.
 
 An instance of the constant set can be constructed by placing comma separated constant expressions inside braces.
@@ -480,6 +481,7 @@ Examples of illegal set constructors follows:
     \item \texttt{ \{ 1, true \} } - Non-homogenous
     \item \texttt{ \{ \} } - Non-trivial to resolve type
     \item \texttt{ \{ uint3 \} } - Only const expressions (including literals) allowed in set.
+    \item \texttt{ \{ 2.2, 3.2 \} } - \verb|==| is not defined for const float.
 \end{itemize}
 
 The constant set types are designed to not be able to have any influence of the types compiled from the DSDL.
