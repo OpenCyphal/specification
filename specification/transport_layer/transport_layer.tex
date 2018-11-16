@@ -397,7 +397,8 @@ and that all of the received frames belong to the same multi-frame transfer.
 The transfer CRC is computed over the entire payload of the transfer.
 Certain transport implementations\footnote{Such as CAN FD.} may require a short sequence of padding bytes
 to be added at the end of the transfer payload due to the low granularity of the frame payload length property;
-in that case, the padding bytes are not to be included in the CRC computation.
+in that case, the padding bytes must be included in the CRC computation as well,
+as if they were part of the useful payload.
 
 The resulting CRC value is appended to the transfer in the \emph{big-endian byte order}
 (most significant byte first),
