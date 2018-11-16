@@ -132,6 +132,51 @@ Unless specifically stated otherwise,
 directives apply only to the part of the service type definition where they are defined,
 not crossing the boundary of the service response marker.
 
+
+\subsection{Constant expressions}\label{sec:dsdl_constant_expressions}
+A valid constant expression is either just a constant, or an expression that results in a constant.
+Such expression is given in infix notation,
+this means \texttt{A <op> B} for binary operators and \texttt{<op> A} for unary operators.
+A comprehensive table of legal operations on types is defined below,
+the order of the table also defines the order of precedence between operations.
+
+\begin{UAVCANSimpleTable}{Operators for constant expressions}{|c c c c c l|} \label{table:dsdl_const_operators}
+Presedence & Op & A & B & Res & Description \\
+1 & \texttt{!}    &  \texttt{const bool}   & N/A                  & \texttt{const bool}    & Logical not \\
+
+
+2 & \texttt{*}    & \texttt{const int}    & \texttt{const int}   & \texttt{const int}     & Integer multiplication \\
+2 & \texttt{/}    & \texttt{const int}    & \texttt{const int}   & \texttt{const int}     & Integer division \\
+2 & \texttt{\%}   & \texttt{const int}    & \texttt{const int}   & \texttt{const int}     & Integer remainder \\
+
+2 & \texttt{*}    & \texttt{const float}  & \texttt{const float} & \texttt{const float}   & IEE754 multiplication \\
+2 & \texttt{/}    & \texttt{const float}  & \texttt{const float} & \texttt{const float}   & IEE754 division \\
+
+2 & \texttt{\%} & \texttt{\{const int\}}  & \texttt{const int}   & \texttt{\{const int\}} & Element-wise int remainder\\
+
+
+3 & \texttt{+}    & \texttt{const float}  & \texttt{const float} & \texttt{const float}   & IEEE754 sum \\
+3 & \texttt{-}    & \texttt{const float}  & \texttt{const float} & \texttt{const float}   & IEEE754 difference \\
+
+3 & \texttt{+}    & \texttt{const int}    & \texttt{const int}   & \texttt{const int}     & Integer sum \\
+3 & \texttt{-}    & \texttt{const int}    & \texttt{const int}   & \texttt{const int}     & Integer difference \\
+
+
+4 & \texttt{==}   & \texttt{const int}    & \texttt{const int}   & \texttt{const bool}    & Integer equality \\
+4 & \texttt{!=}   & \texttt{const int}    & \texttt{const int}   & \texttt{const bool}    & Integer inequality \\
+4 & \texttt{==}   & \texttt{const bool}   & \texttt{const bool}  & \texttt{const bool}    & Boolean equality \\
+4 & \texttt{!=}   & \texttt{const bool}   & \texttt{const bool}  & \texttt{const bool}    & Boolean inequality \\
+4 & \texttt{==}   & \texttt{const char}   & \texttt{const char}  & \texttt{const bool}    & Character equality \\
+4 & \texttt{!=}   & \texttt{const char}   & \texttt{const char}  & \texttt{const bool}    & Character inequality \\
+4 & \texttt{==}   & \texttt{\{T\}}        & \texttt{\{T\}}       & \texttt{const bool}    & Set equality \\
+4 & \texttt{!=}   & \texttt{\{T\}}        & \texttt{\{T\}}       & \texttt{const bool}    & Set inequality \\
+
+
+5 & \texttt{\&\&} & \texttt{const bool}   & \texttt{const bool}  & \texttt{const bool}    & Logical and \\
+5 & \texttt{\&\&} & \texttt{const bool}   & \texttt{const bool}  & \texttt{const bool}    & Logical or
+\end{UAVCANSimpleTable}
+
+
 \subsection{Attribute definition}
 Attribute definitions are instructions to the DSDL compiler
 that defines different aspects of the enclosing type definition.
