@@ -369,6 +369,28 @@ As explained in the section \ref{sec:dsdl_versioning},
 there are circumstances when the DSDL compiler is required to assume implicit deprecation,
 as if the \verb|@deprecated| directive was provided in the definition source.
 
+\subsubsection{Assertions}
+
+Keyword: \verb|@assert <constant expression>|.
+
+This directive checks a property that must hold for compilation to succeed.
+The provided constant expression must evaluate into a value to type \verb|const bool|.
+If the value is \verb|true| the assertion check will pass and the resulting type should be considered valid,
+if the value is \verb|false| the resulting type must be considered invalid, and steps must be taken to avoid usage.
+Both checking the assertions before compilation and compiling the assertions into compile time assertions in the
+resulting languages is considered legal way to handle this as long as it results in no way to use the resulting type.
+
+Keywords that are interesting in relation to assertions are given below.
+To allow both earlier described ways of assertions checking,
+they are designed in a way such that a DSDL compiler can substitute them for their value early on.
+This allow all assertion checking to be done at a separate pass before compilation.
+They can also be compiled into values used in target language compile time assertions in the resulting type definition.
+
+\begin{UAVCANSimpleTable}{Compatibility between associated const and const type}{|l l|}
+\textbf{Keyword} & \textbf{Description} \\
+\texttt{offset}  & The set of possible bit offsets when serializing.
+\end{UAVCANSimpleTable}
+
 \subsection{Comments}
 
 A DSDL description may contain comments starting from the ASCII number sign (\verb|#|)
