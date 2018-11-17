@@ -294,9 +294,12 @@ retransmission on bus error is not suppressed.
 Applications should use some form of CSMA/CD\footnote{Carrier-sense multiple access with collision detection
 -- a method of media access control.} for further conflict resolution.
 
+Nodes that receive anonymous transfers must ignore the discriminator value.
+
 \subsection{CAN frame data}
 
 The CAN frame data field may contain the following segments, in the listed order:
+\begin{samepage}
 \begin{enumerate}
     \item The useful payload (serialized data structure). This segment may be empty.
     \item Possible padding bytes.
@@ -305,6 +308,7 @@ The CAN frame data field may contain the following segments, in the listed order
     \item The last frame of multi-frame transfers always contains the transfer CRC (section \ref{sec:transfer_crc}).
     \item The last byte of the data field always contains the \emph{tail byte}.
 \end{enumerate}
+\end{samepage}
 The segments are documented below in this section.
 
 \subsubsection{Tail byte}
