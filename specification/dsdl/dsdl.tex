@@ -473,28 +473,28 @@ All the primitive const types are given below together with the literal used for
 
     \footnotesize \texttt{const int} &
         \footnotesize $\supseteq \lbrack -\frac{2^{64}}{2}, 2^{64} - 1\rbrack$ &
-        \footnotesize \texttt{0 |
+        \footnotesize \verb~0 |
                             (\textbackslash+|-)?[1-9][0-9]* |
                             (\textbackslash+|-)?0x([0-9]|[a-f])+ |
                             (\textbackslash+|-)?0o[0-7]+ |
-                            (\textbackslash+|-)?0b(1|2)+ } \\
+                            (\textbackslash+|-)?0b(1|2)+~ \\
 
     \footnotesize \texttt{const float} &
         \footnotesize \texttt{IEEE 754-2008 (binary64)} &
-        \footnotesize \texttt{(\textbackslash+|-)?[0-9]*.[0-9]* |
+        \footnotesize \verb~(\textbackslash+|-)?[0-9]*.[0-9]* |
                             (\textbackslash+|-)?[0-9]*((e|E)-?[0-9]+) |
-                            (\textbackslash+|-)?[0-9]*.[0-9]*((e|E)-?[0-9]+) } \\
+                            (\textbackslash+|-)?[0-9]*.[0-9]*((e|E)-?[0-9]+)~ \\
 
     \footnotesize \texttt{const char} &
         \footnotesize $\lbrack0, 127\rbrack$ &
         \footnotesize
-            \texttt{ '[\^{}'\textbackslash\textbackslash]' |
+            \verb~'[\^{}'\textbackslash\textbackslash]' |
                 '\textbackslash x[0-9]+' |
                 '\textbackslash n' |
                 '\textbackslash r' |
                 '\textbackslash\textbackslash' |
                 '\textbackslash t' |
-                '\textbackslash ''} \\
+                '\textbackslash ''~ \\
 
 \end{UAVCANSimpleTable}
 
