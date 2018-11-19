@@ -141,7 +141,7 @@ A comprehensive table of legal operations on types is defined below,
 the order of the table also defines the order of precedence between operations.
 
 \begin{UAVCANSimpleTable}{Operators for constant expressions}{|c c c c c l|} \label{table:dsdl_const_operators}
-Presedence & Op & A & B & Res & Description \\
+Precedence & Op & A & B & Res & Description \\
 1 & \texttt{!}    &  \texttt{const bool}   & N/A                  & \texttt{const bool}    & Logical not \\
 
 
@@ -482,14 +482,14 @@ All the primitive const types are given below together with the literal used for
     \footnotesize \texttt{const float} &
         \footnotesize \texttt{IEEE 754-2008 (binary64)} &
         \footnotesize \texttt{(\textbackslash+|-)?[0-9]*.[0-9]* |
-                            \textbackslash+|-)?[0-9]*((e|E)-?[0-9]+) |
-                            \textbackslash+|-)?[0-9]*.[0-9]*((e|E)-?[0-9]+) } \\
+                            (\textbackslash+|-)?[0-9]*((e|E)-?[0-9]+) |
+                            (\textbackslash+|-)?[0-9]*.[0-9]*((e|E)-?[0-9]+) } \\
 
     \footnotesize \texttt{const char} &
         \footnotesize $\lbrack0, 127\rbrack$ &
         \footnotesize
             \texttt{ '[\^{}'\textbackslash\textbackslash]' |
-                'x[0-9]+' |
+                '\textbackslash x[0-9]+' |
                 '\textbackslash n' |
                 '\textbackslash r' |
                 '\textbackslash\textbackslash' |
@@ -524,31 +524,33 @@ Observe that the maximum size of dynamic arrays is always bounded,
 this ensures that the worst case memory footprint and associated computational complexity are predictable.
 
 \subsection{Constant set types}
-The constant set kind generates homogenous set of values of constant type from a primitive constant type
-which the equality operation (equality checked with the \verb|==| operator) is defined for.
-If multiple items of the same value is inserted (related to the \verb|==| operator),
+The constant set of constant integer type is an homogenous set of values of type \verb|const int|.
+The type is denoted as \verb|{const int}| and can be constructed by placing comma separated constant expressions
+(that results in \verb|const int|s) inside braces.
+
+If multiple items of the same value is inserted (checked with the \verb|==| operator),
 it will have the same result as if only one item with that value was inserted.
 
-An instance of the constant set can be constructed by placing comma separated constant expressions inside braces.
-The element type is automatically resolved from the elements,
-making it currently impossible to express the empty set in a convenient way as
-there would be no way to know the type of \verb|{}|.
+In the future const set of other types than \verb|const int| might be allowed in a backwards compatible manner.
+This means that the DSDL compiler must verify that the type of all elements is \verb|const int|.
+To avoid needing a more advanced form for type inference if these types are added,
+constructing the empty set \verb|{}| is currently forbidden.
 
 Examples of legal literals to construct sets are the following:
 \begin{itemize}
     \item \texttt{ \{ 1, 2, 3 \} }
     \item \texttt{ \{ 1\%3, 2\%3, 3\%3 \} }
-    \item \texttt{ \{ 1, 2, 3 , 3, 3, 3, 3\} }
+    \item \texttt{ \{ 1, 2, 3, 3, 3, 3, 3\} }
     \item \texttt{ \{ 0x201, 0b2, -301 \} }
-    \item \texttt{ \{ true, false, true \} }
 \end{itemize}
 
 Examples of illegal set constructors follows:
 \begin{itemize}
-    \item \texttt{ \{ 1, true \} } - Non-homogenous
-    \item \texttt{ \{ \} } - Non-trivial to resolve type
+    \item \texttt{ \{ 1, true \} } - Non-homogenous (and \verb|true| is not an \verb|const int|)
+    \item \texttt{ \{ \} } - Non-trivial to resolve type if other set types are allowed later.
     \item \texttt{ \{ uint3 \} } - Only const expressions (including literals) allowed in set.
-    \item \texttt{ \{ 2.2, 3.2 \} } - \verb|==| is not defined for const float.
+    \item \texttt{ \{ 2.2, 3.2 \} } - Not \verb|const int| (and \verb|==| is not even defined for \verb|const float|).
+    \item \texttt{ \{ true, false, true \} } - Only set of const integers currently allowed.
 \end{itemize}
 
 The constant set types are designed to not be able to have any influence of the types compiled from the DSDL.
