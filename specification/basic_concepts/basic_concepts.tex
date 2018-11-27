@@ -2,6 +2,10 @@
 
 \section{Main principles}
 
+\subsection{Communication}
+
+\subsubsection{Architecture}
+
 A UAVCAN network is a decentralized peer network, where each peer (node) has a unique
 numeric identifier\footnote{Here and elsewhere in this specification, \emph{ID} and \emph{identifier} are used
 interchangeably unless specifically indicated otherwise.}
@@ -22,6 +26,8 @@ migration path if backward-incompatible changes are introduced.
 Some data types are standard and defined by the protocol specification (of which only a small
 subset are required); others may be specific to a particular application or vendor.
 
+\subsubsection{Subjects and services}
+
 Message exchanges between nodes are grouped into \emph{subjects} by their semantic meaning.
 Message exchanges belonging to the same subject use same message data type down to the major version
 (minor versions are allowed to differ) and pertain to same function or process within the system.
@@ -38,6 +44,10 @@ An umbrella term \emph{port ID} is used to refer either to a subject ID or to a 
 (port identifiers have no direct manifestation in the construction of the protocol,
 but they are convenient for discussion).
 
+\subsection{Data types}
+
+\subsubsection{Data type definitions}
+
 Message and service data types\footnote{Data types are the core concept of UAVCAN.}
 are defined using the \emph{data structure description language} (DSDL) (chapter \ref{sec:dsdl}).
 A DSDL definition specifies the name, major version, minor version, the data structure,
@@ -45,25 +55,94 @@ and an optional predefined port ID of the data type.
 Message data types always contain exactly one data structure, whereas
 service data types contain two data structures: one for request, and the other for response.
 
-If a port identifier is defined by a data type definition, such identifier is said to be a
-\emph{regulated port identifier}
-(by inheritance, the same naming principle applies to \emph{regulated subject ID} and \emph{regulated service ID}).
-If a data type definition is not provided with a regulated port ID,
-it can be assigned at runtime on a per-application basis,
-in which case it is said to be an \emph{unregulated port identifier}.
-A data type can be used with an arbitrary number of different unregulated port identifiers,
-but not more than one regulated port identifier.
+If a port identifier is specified in a data type definition, such identifier is said to be a
+\emph{fixed port identifier}
+(by inheritance, the same naming principle applies to \emph{fixed subject ID} and \emph{fixed service ID}).
+A data type can be used with an arbitrary number of different port identifiers assigned on a per-application basis,
+but not more than one fixed port identifier.
+
+\subsubsection{Regulation}
+
+Data type definitions can be created by the UAVCAN specification maintainers or by third parties,
+such as vendors or application designers.
+Irrespective of the origin, data types can be included into the set of data type definitions maintained
+and distributed by the UAVCAN specification maintainers;
+definitions belonging to this set are termed \emph{regulated data type definitions}.
+The specification maintainers undertake to keep regulated definitions well-maintained and may occasionally
+amend them and release new versions, if such actions are believed to benefit the ecosystem.
+Data type definitions created by third parties that are not included into the aforementioned set are called
+\emph{unregulated data type definitions}.
+
+Unregulated definitions that are made available for reuse by others are called
+\emph{unregulated public data type definitions};
+those that are kept closed-source for private use by third parties that created them are called
+\emph{(unregulated) private data type definitions}\footnote{The word \emph{``unregulated''} is redundant
+because private data types cannot be regulated, by definition.}.
+
+Data type definitions authored by the specification maintainers for the purpose of supporting and advancing
+this specification are called \emph{standard data type definitions}.
+All standard data type definitions are regulated.
+
+Fixed port identifiers can be used only with regulated data type definitions or with private definitions.
+Fixed port identifiers must not be used with public unregulated data types,
+since that is likely to cause unresolvable port identifier collisions.
+This restriction must be followed at all times by all parties that use the specification;
+if a private data type definition is ever disclosed to any other party (i.e., a party that did not author it)
+or to the public at large, such data type \emph{must be devoid of a fixed port identifier}.
+Equipment and systems that fail to follow this requirement will not be considered UAVCAN-compliant.
+
+\begin{UAVCANSimpleTable}{Data type taxonomy}{|l|X|X|}
+    & Regulated & Unregulated \\
+    \bfseries{Public}
+    &
+    Standard and third-party definitions.\newline
+    Fixed port ID are allowed; they are called \emph{``regulated port ID''}.
+    &
+    Third-party definitions distributed separately from the UAVCAN specification.\newline
+    Fixed port ID are \emph{not allowed}.
+    \\
+
+    \bfseries{Private}
+    &
+    Nonexistent category.
+    &
+    Third-party definitions that are not available to anyone except the party that authored them.\newline
+    Fixed port ID are permitted as long as the definition is only used by the party that created it;
+    they are called \emph{``unregulated fixed port ID''}.
+    \\
+\end{UAVCANSimpleTable}
+
+Each of the two sets of valid port identifiers (which are subject identifiers and port identifiers) are
+segregated into three categories: application-specific (i.e., non-fixed or unregulated) identifiers,
+regulated non-standard port identifiers (i.e., data type definitions submitted by third parties),
+and standard port identifiers.
+Fixed unregulated port identifiers can be allocated in the same range where application-specific identifiers are.
+The ranges are documented in chapter \ref{sec:application_layer}.
+
+DSDL processing tools are recommended to prohibit unregulated fixed port identifiers by default,
+unless they are explicitly configured otherwise.
+
+Third party authors that desire to release regulated data type definitions or contribute to the standard data
+type set should contact the UAVCAN maintainers for coordination.
+The maintainers will choose unoccupied fixed port identifiers for use with the new definitions, if necessary.
+Since the set of regulated definitions is maintained in a highly centralized manner,
+it can be statically ensured that no identifier collisions will take place within it;
+also, since the identifier ranges used with regulated definitions are segregated from the rest,
+it is also guaranteed that no regulated port ID will ever be in conflict with any other compliant UAVCAN
+node or system.
+
+The motivation for the prohibition of fixed port identifiers in third-party unregulated public data types is
+derived directly from the above:
+since there is no central repository of unregulated definitions,
+collisions would be likely to happen, which would be extremely damaging to the ecosystem.
+
+\subsubsection{Serialization}
 
 A DSDL description can be used to automatically generate the serialization and deserialization code
 for every defined data type in a particular programming language.
 Alternatively, a DSDL description can be used to construct appropriate serialization code manually by a human.
 DSDL ensures that the worst case memory footprint and computational complexity per data type
 are constant and easily predictable.
-
-On top of the standard data types, UAVCAN defines a set of standard high-level functions including:
-node health monitoring, node discovery, time synchronization, firmware update,
-plug-and-play node support, and more.
-For more information see chapter \ref{sec:application_layer}.
 
 Serialized message and service data structures are exchanged by means of the transport
 layer (chapter \ref{sec:transport_layer}), which implements automatic decomposition of
@@ -72,6 +151,13 @@ elsewhere, a \emph{transport frame} means a block of data that can be atomically
 over the transport layer network, e.g., a CAN frame.} and reassembly from these transport frames
 back into a single atomic data block, allowing nodes to exchange data structures of
 arbitrary size.
+
+\subsection{High-level functions}
+
+On top of the standard data types, UAVCAN defines a set of standard high-level functions including:
+node health monitoring, node discovery, time synchronization, firmware update,
+plug-and-play node support, and more.
+For more information see chapter \ref{sec:application_layer}.
 
 \begin{figure}[hbt]
     \centering
