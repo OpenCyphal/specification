@@ -1,11 +1,12 @@
 before_script:
-  - curl -L https://github.com/holgern/travis-texlive/releases/download/2017-07-05_09/texlive.tar.xz | tar -JxC ~
   - apt-get update
   - PATH=$HOME/texlive/bin/x86_64-linux:$PATH
+  - apt-get install -y texlive-full
   - apt-get install -y python-pygments
   - apt-get install -y ghostscript
 
 job:
+  image: ubuntu:16.04
   script:
     - cd specification
     - ./compile.sh
