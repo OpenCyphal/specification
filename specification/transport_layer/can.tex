@@ -266,7 +266,7 @@ CAN bus does not allow different nodes to transmit CAN frames with different dat
 Owing to the fact that the CAN ID includes the node ID value of the transmitting node,
 this restriction does not affect regular UAVCAN transfers.
 However, anonymous message transfers would violate this restriction,
-because they don't have unique node ID.
+because they don't have a unique node ID.
 
 In order to work around this problem,
 UAVCAN adds a \emph{payload discriminator} to the CAN ID of anonymous message transfers,
