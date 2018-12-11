@@ -43,7 +43,7 @@
 %
 \definecolor{colorhyperlink}{RGB}{0,0,200}
 \definecolor{colorlogo}{RGB}{0,124,195}
-\definecolor{colorlogolight}{RGB}{179, 227, 255}
+\definecolor{colorlogolight}{RGB}{204, 236, 255}
 
 \renewcommand{\dateseparator}{.}
 
@@ -84,24 +84,30 @@ autogobble
 \setlist[enumerate]{leftmargin=\leftskip,itemindent=1.4em,nosep}
 \setlist[itemize]{leftmargin=\leftskip,itemindent=1em,nosep}
 
-% Remark formatting
-\newenvironment{remark}{
+% Remark formatting.
+% Use with \begin{remark}[breakable] to make it breakable across multiple pages.
+\newenvironment{remark}[1][unbreakable]{
     % Disable overfull h-box warning
     % See https://tex.stackexchange.com/questions/13715/how-to-suppress-overfull-hbox-warnings-up-to-some-maximum
     \hfuzz=1em
     \begin{tcolorbox}[
         size=normal,
-        left=0.5em,
-        right=0.5em,
-        top=0.5em,
-        bottom=0.5em,
+        left=2mm,
+        right=2mm,
+        top=2mm,
+        bottom=2mm,
         colback=colorlogolight,
         colframe=black,
         boxrule=0.5pt,
+        toprule at break=0pt,
+        bottomrule at break=0pt,
         sharp corners,
-        width=\textwidth-\leftskip+1em,
-        enlarge left by=-0.5em,
+        width=\textwidth-\leftskip+6mm,
+        enlarge left by=-3mm,
+        enlarge top initially by=-2mm,
+        #1
     ]
+    \setlength{\parskip}{\DefaultParskip}
 }{
     \end{tcolorbox}
     \hfuzz=0em      % Restore strict overflow warning
