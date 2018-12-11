@@ -36,11 +36,14 @@
 \RequirePackage{lastpage}
 \RequirePackage{minted}
 \RequirePackage{chngcntr}
+\usepackage[most]{tcolorbox}
 
 %
 % Minor definitions.
 %
 \definecolor{colorhyperlink}{RGB}{0,0,200}
+\definecolor{colorlogo}{RGB}{0,124,195}
+\definecolor{colorlogolight}{RGB}{179, 227, 255}
 
 \renewcommand{\dateseparator}{.}
 
@@ -80,6 +83,29 @@ autogobble
 \setlist[description]{leftmargin=\leftskip,labelindent=\dimexpr\leftskip+\parindent\relax}
 \setlist[enumerate]{leftmargin=\leftskip,itemindent=1.4em,nosep}
 \setlist[itemize]{leftmargin=\leftskip,itemindent=1em,nosep}
+
+% Remark formatting
+\newenvironment{remark}{
+    % Disable overfull h-box warning
+    % See https://tex.stackexchange.com/questions/13715/how-to-suppress-overfull-hbox-warnings-up-to-some-maximum
+    \hfuzz=1em
+    \begin{tcolorbox}[
+        size=normal,
+        left=0.5em,
+        right=0.5em,
+        top=0.5em,
+        bottom=0.5em,
+        colback=colorlogolight,
+        colframe=black,
+        boxrule=0.5pt,
+        sharp corners,
+        width=\textwidth-\leftskip+1em,
+        enlarge left by=-0.5em,
+    ]
+}{
+    \end{tcolorbox}
+    \hfuzz=0em      % Restore strict overflow warning
+}
 
 % Continuous footnote numbering
 \counterwithout{footnote}{chapter}
