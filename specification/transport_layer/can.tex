@@ -234,16 +234,18 @@ the CAN bus is detected\footnote{I.e., if the CAN controller uses automatic retr
 it should be disabled for anonymous frames.}.
 This measure allows the protocol to prevent the bus deadlock that may occur if the automatic
 retransmission on bus error is not suppressed.
-Some form of CSMA/CD\footnote{Carrier-sense multiple access with collision detection
--- a method of media access control. Additional bus access control logic is needed at the application level because
-the possibility of identifier collisions in anonymous frames undermines the access control logic implemented
-in CAN bus controller hardware.}
-should be used at the application level for further conflict resolution\footnote{
+Some method of media access control\footnote{%
+    E.g., CSMA/CD (carrier-sense multiple access with collision detection).
+    Additional bus access control logic is needed at the application level because
+    the possibility of identifier collisions in anonymous frames undermines the access control logic implemented
+    in CAN bus controller hardware.
+}
+should be used at the application level for further conflict resolution\footnote{%
     The described principles make anonymous messages highly non-deterministic and inefficient.
     This is considered acceptable because the scope of anonymous messages is limited to a very narrow set of use
     cases which tolerate their downsides. The UAVCAN specification employs anonymous messages only for the
     plug-and-play feature defined in section \ref{sec:application_level_functions}.
-    Applications are advised to avoid reliance on anonymous messages completely.
+    Deterministic applications are advised to avoid reliance on anonymous messages completely.
 }.
 
 Nodes that receive anonymous transfers must ignore their source node identifiers.
