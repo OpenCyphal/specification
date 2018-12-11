@@ -124,8 +124,8 @@ for message transfers and service transfers, respectively.
     Subject ID          & 16    & $[0, 65535]$ (any) & Subject identifier of the current message. \\
 
     Source node ID      & 7     & $[0, 127]$ (any)  & Node ID of the origin.
-                                                      For anonymous transfers, this field contains a stub instead,
-                                                      as described in section \ref{sec:can_source_node_id_stub}. \\
+                                                      For anonymous transfers, this field contains a pseudo-ID instead,
+                                                      as described in section \ref{sec:can_source_node_pseudo_id}. \\
 
     Protocol version    & 1     & $1$               & Protocol version, ignore frame
                                                       (or use according to a newer specification)
@@ -201,7 +201,7 @@ Within the same type and the same priority level,
 transfers are prioritized according to the port ID\footnote{Subject ID or service ID.}:
 transfers with lower port ID values preempt those with higher port ID values.
 
-\subsubsection{Source node ID field in anonymous message transfers}\label{sec:can_source_node_id_stub}
+\subsubsection{Source node ID field in anonymous message transfers}\label{sec:can_source_node_pseudo_id}
 
 CAN bus does not allow different nodes to transmit CAN frames with different data field values under the same CAN ID.
 Owing to the fact that the CAN ID includes the node ID value of the transmitting node,
@@ -212,19 +212,19 @@ because they don't have a unique node ID.
 In order to work around this problem,
 UAVCAN requires that the source node ID field of anonymous messages\footnote{Source node identifier
 is not defined for anonymous message transfers; see table \ref{table:common_transfer_properties}.}
-is initialized with a pseudorandom \emph{stub value},
+is initialized with a pseudorandom \emph{pseudo-ID value},
 and defines special logic for handling CAN bus errors during transmission of anonymous frames.
 
-The source of the pseudorandom data used for the stub must be likely to produce different values
+The source of the pseudorandom data used for the pseudo-ID must be likely to produce different values
 for different payloads\footnote{As explained in section \ref{sec:transport_anonymous_message_publication},
 anonymous message transfers are always single-frame transfers.}.
-A possible way of initializing the source node ID stub value is to apply the transfer CRC function
+A possible way of initializing the source node pseudo-ID value is to apply the transfer CRC function
 (as defined in the section \ref{sec:transfer_crc})
 to the payload of the anonymous message, and then use the seven least significant bits of the result.
-Nodes that adopt this approach will be using the same stub value for identical messages,
+Nodes that adopt this approach will be using the same pseudo-ID value for identical messages,
 which is acceptable since this will not trigger an error on the bus.
 
-Since the stub is only seven bits long (128 possible values),
+Since the pseudo-ID is only seven bits long (128 possible values),
 a collision where multiple nodes emit CAN frames with different data but same CAN ID is likely to happen
 despite the randomization measures described earlier.
 Therefore, the protocol must account for possible errors on the CAN bus triggered by CAN ID collisions.
