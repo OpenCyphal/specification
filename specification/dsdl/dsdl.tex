@@ -134,11 +134,11 @@ not crossing the boundary of the service response marker.
 
 
 \subsection{Constant expressions}\label{sec:dsdl_constant_expressions}
-A valid constant expression is either just a constant, or an expression that results in a constant.
-Such expression is given in infix notation,
-this means \texttt{A <op> B} for binary operators and \texttt{<op> A} for unary operators.
-A comprehensive table of legal operations on types is defined below,
-the order of the table also defines the order of precedence between operations.
+A valid constant expression is either a constant literal, or an expression that evaluates to a constant.
+The legal constant literals can be found in Section \ref{sec:dsdl_primitive_constant_data_types},
+and a comprehensive table of legal operations and their precedence is given below.
+Infix notation is used, meaning a constant evaluation is written as \texttt{A <op> B} for 
+binary operators and \texttt{<op> A} for unary operators, where \texttt{A} and \texttt{B} are constant expressions.
 
 \begin{UAVCANSimpleTable}{Operators for constant expressions}{|c c c c c l|} \label{table:dsdl_const_operators}
 Precedence & Op & A & B & Res & Description \\
@@ -380,15 +380,14 @@ if the value is \verb|false| the resulting type must be considered invalid, and 
 Both checking the assertions before compilation and compiling the assertions into compile time assertions in the
 resulting languages is considered legal way to handle this as long as it results in no way to use the resulting type.
 
-Keywords that are interesting in relation to assertions are given below.
-To allow both earlier described ways of assertions checking,
-they are designed in a way such that a DSDL compiler can substitute them for their value early on.
-This allow all assertion checking to be done at a separate pass before compilation.
-They can also be compiled into values used in target language compile time assertions in the resulting type definition.
+There exists a few magical keywords only available for assertions.
+This is a deliberate choice made to allow implementation of constant evaluation
+without needing the in-depth analysis required when checking assertions.
+The keywords and their described behavior follows: 
 
 \begin{UAVCANSimpleTable}{Compatibility between associated const and const type}{|l l|}
 \textbf{Keyword} & \textbf{Description} \\
-\texttt{offset}  & The set of possible bit offsets when serializing.
+\texttt{offset} & Evaluates into the set of possible bit offsets at the point of evaluation.
 \end{UAVCANSimpleTable}
 
 \subsection{Comments}
