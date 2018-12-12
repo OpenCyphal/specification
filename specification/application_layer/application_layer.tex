@@ -1,5 +1,22 @@
 \chapter{Application layer}\label{sec:application_layer}
 
-\section{Application-level conventions}\label{sec:application_level_conventions}
+Previous chapters of this specification define a set of basic concepts that are the foundation of the protocol:
+they allow one to define data structures and exchange them over the bus in a robust and deterministic manner.
+This chapter is focused on higher-level concepts: rules, conventions, and standard functions that are to be
+respected by applications utilizing UAVCAN to maximize cross-vendor compatibility, avoid ambiguities, and
+prevent some common design pitfalls.
 
-\section{Application-level functions}\label{sec:application_level_functions}
+The rules, conventions, and standard functions defined in this chapter are designed to be an acceptable middle
+ground for any sensible aerospace or robotic system.
+UAVCAN does not attempt to favor any particular domain or kind of systems among targeted applications.
+
+Unless stated otherwise, all of the high-level functions described in this chapter are optional,
+meaning that they do not necessarily have to be supported or implemented for an application or system to be
+UAVCAN-compliant.
+Excepting a very few mandatory functions and rules, users of UAVCAN are allowed to pick only those conventions
+and functions that are needed and suitable for their applications.
+However, users are advised to support all recommended functions in order to facilitate and enhance
+cross-vendor compatibility.
+
+\clearpage\input{application_layer/conventions.tex}
+\clearpage\input{application_layer/functions.tex}
