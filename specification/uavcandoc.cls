@@ -43,7 +43,7 @@
 %
 \definecolor{colorhyperlink}{RGB}{0,0,200}
 \definecolor{colorlogo}{RGB}{0,124,195}
-\definecolor{colorlogolight}{RGB}{204, 236, 255}
+\definecolor{colorlogolight}{RGB}{220, 242, 255}
 
 \renewcommand{\dateseparator}{.}
 
@@ -92,19 +92,18 @@ autogobble
     \hfuzz=1em
     \begin{tcolorbox}[
         size=normal,
-        left=2mm,
-        right=2mm,
-        top=2mm,
-        bottom=2mm,
+        left=1mm,
+        right=1mm,
+        top=1mm,
+        bottom=1mm,
         colback=colorlogolight,
-        colframe=black,
+        colframe=colorlogo,
         boxrule=0.5pt,
         toprule at break=0pt,
         bottomrule at break=0pt,
         sharp corners,
-        width=\textwidth-\leftskip+6mm,
-        enlarge left by=-3mm,
-        enlarge top initially by=-2mm,
+        width=\textwidth-\leftskip,
+        enlarge top initially by=-1mm,
         #1
     ]
     \setlength{\parskip}{\DefaultParskip}
