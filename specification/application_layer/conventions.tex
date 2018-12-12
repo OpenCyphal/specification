@@ -32,13 +32,55 @@ Unused gaps are reserved for future expansion of adjacent ranges.
     $[62804, 65535]$    & $[384, 511]$      & Standard regulated identifiers. \\
 \end{UAVCANSimpleTable}
 
-\subsection{Coordinate frames and rotation representation}
+\subsection{Coordinate frames}
 
 UAVCAN follows the conventions that are widely accepted in relevant applications.
+Adherence to the conventions described here maximizes system compatibility and reduces the amount of
+computations that would otherwise be required for conversions between incompatible coordinate systems
+and representations.
+It is recognized, however, that some applications may find the advised conventions unsuitable,
+in which case deviations are permitted.
+Any such deviations must be explicitly documented.
 
-TODO
+All coordinate systems are right handed.
 
-\begin{figure}[H]
+\subsubsection{World frame}
+
+For world fixed frames, the \emph{North-East-Down} (NED) right handed notation should be preferred.
+It is illustrated on the figure \ref{fig:application_world_frame_convention}.
+\begin{samepage}
+\begin{description}
+    \item[X] --- northward;
+    \item[Y] --- eastward;
+    \item[Z] --- down.
+\end{description}
+\end{samepage}
+
+\begin{figure}[hbt]
+    \centering
+    % The image is released under CC0, public domain, no attribution required:
+    % https://commons.wikimedia.org/wiki/File:ECEF_ENU_Longitude_Latitude_relationships.svg
+	\includegraphics[width=0.5\textwidth]{application_layer/ECEF_ENU_Longitude_Latitude_relationships}
+    \caption{
+        World frame convention -- North-East-Down.
+        \label{fig:application_world_frame_convention}
+    }
+\end{figure}
+
+\subsubsection{Body frame}
+
+In relation to a body, the convention is as defined below, right handed.
+This convention is widely used in aeronautic applications;
+it is illustrated on the figure \ref{fig:application_body_frame_convention}.
+\begin{samepage}
+\begin{description}
+    \item[X] --- forward;
+    \item[Y] --- right;
+    \item[Z] --- down.
+\end{description}
+\end{samepage}
+
+\begin{figure}[hbt]
     \centering
     % The source image is released under CC0, public domain, no attribution required:
     % https://pixabay.com/en/airplane-plane-aircraft-propeller-40374/
@@ -49,6 +91,20 @@ TODO
         \label{fig:application_body_frame_convention}
     }
 \end{figure}
+
+\subsubsection{Optical frame}
+
+In the case of cameras, the right handed convention specified below should be preferred.
+It is widely used in various applications involving computer vision systems.
+\begin{samepage}
+\begin{description}
+    \item[X] --- right;
+    \item[Y] --- down.
+    \item[Z] --- towards the scene along the optical axis.
+\end{description}
+\end{samepage}
+
+\subsection{Rotation representation}
 
 \subsection{Matrix representation}
 
