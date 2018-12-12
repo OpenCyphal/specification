@@ -3,7 +3,7 @@
 This section specifies the CAN-based physical layer of UAVCAN.
 
 Here and in the following parts of this section,
-"CAN" implies both CAN 2.0 and CAN FD, unless specifically noted otherwise.
+``CAN'' implies both CAN 2.0 and CAN FD, unless specifically noted otherwise.
 
 \subsection{Physical connector specification}
 
@@ -15,8 +15,8 @@ for the CAN bus transport implementation.
 Other connector types may be added in future revisions of the specification.
 
 It is highly recommended to provide two identical parallel connectors for each CAN interface per device,
-so that the device can be connected to the bus without the need to use T-connectors.
-T-connectors should be avoided when possible because generally they add an extra point of failure,
+and not using \mbox{T-connectors}.
+\mbox{T-connectors} should be avoided because they add another point of failure,
 increase the stub length, weight, and often require more complex and expensive wiring harnesses.
 
 \begin{UAVCANSimpleTable}{Standard CAN connector types}{l l l X}\label{table:can_connector_summary}
@@ -86,18 +86,18 @@ The maximum recommended current draw from the bus is 0.5 A per device.
 The table \ref{table:can_uavcan_d_sub_pinout} documents the pinout specification for the
 UAVCAN D-Sub connector type.
 The provided pinout, as has been indicated above, is the de-facto industry standard for the CAN bus.
-Note that the signals "CAN High" and "CAN Low" must belong to the same twisted pair.
+Note that the signals ``CAN High'' and ``CAN Low'' must belong to the same twisted pair.
 Usage of twisted or flat wires for all other signals remains at the discretion of the implementer.
 
 \begin{UAVCANSimpleTable}{UAVCAN D-Sub connector pinout}{|l l X|}\label{table:can_uavcan_d_sub_pinout}
     \# & Function           & Note \\
     1  &                    &  \\
-    2  & CAN low            & Twisted with "CAN high" (pin 7). \\
-    3  & CAN ground         & Must be interconnected with "Ground" (pin 6) within the device. \\
+    2  & CAN low            & Twisted with ``CAN high'' (pin 7). \\
+    3  & CAN ground         & Must be interconnected with ``Ground'' (pin 6) within the device. \\
     4  &                    &  \\
     5  & CAN shield         & Optional. \\
-    6  & Ground             & Must be interconnected with "CAN ground" (pin 3) within the device. \\
-    7  & CAN high           & Twisted with "CAN low" (pin 2). \\
+    6  & Ground             & Must be interconnected with ``CAN ground'' (pin 3) within the device. \\
+    7  & CAN high           & Twisted with ``CAN low'' (pin 2). \\
     8  &                    &  \\
     9  & Bus power supply   & 24 V nominal. See the power supply requirements. \\
 \end{UAVCANSimpleTable}
@@ -160,14 +160,14 @@ The maximum recommended current draw from the bus is 0.5 A per device.
 
 The table \ref{table:can_uavcan_m8_pinout} documents the pinout specification for the UAVCAN M8 connector type.
 The provided pinout, as indicated above, is compatible with the CiA 103 specification (CANopen).
-Note that the wires "CAN high" and "CAN low" should be a twisted pair.
+Note that the wires ``CAN high'' and ``CAN low'' should be a twisted pair.
 
 \begin{UAVCANSimpleTable}{UAVCAN M8 connector pinout}{|l l X|}\label{table:can_uavcan_m8_pinout}
     \# & Function           & Note \\
     1  & Bus power supply   & 24 V nominal. See the power supply requirements. \\
     2  & CAN shield         & Optional. \\
-    3  & CAN high           & Twisted with "CAN low" (pin 4). \\
-    4  & CAN low            & Twisted with "CAN high" (pin 3). \\
+    3  & CAN high           & Twisted with ``CAN low'' (pin 4). \\
+    4  & CAN low            & Twisted with ``CAN high'' (pin 3). \\
     5  & Ground             & \\
 \end{UAVCANSimpleTable}
 
@@ -239,13 +239,13 @@ The maximum recommended current draw from the bus is 0.5 A per device.
 
 The table \ref{table:can_uavcan_micro_pinout} documents the pinout specification for the UAVCAN M8 connector type.
 The provided pinout, as indicated above, is compatible with the Dronecode Autopilot Connector Standard.
-Note that the wires "CAN high" and "CAN low" should be a twisted pair.
+Note that the wires ``CAN high'' and ``CAN low'' should be a twisted pair.
 
 \begin{UAVCANSimpleTable}{UAVCAN Micro connector pinout}{|l l X|}\label{table:can_uavcan_micro_pinout}
     \# & Function           & Note \\
     1  & Bus power supply   & 5 V nominal. See the power supply requirements. \\
-    2  & CAN high           & Should be twisted with "CAN low" (pin 3). \\
-    3  & CAN low            & Should be twisted with "CAN high" (pin 2). \\
+    2  & CAN high           & Should be twisted with ``CAN low'' (pin 3). \\
+    3  & CAN low            & Should be twisted with ``CAN high'' (pin 2). \\
     4  & Ground             & \\
 \end{UAVCANSimpleTable}
 

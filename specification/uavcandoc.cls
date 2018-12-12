@@ -36,11 +36,14 @@
 \RequirePackage{lastpage}
 \RequirePackage{minted}
 \RequirePackage{chngcntr}
+\usepackage[most]{tcolorbox}
 
 %
 % Minor definitions.
 %
 \definecolor{colorhyperlink}{RGB}{0,0,200}
+\definecolor{colorlogo}{RGB}{0,124,195}
+\definecolor{colorlogolight}{RGB}{220, 242, 255}
 
 \renewcommand{\dateseparator}{.}
 
@@ -80,6 +83,57 @@ autogobble
 \setlist[description]{leftmargin=\leftskip,labelindent=\dimexpr\leftskip+\parindent\relax}
 \setlist[enumerate]{leftmargin=\leftskip,itemindent=1.4em,nosep}
 \setlist[itemize]{leftmargin=\leftskip,itemindent=1em,nosep}
+
+% Remark formatting.
+% Use with \begin{remark}[breakable] to make it breakable across multiple pages.
+% By default, the remark will be non-breakable.
+%
+% STYLE RULE:
+%   SECTIONS THAT CONTAIN ONLY REMARKS ARE TO BE AVOIDED.
+%   A remark is an optional part of the document. The text should make sense even if all remarks were to be
+%   completely removed. For example, the following pattern should be avoided, because if we were to ignore
+%   the remark, we'd end up with an empty section, which doesn't make sense:
+%
+%       \section{My section}
+%       \begin{remark}
+%           This is a remark, meaning that this text is not very important.
+%       \end{remark}
+%
+% Instead, try to reformulate things so that the section would still make sense without the remark:
+%
+%       \section{My section}
+%       Kill-o-Zap is to be a dangerous weapon.
+%       \begin{remark}
+%           Make it totally clear that this gun has a right end and a wrong end.
+%           Make it totally clear to anyone standing at the wrong end that things are going badly for them.
+%           This is not a gun for hanging over the fireplace or sticking in the umbrella stand,
+%           it is a gun for going out and making people miserable with.
+%       \end{remark}
+\newenvironment{remark}[1][unbreakable]{
+    % Disable overfull h-box warning
+    % See https://tex.stackexchange.com/questions/13715/how-to-suppress-overfull-hbox-warnings-up-to-some-maximum
+    \hfuzz=1em
+    \begin{tcolorbox}[
+        size=normal,
+        left=1mm,
+        right=1mm,
+        top=1mm,
+        bottom=1mm,
+        colback=colorlogolight,
+        colframe=colorlogo,
+        boxrule=0.5pt,
+        toprule at break=0pt,
+        bottomrule at break=0pt,
+        sharp corners,
+        width=\textwidth-\leftskip,
+        enlarge top initially by=-1mm,
+        #1
+    ]
+    \setlength{\parskip}{\DefaultParskip}
+}{
+    \end{tcolorbox}
+    \hfuzz=0em      % Restore strict overflow warning
+}
 
 % Continuous footnote numbering
 \counterwithout{footnote}{chapter}
