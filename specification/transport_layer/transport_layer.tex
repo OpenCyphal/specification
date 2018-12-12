@@ -260,11 +260,11 @@ specification.
 
 \subsubsection{Hard real-time considerations}
 
-\begin{remark}
-    Hard real-time applications require a predictable and deterministic data processing time.
-    The concept of transfer descriptor plays an important role in communication;
-    hence, its contribution to the worst case data processing load must be carefully analyzed.
+Hard real-time applications require a predictable and deterministic data processing time.
+The concept of transfer descriptor plays an important role in communication;
+hence, its contribution to the worst case data processing load should be carefully analyzed.
 
+\begin{remark}
     From the above definition of transfer descriptor it is easy to derive that for any
     message subject ID or any service subject ID the maximum number of transfer descriptors
     that can be observed by the local node will never exceed the number of nodes on the bus minus
