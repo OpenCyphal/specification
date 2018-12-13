@@ -106,21 +106,193 @@ Angular velocities should be represented using a right handed fixed axis (extrin
 X (roll), Y (pitch), Z (yaw).
 
 \begin{remark}
-    Quaternions are considered to offer an optimal trade-off between bandwidth efficiency,
-    computation complexity, and explicitness.
+    Quaternions are considered to offer the optimal trade-off between bandwidth efficiency,
+    computation complexity, and explicitness:
+    \begin{itemize}
+        \item Euler angles are not self-contained, requiring applications to agree on a particular
+        convention beforehand; such convention would be difficult to establish considering different
+        demands of various use cases.
 
-    Rotation matrices are redundant and not bandwidth efficient.
+        \item Euler angles and fixed axis rotations typically cannot be used for computations directly
+        due to angular interpolation issues and singularities; thus, in order to make use of such
+        representations, one often has to convert them to a different form (e.g., quaternion);
+        such conversions are relatively computationally heavy.
 
-    Euler angles are not self-contained, requiring applications to agree on a particular
-    convention beforehand; such convention would be difficult to establish considering different
-    demands of various use cases.
-
-    Euler angles and fixed axis rotations typically cannot be used for computations directly due to angular
-    interpolation issues and singularities; thus, in order to make use of such representations,
-    one often has to convert them to a different form (e.g., quaternion); such conversions are
-    typically computationally heavy.
+        \item Rotation matrices are highly redundant.
+    \end{itemize}
 \end{remark}
 
 \subsection{Matrix representation}
 
+\subsubsection{General}
+
+Matrices should be represented as flat arrays in the row-major order.
+
+\begin{remark}
+    $
+    \begin{bmatrix}
+        x_{11} & x_{12} & x_{13} \\
+        x_{21} & x_{22} & x_{23} \\
+    \end{bmatrix} \rightarrow \left(x_{11}, x_{12}, x_{13}, x_{21}, x_{22}, x_{23}\right)
+    $
+\end{remark}
+
+\subsubsection{Square matrices}
+
+There are standard compressed representations of an $n \times n$ square matrix.
+
+An array of size $n^2$ represents a full square matrix.
+This is equivalent to the general case reviewed above.
+
+An array of $\frac{(1 + n) n}{2}$ elements represents a symmetric matrix,
+where array members represent the elements of the upper-right triangle arranged in the row-major order.
+\begin{remark}
+    $
+    \begin{bmatrix}
+        a & b & c \\
+        b & d & e \\
+        c & e & f \\
+    \end{bmatrix} \rightarrow \left(a, b, c, d, e, f\right)
+    $
+
+    This form is well-suited for covariance matrix representation.
+\end{remark}
+
+An array of $n$ elements represents a diagonal matrix,
+where an array member at position $i$ (where $i=1$ for the first element)
+represents the matrix element $x_{i, i}$ (where $x_{1, 1}$ is the upper-left element).
+\begin{remark}
+    $
+    \begin{bmatrix}
+        a & 0 & 0 \\
+        0 & b & 0 \\
+        0 & 0 & c \\
+    \end{bmatrix} \rightarrow \left(a, b, c\right)
+    $
+\end{remark}
+
+An array of one element represents a scalar matrix.
+\begin{remark}
+    $
+    \begin{bmatrix}
+        a & 0 & 0 \\
+        0 & a & 0 \\
+        0 & 0 & a \\
+    \end{bmatrix} \rightarrow a
+    $
+\end{remark}
+
+An empty array represents a zero matrix.
+
+\subsubsection{Covariance matrices}
+
+A zero covariance matrix represents an unknown covariance\footnote{%
+    As described above, an empty array represents a zero matrix,
+    from which follows that an empty array represents unknown covariance.
+}.
+
+Infinite variance means that the associated value is undefined.
+
 \subsection{Physical quantity representation}
+
+All units should be SI\footnote{International System of Units.} units (base or derived).
+Usage of any other units is strongly discouraged.
+
+When defining data types, fields and constants that represent unscaled quantities in SI units
+should not have suffixes indicating the unit, since that would be redundant.
+
+On the other hand, fields and constants that contain quantities in
+non-SI units\footnote{E.g., degree Celsius instead of kelvin.}
+or scaled SI units\footnote{E.g., microsecond instead of second.}
+should be suffixed with the standard abbreviation of the unit\footnote{E.g., kg for kilogram, J for joule.}
+and its metric prefix\footnote{E.g., M for mega, n for nano.}
+(if any), maintaining the proper letter case of the abbreviation.
+In other words, the letter case of the suffix is independent of the letter case of the field it is attached to.
+
+Scaling coefficients should not be chosen arbitrarily;
+instead, the choice should be limited to the standard metric prefixes defined by the
+International System of Units.
+
+All standard metric prefixes have well-defined abbreviations that are constructed from ASCII characters,
+except for one: the micro prefix is abbreviated as a Greek letter ``\textmu{}'' (mu).
+When defining data types, ``\textmu{}'' should be replaced with the lowercase Latin letter ``u''.
+
+Irrespective of the suffix, it is recommended to always specify units for every field in the comments.
+
+\begin{remark}
+\begin{minted}{python}
+float16 temperature           # [kelvin] Suffix not needed because an unscaled SI unit is used here.
+
+uint24 delay_us               # [microsecond] Scaled SI unit, suffix is required. Mu replaced with "u".
+uint24 MAX_DELAY_us = 600000  # [microsecond] The case of the suffix must not be forced to avoid confusion.
+
+float32 kinetic_energy_GJ     # [gigajoule] Notice the letter case.
+
+float16 estimated_charge_mAh  # [milliampere hour] Scaled non-SI unit. Highly discouraged (use coulomb).
+float16 MAX_CHARGE_mAh = 1e4  # [milliampere hour] Notice the letter case.
+\end{minted}
+\end{remark}
+
+\subsection{DSDL practices}
+
+\subsubsection{Optional value representation}
+
+Data structures may include optional fields that are not necessarily always populated.
+
+The recommended approach for representing optional fields
+is to use dynamic arrays with the capacity of one element,
+prefixed with padding bits as necessary to retain byte alignment.
+
+Alternatively, such one-element dynamic arrays can be replaced with two-field unions,
+where the first field is empty and the second field contains the desired optional field.
+The described layout is bit-compatible with the one-element array described above,
+provided that the fields are not swapped.
+
+Floating point fields may be assigned the value of not-a-number (NaN) per IEEE 754
+to indicate that the value is not provided;
+however, this pattern is discouraged because some nodes may not support IEEE 754 NaN values internally,
+the value would still have to be transferred over the bus even if not populated,
+and special case values undermine type safety.
+
+\begin{remark}
+Array-based optional field:
+\begin{minted}{python}
+void7                           # It is recommended to ensure byte alignment
+MyType[<=1] optional_field
+\end{minted}
+Union-based optional field:
+\begin{minted}{python}
+@union
+uavcan.primitive.Empty none     # Represents lack of value, unpopulated field
+MyType some                     # The field of interest; field ordering is important
+\end{minted}
+The defined above union can be used as follows (suppose it is named \verb|MaybeMyType|):
+\begin{minted}{python}
+void7                           # It is recommended to ensure byte alignment
+MaybeMyType optional_field
+\end{minted}
+The shown approaches are mutually bit-compatible.
+\end{remark}
+
+\subsubsection{Bit flag representation}
+
+The recommended approach to define a set of flags is to define a dedicated \verb|bool|-typed field for each.
+Representations based on an integer sum of powers of two\footnote{Which are popular in programming.}
+are discouraged due to their poor readability and maintainability.
+
+\begin{remark}
+Recommended approach:
+\begin{minted}{python}
+void5
+bool flag_foo
+bool flag_bar
+bool flag_baz
+\end{minted}
+Not recommended:
+\begin{minted}{python}
+uint8 flags             # Not recommended
+uint8 FLAG_BAZ = 1
+uint8 FLAG_BAR = 2
+uint8 FLAG_FOO = 4
+\end{minted}
+\end{remark}
