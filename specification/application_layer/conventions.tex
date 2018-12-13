@@ -36,18 +36,33 @@ Unused gaps are reserved for future expansion of adjacent ranges.
 
 UAVCAN follows the conventions that are widely accepted in relevant applications.
 Adherence to the conventions described here maximizes system compatibility and reduces the amount of
-computations that would otherwise be required for conversions between incompatible coordinate systems
-and representations.
+computations for conversions between incompatible coordinate systems and representations.
 It is recognized, however, that some applications may find the advised conventions unsuitable,
 in which case deviations are permitted.
 Any such deviations must be explicitly documented.
 
-All coordinate systems are right handed.
+All coordinate systems defined in this section are right handed.
+If application-specific coordinate systems are introduced, they should be right handed as well.
+
+\begin{figure}[hbt]
+    \centering
+    % The source image is released under CC0, public domain, no attribution required:
+    % https://commons.wikimedia.org/wiki/File:ECEF_ENU_Longitude_Latitude_relationships.svg
+	\includegraphics[width=0.45\textwidth]{application_layer/NED_ECEF}
+    % The source image is released under CC0, public domain, no attribution required:
+    % https://pixabay.com/en/airplane-plane-aircraft-propeller-40374/
+    % The final image is drawn by me. The source Inkscape SVG file is located in the same directory.
+    \includegraphics[width=0.45\textwidth]{application_layer/aircraft_principal_axes}
+    North-East-Down (NED) frame and body frame conventions. All systems are right handed.
+    \caption{
+        Coordinate frame conventions.
+        \label{fig:application_coordinate_frame_conventions}
+    }
+\end{figure}
 
 \subsubsection{World frame}
 
 For world fixed frames, the \emph{North-East-Down} (NED) right handed notation should be preferred.
-It is illustrated on the figure \ref{fig:application_world_frame_convention}.
 \begin{samepage}
 \begin{description}
     \item[X] --- northward;
@@ -56,22 +71,10 @@ It is illustrated on the figure \ref{fig:application_world_frame_convention}.
 \end{description}
 \end{samepage}
 
-\begin{figure}[hbt]
-    \centering
-    % The image is released under CC0, public domain, no attribution required:
-    % https://commons.wikimedia.org/wiki/File:ECEF_ENU_Longitude_Latitude_relationships.svg
-	\includegraphics[width=0.5\textwidth]{application_layer/ECEF_ENU_Longitude_Latitude_relationships}
-    \caption{
-        World frame convention -- North-East-Down.
-        \label{fig:application_world_frame_convention}
-    }
-\end{figure}
-
 \subsubsection{Body frame}
 
 In relation to a body, the convention is as defined below, right handed.
-This convention is widely used in aeronautic applications;
-it is illustrated on the figure \ref{fig:application_body_frame_convention}.
+This convention is widely used in aeronautic applications.
 \begin{samepage}
 \begin{description}
     \item[X] --- forward;
@@ -80,18 +83,6 @@ it is illustrated on the figure \ref{fig:application_body_frame_convention}.
 \end{description}
 \end{samepage}
 
-\begin{figure}[hbt]
-    \centering
-    % The source image is released under CC0, public domain, no attribution required:
-    % https://pixabay.com/en/airplane-plane-aircraft-propeller-40374/
-    % The final image is drawn by me. The source Inkscape SVG file is located in the same directory.
-	\includegraphics[width=0.5\textwidth]{application_layer/aircraft_principal_axes}
-    \caption{
-        Body frame convention. Roll, pitch, and yaw arrows indicate positive rotations.
-        \label{fig:application_body_frame_convention}
-    }
-\end{figure}
-
 \subsubsection{Optical frame}
 
 In the case of cameras, the right handed convention specified below should be preferred.
@@ -99,12 +90,36 @@ It is widely used in various applications involving computer vision systems.
 \begin{samepage}
 \begin{description}
     \item[X] --- right;
-    \item[Y] --- down.
+    \item[Y] --- down;
     \item[Z] --- towards the scene along the optical axis.
 \end{description}
 \end{samepage}
 
 \subsection{Rotation representation}
+
+All applications should represent rotations using quaternions with the elements ordered as follows\footnote{%
+    Assuming $w + x\boldsymbol{i} + y\boldsymbol{j} + z\boldsymbol{k}$.
+}: W, X, Y, Z.
+Other forms of rotation representations should be avoided.
+
+Angular velocities should be represented using a right handed fixed axis (extrinsic) convention:
+X (roll), Y (pitch), Z (yaw).
+
+\begin{remark}
+    Quaternions are considered to offer an optimal trade-off between bandwidth efficiency,
+    computation complexity, and explicitness.
+
+    Rotation matrices are redundant and not bandwidth efficient.
+
+    Euler angles are not self-contained, requiring applications to agree on a particular
+    convention beforehand; such convention would be difficult to establish considering different
+    demands of various use cases.
+
+    Euler angles and fixed axis rotations typically cannot be used for computations directly due to angular
+    interpolation issues and singularities; thus, in order to make use of such representations,
+    one often has to convert them to a different form (e.g., quaternion); such conversions are
+    typically computationally heavy.
+\end{remark}
 
 \subsection{Matrix representation}
 
