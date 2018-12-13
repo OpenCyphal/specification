@@ -13,6 +13,8 @@ these node ID values should not be used in fielded systems.
 
 \subsubsection{Port ID}
 
+This rule is mandatory for all applications.
+
 The subject and service identifier values are segregated into three ranges:
 unregulated port identifiers that can be freely chosen by users and integrators (both fixed and non-fixed);
 regulated fixed identifiers for non-standard data type definitions
@@ -35,8 +37,9 @@ Unused gaps are reserved for future expansion of adjacent ranges.
 \subsection{Coordinate frames}
 
 UAVCAN follows the conventions that are widely accepted in relevant applications.
-Adherence to the conventions described here maximizes system compatibility and reduces the amount of
-computations for conversions between incompatible coordinate systems and representations.
+Adherence to the coordinate frame conventions described here maximizes system compatibility and
+reduces the amount of computations for conversions between incompatible coordinate systems and
+representations.
 It is recognized, however, that some applications may find the advised conventions unsuitable,
 in which case deviations are permitted.
 Any such deviations must be explicitly documented.
@@ -207,7 +210,8 @@ or scaled SI units\footnote{E.g., microsecond instead of second.}
 should be suffixed with the standard abbreviation of the unit\footnote{E.g., kg for kilogram, J for joule.}
 and its metric prefix\footnote{E.g., M for mega, n for nano.}
 (if any), maintaining the proper letter case of the abbreviation.
-In other words, the letter case of the suffix is independent of the letter case of the field it is attached to.
+In other words, the letter case of the suffix is independent of the letter case of
+the attribute it is attached to.
 
 Scaling coefficients should not be chosen arbitrarily;
 instead, the choice should be limited to the standard metric prefixes defined by the
