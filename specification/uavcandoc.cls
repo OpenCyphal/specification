@@ -64,7 +64,7 @@ frame=leftline,
 linenos,
 numberblanklines=false,
 fontsize=\footnotesize,
-xleftmargin=\dimexpr\leftskip-2mm\relax,
+xleftmargin=\dimexpr\leftskip-2.15mm\relax,
 framesep=2mm,
 autogobble
 }
