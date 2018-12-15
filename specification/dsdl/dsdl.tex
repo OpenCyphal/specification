@@ -137,22 +137,24 @@ A comprehensive list of non context sensitive keywords and a short description i
 a bold face \texttt{\textbf{X}} is interchangeable with a decimal number of one or more digits (\texttt{[0-9]+}).
 
 \begin{UAVCANSimpleTable}{A comprehensive table of DSDL keywords}{|l l|}
-\textbf{Keyword} & \textbf{Description} \\
-\texttt{saturated} & Cast mode. \\
-\texttt{truncated} & Cast mode. \\
-\texttt{offset} & Usable only in assertions, evaluates into the set of possible bit offsets. \\
-\texttt{int\textbf{X}} & Primitive type. \\
-\texttt{uint\textbf{X}} & Primitive type. \\
-\texttt{void\textbf{X}} & Primitive type. \\
-\texttt{bool} & Primitive type. \\
-\texttt{true} & \texttt{bool} variant. \\
-\texttt{false} & \texttt{bool} variant. \\
-\texttt{con} & Reserved. \\
-\texttt{prn} & Reserved. \\
-\texttt{aux} & Reserved. \\
-\texttt{nul} & Reserved. \\
-\texttt{com\textbf{X}} & Reserved. \\
-\texttt{lpt\textbf{X}} & Reserved. \\
+    \textbf{Keyword(s)} & \textbf{Description} \\
+    \texttt{saturated}, \texttt{truncated} & Cast mode. \\
+    \texttt{offset} & Assertions only: evaluates into the set of possible bit offsets. \\
+    \texttt{true}, \texttt{false} & \texttt{bool} variant. \\
+    \texttt{bool} & Primitive type. \\
+    \texttt{void\textbf{X}} & Primitive type. \\
+    \texttt{int\textbf{X}} & Primitive type. \\
+    \texttt{uint\textbf{X}} & Primitive type. \\
+    \texttt{u\textbf{X}\_\textbf{X}} & Reserved for future use. \\
+    \texttt{q\textbf{X}\_\textbf{X}} & Reserved for future use. \\
+    \texttt{option}, \texttt{optional}, \texttt{maybe} & Reserved for future use. \\
+    \texttt{aligned} & Reserved for future use. \\
+    \texttt{const} & Reserved for future use. \\
+    \texttt{struct}, \texttt{enum} & Reserved for future use. \\
+    \texttt{super}, \texttt{self}, \texttt{root} & Reserved for future use. \\
+    \texttt{template} & Reserved for future use. \\
+    \texttt{con}, \texttt{prn}, \texttt{aux}, \texttt{nul} & Reserved for future use. \\
+    \texttt{com\textbf{X}}, \texttt{lpt\textbf{X}} & Reserved for future use. \\
 \end{UAVCANSimpleTable}
 
 
@@ -405,10 +407,7 @@ resulting languages is considered legal way to handle this as long as it results
 
 There exists a few magical keywords only available for assertions.
 This is a deliberate choice made to allow implementation of constant evaluation
-without needing the in-depth anal\begin{UAVCANSimpleTable}{Compatibility between associated const and const type}{|l l|}
-\textbf{Keyword} & \textbf{Description} \\
-\texttt{offset} & Evaluates into the set of possible bit offsets at the point of evaluation.
-\end{UAVCANSimpleTable}ysis required when checking assertions.
+without needing the in-depth analysis required when checking assertions.
 The keywords and their described behavior follows: 
 
 \begin{UAVCANSimpleTable}{Compatibility between associated const and const type}{|l l|}
