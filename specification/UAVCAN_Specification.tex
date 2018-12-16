@@ -17,6 +17,24 @@
 
 \urlstyle{same}
 
+% This macro embeds the selected DSDL definition or the contents of a DSDL namespace into the document.
+% It accepts one mandatory argument which is either a full DSDL type name, e.g. uavcan.node.Heartbeat,
+% or a full type name glob expression, e.g., uavcan.node.*.
+\newcommand{\DSDL}[1]{%
+    % Clean up beforehand to ensure clean initial state.
+    \immediate\write18{rm -f ../*.tmp}%
+    % Invoke the target command and save the useful output into a file; ignore error output
+    \immediate\write18{../render_dsdl.py #1 > ../dsdl.tmp}%
+    % Now, if the above command has failed, the output file would be empty. We remove empty file to escalate error.
+    % Escalation is very important as it allows us to abort compilation on failure instead of generating invalid
+    % documents silently.
+    \immediate\write18{find .. -type f -name '*.tmp' -size 0 -delete}%
+    % Read the file. This command fails if the file was empty, which is exactly want we want.
+    \immediate\input{../dsdl.tmp}%
+    % Clean up afterwards to prevent accidental reuse if the command fails the next time we invoke it.
+    \immediate\write18{rm -f ../*.tmp}%
+}
+
 \title{Specification v1.0}
 
 \hbadness=10000
@@ -105,5 +123,6 @@ even if such author has been advised of the possibility of such damages.
 \input{transport_layer/transport_layer.tex}
 \input{application_layer/application_layer.tex}
 \input{physical_layer/physical_layer.tex}
+\input{standard_data_types/standard_data_types.tex}
 
 \end{document}
