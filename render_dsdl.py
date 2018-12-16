@@ -20,6 +20,10 @@ def die(why: str) -> None:
     exit(1)
 
 
+def escape(s: str) -> str:
+    return s.replace('_', r'\_')
+
+
 def render_dsdl_definition(t: pydsdl.data_type.CompoundType) -> str:
     def bit_to_byte(val: tuple) -> tuple:
         return tuple((x + 7) // 8 for x in val)
@@ -31,7 +35,7 @@ def render_dsdl_definition(t: pydsdl.data_type.CompoundType) -> str:
             if x <= true_mtu:
                 return 1
             else:
-                return (x + 2 + (true_mtu - 1)) // true_mtu
+                return (x + 2 + (true_mtu - 1)) // true_mtu     # Plus two for Transfer CRC
 
         return tuple(once(x) for x in val)
 
@@ -47,13 +51,10 @@ def render_dsdl_definition(t: pydsdl.data_type.CompoundType) -> str:
         ]
 
     if isinstance(t, pydsdl.data_type.ServiceType):
-        length_table_rows = r'''
-        Request length  & %s & %s & %s & %s \\
-        Response length & %s & %s & %s & %s \\
-        ''' % tuple(rlen_group(t.request_type.bit_length_range) +
-                    rlen_group(t.response_type.bit_length_range))
+        length_table_rows = 'Request length  &' + '&'.join(rlen_group(t.request_type.bit_length_range)) + r'\\' +\
+                            'Response length &' + '&'.join(rlen_group(t.response_type.bit_length_range)) + r'\\'
     else:
-        length_table_rows = r'Message length & %s & %s & %s & %s \\' % tuple(rlen_group(t.bit_length_range))
+        length_table_rows = 'Message length &' + '&'.join(rlen_group(t.bit_length_range)) + r'\\'
 
     minted_params = r'fontsize=\scriptsize, numberblanklines=true, baselinestretch=0.9, autogobble=false'
     return '\n'.join([
@@ -100,9 +101,41 @@ grouped = OrderedDict()
 for t in matching:
     grouped.setdefault(t.namespace, OrderedDict()).setdefault(t.full_name, []).append(t)
 
-# Render everything
+# Render short reference
+print(r'{\footnotesize\setlength{\tabulinesep}{-1pt}\setlength{\extrarowsep}{-1pt}\parindent=-\leftskip')
+print(r'\begin{longtabu}{|X r l l|}\rowfont{\bfseries}\hline')
+print(r'Namespace tree & Fixed port ID & Section & Full name \\\hline')
+prefix = '.'
+for t in matching:
+    if '_' in t.full_name:
+        continue
+
+    # Walk up and down the tree levels, emitting tree mark rows in the process
+    current_prefix = '.' + t.namespace + '.'
+    while prefix != current_prefix:
+        if current_prefix.startswith(prefix):
+            new_comp = current_prefix[len(prefix):].strip('.').split('.')[0]
+            print(r'\pagebreak[2]{}')       # Hint LaTeX that it's a good place to begin a new page if necessary
+            print(r'\qquad{}' * (prefix.count('.') - 1),
+                  r'\texttt{%s}' % escape(new_comp), r'& & & \\')
+            prefix += new_comp
+        else:
+            prefix = '.' + '.'.join(prefix.strip('.').split('.')[:-1])
+
+        prefix += '.'
+
+    print(r'\nopagebreak[4]{}')             # Allow page breaks only when switching namespaces
+    print(r'\qquad{}' * prefix.count('.'), r'\texttt{%s}' % t.short_name, '&',
+          t.fixed_port_id if t.has_fixed_port_id else '', '&',
+          r'\ref{sec:dsdl:%s} &' % t.full_name,
+          r'\texttt{%s} \\' % escape(t.full_name))
+
+print(r'\hline\end{longtabu}')
+print(r'}')
+
+# Render definitions
 for namespace, children in grouped.items():
-    print(r'\clearpage\section{%s}' % namespace.replace('_', r'\_'))
+    print(r'\clearpage\section{%s}' % escape(namespace))
     print(r'\label{sec:dsdl:%s}' % namespace)
 
     for full_name, versions in children.items():
@@ -111,7 +144,7 @@ for namespace, children in grouped.items():
         print(r'\subsection{%s}' % full_name.split(pydsdl.data_type.CompoundType.NAME_COMPONENT_SEPARATOR)[-1])
         print(r'\label{sec:dsdl:%s}' % full_name)
         print(r'Full %s type name: {\bfseries\texttt{%s}}' %
-              ('service' if is_service else 'message', full_name.replace('_', r'\_')))
+              ('service' if is_service else 'message', escape(full_name)))
 
         for t in versions:
             title = 'Version %d.%d' % t.version
