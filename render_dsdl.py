@@ -64,6 +64,7 @@ def render_dsdl_definition(t: pydsdl.data_type.CompoundType) -> str:
         length_table_rows,
         r'\hline\end{tabu}',
         r'}',
+        r'\pagebreak[2]{}',    # This is needed to discourage page breaks within the listings
         r'\begin{minted}[%s]{python}' % minted_params,
         open(t.source_file_path).read(),
         r'\end{minted}',
@@ -107,9 +108,6 @@ print(r'\begin{longtabu}{|X r l l|}\rowfont{\bfseries}\hline')
 print(r'Namespace tree & Fixed port ID & Section & Full name \\\hline')
 prefix = '.'
 for t in matching:
-    if '_' in t.full_name:
-        continue
-
     # Walk up and down the tree levels, emitting tree mark rows in the process
     current_prefix = '.' + t.namespace + '.'
     while prefix != current_prefix:
@@ -141,6 +139,7 @@ for namespace, children in grouped.items():
     for full_name, versions in children.items():
         is_service = isinstance(versions[0], pydsdl.data_type.ServiceType)
 
+        print(r'\pagebreak[3]{}')
         print(r'\subsection{%s}' % full_name.split(pydsdl.data_type.CompoundType.NAME_COMPONENT_SEPARATOR)[-1])
         print(r'\label{sec:dsdl:%s}' % full_name)
         print(r'Full %s type name: {\bfseries\texttt{%s}}' %
