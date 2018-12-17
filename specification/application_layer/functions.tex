@@ -1,3 +1,26 @@
 \section{Application-level functions}\label{sec:application_level_functions}
 
+This section documents the high-level functionality defined by UAVCAN.
+Common high-level functions form a uniform set of basic functions that span across different application domains.
+All of the functions defined in this section are optional,
+except for the node heartbeat feature (section \ref{sec:application_node_heartbeat}),
+which is mandatory for all UAVCAN nodes.
+
+\subsection{Node initialization}
+
+UAVCAN does not require that nodes undergo any specific initialization upon connecting to the bus ---
+a node is free to begin functioning immediately once it is powered up.
+However, the transitioning to the operating state (even if there is no other state to transition from)
+is to be reflected via the mandatory heartbeat message, described in section \ref{sec:application_node_heartbeat}.
+
+\subsection{Node heartbeat}\label{sec:application_node_heartbeat}
+
+Every UAVCAN node must report its status and presence by publishing messages of type
+\DSDLReference{uavcan.node.Heartbeat} at a fixed rate specified in the message definition.
+
+This is the only data type that UAVCAN nodes are required to support.
+All other data types and application-level functions are optional.
+
+\DSDL{uavcan.node.Heartbeat}
+
 
