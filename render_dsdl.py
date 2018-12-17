@@ -103,7 +103,7 @@ for t in matching:
     grouped.setdefault(t.namespace, OrderedDict()).setdefault(t.full_name, []).append(t)
 
 # Render short reference
-print(r'{\footnotesize\setlength{\tabulinesep}{-1pt}\setlength{\extrarowsep}{-1pt}\parindent=-\leftskip')
+print(r'{\footnotesize\setlength{\tabulinesep}{-2pt}\setlength{\extrarowsep}{-2pt}\parindent=-\leftskip')
 print(r'\begin{longtabu}{|X r l l|}\rowfont{\bfseries}\hline')
 print(r'Namespace tree & Fixed port ID & Section & Full name \\\hline')
 prefix = '.'
