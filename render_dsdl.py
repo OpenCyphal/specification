@@ -105,7 +105,7 @@ for t in matching:
 # Render short reference
 print(r'{\footnotesize\setlength{\tabulinesep}{-2pt}\setlength{\extrarowsep}{-2pt}\parindent=-\leftskip')
 print(r'\begin{longtabu}{|X r l l|}\rowfont{\bfseries}\hline')
-print(r'Namespace tree & Fixed port ID & Section & Full name \\\hline')
+print(r'Namespace tree & FPID & Sect. & Full name \\\hline')
 prefix = '.'
 for t in matching:
     # Walk up and down the tree levels, emitting tree mark rows in the process
