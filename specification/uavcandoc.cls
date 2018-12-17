@@ -220,12 +220,12 @@ autogobble
 \renewcommand{\listtablename}{List of tables}
 \setcounter{tocdepth}{2}
 \titlecontents{part}[0em]{\centering\bfseries}{}{}{}
-\dottedcontents{chapter}[10mm]{\bfseries}{10mm}{1pc}
-\dottedcontents{section}[20mm]{}{10mm}{1pc}
-\dottedcontents{subsection}[30mm]{\small}{10mm}{1pc}
+\dottedcontents{chapter}[5mm]{\bfseries}{5mm}{1pc}
+\dottedcontents{section}[14mm]{}{9mm}{1pc}
+\dottedcontents{subsection}[25mm]{\footnotesize}{11mm}{1pc}
 
-\dottedcontents{table}[2em]{}{2em}{1pc}
-\dottedcontents{figure}[2em]{}{2em}{1pc}
+\dottedcontents{table}[3em]{}{3em}{1pc}
+\dottedcontents{figure}[3em]{}{3em}{1pc}
 
 % Custom styling of TOC, LOF, LOT.
 % Using \sloppy in order to ensure that the maximum line length is not exceeded.
