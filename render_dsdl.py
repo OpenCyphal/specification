@@ -103,10 +103,12 @@ for t in matching:
     grouped.setdefault(t.namespace, OrderedDict()).setdefault(t.full_name, []).append(t)
 
 # Render short reference
-print(r'{\footnotesize\setlength{\tabulinesep}{-2pt}\setlength{\extrarowsep}{-2pt}\parindent=-\leftskip')
-print(r'\begin{longtabu}{|X r l l|}\rowfont{\bfseries}\hline')
-print(r'Namespace tree & FPID & Sect. & Full name \\\hline')
+print(r'{\footnotesize\parindent=-\leftskip')
+print(r'\setlength\tabcolsep{3pt}\setlength{\tabulinesep}{-2pt}\setlength{\extrarowsep}{-2pt}')
+print(r'\begin{longtabu}{|X r|r r|r l|l|}\rowfont{\bfseries}\hline')
+print(r'Namespace tree & FPID & \multicolumn{2}{c|}{Max bytes} & \multicolumn{2}{c|}{Page, sect.} & Full name \\\hline')
 prefix = '.'
+INDENT_BLOCK = r'\quad{}'
 for t in matching:
     # Walk up and down the tree levels, emitting tree mark rows in the process
     current_prefix = '.' + t.namespace + '.'
@@ -114,17 +116,27 @@ for t in matching:
         if current_prefix.startswith(prefix):
             new_comp = current_prefix[len(prefix):].strip('.').split('.')[0]
             print(r'\pagebreak[2]{}')       # Hint LaTeX that it's a good place to begin a new page if necessary
-            print(r'\qquad{}' * (prefix.count('.') - 1),
-                  r'\texttt{%s}' % escape(new_comp), r'& & & \\')
+            print(INDENT_BLOCK * (prefix.count('.') - 1),
+                  r'\texttt{%s}' % escape(new_comp), r'&&&&&&\\', sep='')
             prefix += new_comp
         else:
             prefix = '.' + '.'.join(prefix.strip('.').split('.')[:-1])
 
         prefix += '.'
 
+    b2b = lambda x: (x + 7) // 8
+    if isinstance(t, pydsdl.data_type.ServiceType):
+        max_bytes = '%d & %d' % (b2b(t.request_type.bit_length_range[1]),
+                                 b2b(t.response_type.bit_length_range[1]))
+    else:
+        max_bytes = '%d &' % b2b(t.bit_length_range[1])
+
     print(r'\nopagebreak[4]{}')             # Allow page breaks only when switching namespaces
-    print(r'\qquad{}' * prefix.count('.'), r'\texttt{%s}' % t.short_name, '&',
+    print(INDENT_BLOCK * (prefix.count('.') - 1),
+          r'\texttt{%s}' % t.short_name, '&',
           t.fixed_port_id if t.has_fixed_port_id else '', '&',
+          max_bytes, '&',
+          r'\pageref{sec:dsdl:%s} &' % t.full_name,
           r'\ref{sec:dsdl:%s} &' % t.full_name,
           r'\texttt{%s} \\' % escape(t.full_name))
 
