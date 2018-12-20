@@ -140,40 +140,63 @@ for t in matching:
 # Render short reference
 print(r'{\footnotesize\parindent=-\leftskip')
 print(r'\setlength\tabcolsep{3pt}\setlength{\tabulinesep}{-2pt}\setlength{\extrarowsep}{-2pt}')
-print(r'\begin{longtabu}{|X r|r r|r l|l|}\rowfont{\bfseries}\hline')
-print(r'Namespace tree & FPID & \multicolumn{2}{c|}{Max bytes} & \multicolumn{2}{c|}{Page, sect.} & Full name \\\hline')
+print(r'\begin{longtabu}{|l X[r] X[r]|r r|r l|l|}\rowfont{\bfseries}\hline')
+print(r'Namespace tree & Ver. & FPID & \multicolumn{2}{c|}{Max bytes} & \multicolumn{2}{c|}{Page, sect.} &'
+      r'Full name \\\hline')
 prefix = '.'
 INDENT_BLOCK = r'\quad{}'
-for t in matching:
+for namespace, ns_type_mapping in grouped.items():
+    # Hint LaTeX that it's a good place to begin a new page if necessary because we're beginning a new namespace
+    print(r'\pagebreak[2]{}')
+
     # Walk up and down the tree levels, emitting tree mark rows in the process
-    current_prefix = '.' + t.namespace + '.'
+    current_prefix = '.' + namespace + '.'
     while prefix != current_prefix:
         if current_prefix.startswith(prefix):
             new_comp = current_prefix[len(prefix):].strip('.').split('.')[0]
-            print(r'\pagebreak[2]{}')       # Hint LaTeX that it's a good place to begin a new page if necessary
-            print(INDENT_BLOCK * (prefix.count('.') - 1),
-                  r'\texttt{%s}' % escape(new_comp), r'&&&&&&\\', sep='')
+            print(INDENT_BLOCK * (prefix.count('.') - 1) + r'\texttt{%s}' % escape(new_comp),
+                  r'&&&&&&&\\', sep='')
             prefix += new_comp
         else:
             prefix = '.' + '.'.join(prefix.strip('.').split('.')[:-1])
 
         prefix += '.'
 
-    b2b = lambda x: (x + 7) // 8
-    if isinstance(t, pydsdl.data_type.ServiceType):
-        max_bytes = '%d & %d' % (b2b(t.request_type.bit_length_range[1]),
-                                 b2b(t.response_type.bit_length_range[1]))
-    else:
-        max_bytes = '%d &' % b2b(t.bit_length_range[1])
+    # Render all types in this namespace
+    for type_name, versions in ns_type_mapping.items():
+        # Render all versions of this type, sorted newest first
+        versions.sort(key=lambda t: -t.version.major * 1000 - t.version.minor)
+        for index, t in enumerate(versions):
+            is_first = index == 0
 
-    print(r'\nopagebreak[4]{}')             # Allow page breaks only when switching namespaces
-    print(INDENT_BLOCK * (prefix.count('.') - 1),
-          r'\texttt{%s}' % t.short_name, '&',
-          t.fixed_port_id if t.has_fixed_port_id else '', '&',
-          max_bytes, '&',
-          r'\pageref{sec:dsdl:%s} &' % t.full_name,
-          r'\ref{sec:dsdl:%s} &' % t.full_name,
-          r'\texttt{%s} \\' % escape(t.full_name))
+            # Allow page breaks only when switching namespaces
+            print(r'\nopagebreak[4]{}')
+
+            # Max length in bytes
+            b2b = lambda x: (x + 7) // 8
+            if isinstance(t, pydsdl.data_type.ServiceType):
+                max_bytes = '%d & %d' % (b2b(t.request_type.bit_length_range[1]),
+                                         b2b(t.response_type.bit_length_range[1]))
+            else:
+                max_bytes = '%d &' % b2b(t.bit_length_range[1])
+
+            weak = lambda s: r'\emph{\color{gray}%s}' % s
+
+            if is_first:
+                print((INDENT_BLOCK * (prefix.count('.') - 1)) + r'\texttt{%s}' % t.short_name, '&')
+            else:
+                print((INDENT_BLOCK * prefix.count('.')) + weak('older version'), '&')
+
+            print('%d.%d' % t.version, '&',
+                  t.fixed_port_id if t.has_fixed_port_id else '', '&',
+                  max_bytes, '&')
+
+            if is_first:
+                print(r'\pageref{sec:dsdl:%s}' % t.full_name, '&',
+                      r'\ref{sec:dsdl:%s}' % t.full_name, '&',
+                      r'\texttt{%s}' % escape(t.full_name), r'\\')
+            else:
+                print(r'\multicolumn{2}{c|}{', weak(r'$\cdots{}$'), r'} & ', weak(r'$\cdots{}$'), r' \\')
 
 print(r'\hline\end{longtabu}')
 print(r'}')
