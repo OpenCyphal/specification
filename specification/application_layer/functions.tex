@@ -1,10 +1,13 @@
 \section{Application-level functions}\label{sec:application_level_functions}
 
 This section documents the high-level functionality defined by UAVCAN.
-Common high-level functions form a uniform set of basic functions that span across different application domains.
+The common high-level functions defined by the specification span across different application domains.
 All of the functions defined in this section are optional,
 except for the node heartbeat feature (section \ref{sec:application_node_heartbeat}),
 which is mandatory for all UAVCAN nodes.
+
+The detailed specifications for each function are provided in the DSDL comments of the data type definitions
+they are built upon, whereas this section serves as a high-level overview or an index.
 
 \subsection{Node initialization}
 
@@ -65,3 +68,41 @@ When invoked periodically, this service allows the caller to observe the real ti
 for each port on each node independently.
 In combination with the data exchange graph reconstruction,
 this option allows the caller to build a sophisticated real-time view of the bus.
+
+\subsection{Network-wide time synchronization}
+
+UAVCAN provides a simple and robust method of time synchronization%
+\footnote{The ability to accurately synchronize time between nodes is instrumental for building distributed
+real-time data processing systems such as various robotic applications, autopilots, autonomous driving solutions,
+and so on.} that builds upon the work
+``Implementing a Distributed High-Resolution Real-Time Clock using the CAN-Bus''
+published by M. Gergeleit and H. Streich%
+\footnote{Proceedings of the 1st international CAN-Conference 94, Mainz,
+13.-14. Sep. 1994, CAN in Automation e.V., Erlangen.}.
+The detailed specification of the time synchronization algorithm is provided in the documentation
+for the message type \DSDLReference{uavcan.time.Synchronization}.
+
+An important service type \DSDLReference{uavcan.time.GetSynchronizationMasterInfo}
+is designed to provide nodes with information about the currently used time system
+and related data such as the number of leap seconds.
+
+Redundant time synchronization masters are supported for the benefit of high-reliability applications.
+
+\subsection{Primitive types and physical quantities}
+
+\subsection{File transfer}
+
+\subsection{Generic node commands}
+
+\subsection{Register interface}
+
+\subsection{Diagnostics and event logging}
+
+The message type \DSDLReference{uavcan.diagnostic.Record} is designed to facilitate emission of
+human-readable diagnostic messages and event logging,
+both for the needs of real-time display\footnote{E.g., messages displayed to a human operator in real time.}
+and for long-term storage\footnote{E.g., flight data recording.}.
+
+\subsection{Plug-and-play nodes}
+
+
