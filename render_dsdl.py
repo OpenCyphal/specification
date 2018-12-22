@@ -11,6 +11,8 @@ SOURCE_ROOT_DIRECTORY = os.path.abspath(os.path.dirname(__file__))
 
 ROOT_NAMESPACE_SUPERDIRECTORY = os.path.join(SOURCE_ROOT_DIRECTORY, 'dsdl')
 
+MIN_ROWS_TO_ALLOW_PAGE_BREAK = 60
+
 
 sys.stderr = sys.stdout
 
@@ -76,6 +78,11 @@ def render_dsdl_definition(t: pydsdl.data_type.CompoundType) -> str:
 
 
 try:
+    index_only = False
+    if '--index-only' in sys.argv:
+        sys.argv.remove('--index-only')
+        index_only = True
+
     pattern = sys.argv[1]
 except IndexError:
     die('Expected full type name glob, e.g., "uavcan.node.Heartbeat" or "uavcan.file.*"')
@@ -98,8 +105,11 @@ matching = list(filter(lambda t: fnmatch(t.full_name, pattern), parsed_types))
 if not matching:
     die('No types match the pattern: %s' % pattern)
 
-# Sort by name and by version; note that the version numbers must be sorted numerically, not lexicographically.
-matching = list(sorted(matching, key=lambda t: '%s%03d%03d' % (t.full_name, t.version.major, t.version.minor)))
+# Sort by name and by version; note that the version numbers must be sorted numerically, not lexicographically;
+# newest version first, oldest version last.
+matching = list(sorted(matching, key=lambda t: '%s%03d%03d' % (t.full_name,
+                                                               999 - t.version.major,
+                                                               999 - t.version.minor)))
 
 # See if we were asked to render a particular type only.
 # If that is the case, output an abridged form, provide a reference, and then exit.
@@ -138,16 +148,23 @@ for t in matching:
     grouped.setdefault(t.namespace, OrderedDict()).setdefault(t.full_name, []).append(t)
 
 # Render short reference
-print(r'{\footnotesize\parindent=-\leftskip')
-print(r'\setlength\tabcolsep{3pt}\setlength{\tabulinesep}{-2pt}\setlength{\extrarowsep}{-2pt}')
-print(r'\begin{longtabu}{|l X[r] X[r]|r r|r l|l|}\rowfont{\bfseries}\hline')
-print(r'Namespace tree & Ver. & FPID & \multicolumn{2}{c|}{Max bytes} & \multicolumn{2}{c|}{Page, sect.} &'
-      r'Full name \\\hline')
+if index_only:
+    print(r'\begin{table}[H]\captionof{table}{Index of the namespace %s.}%%' % pattern.strip('.*'))
+    print(r'\label{table:dsdl:%s}%%' % pattern.strip('.*'))
+
+table_type = 'tabu' if len(matching) < MIN_ROWS_TO_ALLOW_PAGE_BREAK else 'longtabu'
+print(r'\begin{center}%')
+print(r'\footnotesize\setlength\tabcolsep{4pt}\setlength{\tabulinesep}{-2pt}\setlength{\extrarowsep}{-2pt}%')
+print(r'\begin{%s}{|l r r|r r|r l|c l|}\rowfont{\bfseries}\hline' % table_type)
+print(r'Namespace tree & Ver. & FPID & \multicolumn{2}{c|}{Max bytes} & \multicolumn{2}{c|}{Page sec.} &'
+      r'\multicolumn{2}{l|}{Full name and kind (message/service)} \\\hline')
 prefix = '.'
+at_least_one_type_emitted = False
 INDENT_BLOCK = r'\quad{}'
 for namespace, ns_type_mapping in grouped.items():
     # Hint LaTeX that it's a good place to begin a new page if necessary because we're beginning a new namespace
-    print(r'\pagebreak[2]{}')
+    if at_least_one_type_emitted:
+        print(r'\pagebreak[2]{}')
 
     # Walk up and down the tree levels, emitting tree mark rows in the process
     current_prefix = '.' + namespace + '.'
@@ -155,7 +172,7 @@ for namespace, ns_type_mapping in grouped.items():
         if current_prefix.startswith(prefix):
             new_comp = current_prefix[len(prefix):].strip('.').split('.')[0]
             print(INDENT_BLOCK * (prefix.count('.') - 1) + r'\texttt{%s}' % escape(new_comp),
-                  r'&&&&&&&\\', sep='')
+                  r'&&&&&&&&\\', sep='')
             prefix += new_comp
         else:
             prefix = '.' + '.'.join(prefix.strip('.').split('.')[:-1])
@@ -168,13 +185,15 @@ for namespace, ns_type_mapping in grouped.items():
         versions.sort(key=lambda t: -t.version.major * 1000 - t.version.minor)
         for index, t in enumerate(versions):
             is_first = index == 0
+            is_service = isinstance(t, pydsdl.data_type.ServiceType)
+            at_least_one_type_emitted = True
 
             # Allow page breaks only when switching namespaces
             print(r'\nopagebreak[4]{}')
 
             # Max length in bytes
             b2b = lambda x: (x + 7) // 8
-            if isinstance(t, pydsdl.data_type.ServiceType):
+            if is_service:
                 max_bytes = '%d & %d' % (b2b(t.request_type.bit_length_range[1]),
                                          b2b(t.response_type.bit_length_range[1]))
             else:
@@ -194,17 +213,28 @@ for namespace, ns_type_mapping in grouped.items():
             if is_first:
                 print(r'\pageref{sec:dsdl:%s}' % t.full_name, '&',
                       r'\ref{sec:dsdl:%s}' % t.full_name, '&',
+                      r'\faCogs' if is_service else r'\faEnvelopeO', '&'
                       r'\texttt{%s}' % escape(t.full_name), r'\\')
             else:
-                print(r'\multicolumn{2}{c|}{', weak(r'$\cdots{}$'), r'} & ', weak(r'$\cdots{}$'), r' \\')
+                print(r'\multicolumn{2}{c|}{', weak(r'$\cdots{}$'), r'} && ', weak(r'$\cdots{}$'), r' \\')
 
-print(r'\hline\end{longtabu}')
-print(r'}')
+print(r'\hline\end{%s}\end{center}' % table_type)
+if index_only:
+    print(r'\end{table}')
+    exit(0)
 
 # Render definitions
+labeled_namespaces = set()
 for namespace, children in grouped.items():
+    # New section for this namespace
     print(r'\clearpage\section{%s}' % escape(namespace))
-    print(r'\label{sec:dsdl:%s}' % namespace)
+
+    # Generate labels for all namespaces, starting from the root one.
+    # Each label points to the first appearance of its namespace.
+    for ns in ['.'.join(namespace.split('.')[:i]) for i in range(1, namespace.count('.') + 2)]:
+        if ns not in labeled_namespaces:
+            labeled_namespaces.add(ns)
+            print(r'\label{sec:dsdl:%s}' % ns)
 
     for full_name, versions in children.items():
         is_service = isinstance(versions[0], pydsdl.data_type.ServiceType)

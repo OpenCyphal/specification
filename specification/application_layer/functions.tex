@@ -90,11 +90,77 @@ Redundant time synchronization masters are supported for the benefit of high-rel
 
 \subsection{Primitive types and physical quantities}
 
+The namespaces \DSDLReference{uavcan.primitive} and \DSDLReference{uavcan.si}
+included in the standard data type set are designed to provide a very generic and flexible,
+albeit not bandwidth-efficient nor low-latency, method of communication.
+
+Generally, applications where the bus bandwidth and latency are important should minimize their reliance
+on these generic data types and favor more specialized types instead that are custom-designed for their
+particular application domain; e.g., vendor-specific types or application-specific types, either
+designed in-house, published by third parties\footnote{As long as the license permits.}, or supplied by
+vendors of COTS equipment used in the application.
+
+Vendors of COTS equipment should always ensure that at least some minimal functionality is available
+via these generic types without reliance on their vendor-specific types (if there are any).
+This is important for reusability, because it is expected that some of the systems where such COTS nodes are
+to be integrated into may not be able to easily support vendor-specific types.
+
+\subsubsection{SI namespace}
+
+The \verb|si| namespace is named after the International System of Units (SI).
+The namespace contains a collection of scalar and vector value types that describe most commonly used
+physical quantities in the SI system of units; for example, velocity, mass, energy, angle, time, and so on.
+The objective of these types is to permit construction of arbitrarily complex data exchange systems without
+reliance on any particular vendor-specific data types.
+
+Each message type defined in the SI namespace contains a short overflowing timestamp field of type
+\DSDLReference{uavcan.time.SynchronizedAmbiguousTimestamp}.
+Every emitted message should be timestamped in order to allow subscribers to identify which of the messages
+relate to the same event or to the same instant.
+Messages that are emitted in bulk in relation to the same event or the same instant should contain
+exactly the same value of the timestamp,
+in order to simplify the task of timestamp matching for the subscribers.
+
+The exact strategy of matching related messages by timestamp employed by subscribers is entirely
+implementation-defined.
+The specification does not concern itself with this matter because it is expected that different applications
+will opt for different design trade-offs and different tactics to suit their constraints best.
+Such diversity is not harmful, because its effects are always constrained to the local node and cannot affect
+operation of other nodes or their compatibility.
+
+The table \ref{table:dsdl:uavcan.si} provides a high-level overview of the SI namespace.
+Please follow the references for details.
+
+\DSDL{uavcan.si.* --index-only}
+
+\subsubsection{Primitive namespace}
+
+The primitive namespace contains a collection of primitive types:
+integer types, floating point types, bit flag, string, raw block of bytes, and an empty value.
+Integer, floating point, and bit flag types are available in two categories: scalar and array;
+the latter are limited so that their serialized representation is never larger than 257 bytes.
+
+The primitive types are designed to complement the SI namespace with an even simpler set of basic types
+that do not make any assumptions about the data they contain.
+The primitive types provide a very high degree of flexibility,
+but due to their lack of semantic information,
+their usage carries the risk of creating suboptimal interfaces that are difficult to use, validate, and scale.
+
+Normally, the usage of primitive types should be limited to very basic vendor-neutral interfaces for COTS
+equipment and software, debug and diagnostic purposes, and whenever there is a need to exchange data the
+type of which cannot be determined statically (an example of the latter use case is the register protocol
+described in section \ref{sec:application_register_interface}).
+
+The table \ref{table:dsdl:uavcan.primitive} provides a high-level overview of the primitive namespace.
+Please follow the references for details.
+
+\DSDL{uavcan.primitive.* --index-only}
+
 \subsection{File transfer}
 
 \subsection{Generic node commands}
 
-\subsection{Register interface}
+\subsection{Register interface}\label{sec:application_register_interface}
 
 \subsection{Diagnostics and event logging}
 
