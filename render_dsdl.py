@@ -11,8 +11,6 @@ SOURCE_ROOT_DIRECTORY = os.path.abspath(os.path.dirname(__file__))
 
 ROOT_NAMESPACE_SUPERDIRECTORY = os.path.join(SOURCE_ROOT_DIRECTORY, 'dsdl')
 
-MIN_ROWS_TO_ALLOW_PAGE_BREAK = 60
-
 
 sys.stderr = sys.stdout
 
@@ -148,14 +146,23 @@ for t in matching:
     grouped.setdefault(t.namespace, OrderedDict()).setdefault(t.full_name, []).append(t)
 
 # Render short reference
-if index_only:
-    print(r'\begin{table}[H]\captionof{table}{Index of the namespace %s.}%%' % pattern.strip('.*'))
-    print(r'\label{table:dsdl:%s}%%' % pattern.strip('.*'))
+naked_pattern = pattern.strip('.*')
+is_nested_namespace = '.' in naked_pattern
 
-table_type = 'tabu' if len(matching) < MIN_ROWS_TO_ALLOW_PAGE_BREAK else 'longtabu'
-print(r'\begin{center}%')
+if is_nested_namespace:
+    # Confine nested namespace indexes to one page, assuming that they are always compact enough to fit.
+    print(r'{\parindent=-\leftskip\begin{minipage}{\textwidth}')
+
+print(r'\begin{ThreePartTable}')
+
+# FIXME this is a HACK to remove unnecessary gaps around the table caption. For some reason it only appears here.
+print(r'\setlength\belowcaptionskip{-1em}\setlength\abovecaptionskip{-1em}')
+
+print(r"\captionof{table}{Index of the %s namespace ``%s''}%%" %
+      ('nested' if is_nested_namespace else 'root', naked_pattern))
+print(r'\label{table:dsdl:%s}%%' % naked_pattern)
 print(r'\footnotesize\setlength\tabcolsep{4pt}\setlength{\tabulinesep}{-2pt}\setlength{\extrarowsep}{-2pt}%')
-print(r'\begin{%s}{|l r r|r r|r l|c l|}\rowfont{\bfseries}\hline' % table_type)
+print(r'\begin{longtabu}{|l r r|r r|r l|c l|}\rowfont{\bfseries}\hline')
 print(r'Namespace tree & Ver. & FPID & \multicolumn{2}{c|}{Max bytes} & \multicolumn{2}{c|}{Page sec.} &'
       r'\multicolumn{2}{l|}{Full name and kind (message/service)} \\\hline')
 prefix = '.'
@@ -218,9 +225,12 @@ for namespace, ns_type_mapping in grouped.items():
             else:
                 print(r'\multicolumn{2}{c|}{', weak(r'$\cdots{}$'), r'} && ', weak(r'$\cdots{}$'), r' \\')
 
-print(r'\hline\end{%s}\end{center}' % table_type)
+print(r'\hline\end{longtabu}')
+print(r'\end{ThreePartTable}')
+if is_nested_namespace:
+    print(r'\end{minipage}}')
+
 if index_only:
-    print(r'\end{table}')
     exit(0)
 
 # Render definitions
