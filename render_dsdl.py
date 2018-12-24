@@ -140,9 +140,11 @@ if '*' not in pattern:
     print(render_dsdl_definition(t))
     exit(0)
 
-# Group by namespace and by type name (i.e., all versions grouped together by name)
+# Group by namespace and by type name (i.e., all versions grouped together by name).
+# We re-sort (remember, the sorting is stable) to move types that have at least one version with a fixed port ID
+# to the top.
 grouped = OrderedDict()
-for t in matching:
+for t in sorted(matching, key=lambda t: not t.has_fixed_port_id):
     grouped.setdefault(t.namespace, OrderedDict()).setdefault(t.full_name, []).append(t)
 
 # Render short reference
