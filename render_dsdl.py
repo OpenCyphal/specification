@@ -156,7 +156,7 @@ if is_nested_namespace:
 print(r'\begin{ThreePartTable}')
 
 # FIXME this is a HACK to remove unnecessary gaps around the table caption. For some reason it only appears here.
-print(r'\setlength\belowcaptionskip{-1em}\setlength\abovecaptionskip{-1em}')
+print(r'\setlength\belowcaptionskip{-0.5em}\setlength\abovecaptionskip{-0.5em}')
 
 print(r"\captionof{table}{Index of the %s namespace ``%s''}%%" %
       ('nested' if is_nested_namespace else 'root', naked_pattern))
@@ -220,7 +220,7 @@ for namespace, ns_type_mapping in grouped.items():
             if is_first:
                 print(r'\pageref{sec:dsdl:%s}' % t.full_name, '&',
                       r'\ref{sec:dsdl:%s}' % t.full_name, '&',
-                      r'\faCogs' if is_service else r'\faEnvelopeO', '&'
+                      r'\faExchange' if is_service else r'\faEnvelopeO', '&'
                       r'\texttt{%s}' % escape(t.full_name), r'\\')
             else:
                 print(r'\multicolumn{2}{c|}{', weak(r'$\cdots{}$'), r'} && ', weak(r'$\cdots{}$'), r' \\')

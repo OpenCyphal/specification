@@ -156,9 +156,48 @@ Please follow the references for details.
 
 \DSDL{uavcan.primitive.* --index-only}
 
-\subsection{File transfer}
+\subsection{Remote file system interface}\label{sec:application_file_system}
 
-\subsection{Generic node commands}
+The set of standard data types contains a collection of services for manipulation of remote file systems
+(namespace \DSDLReference{uavcan.file}, see the table \ref{table:dsdl:uavcan.file}).
+All basic file system operations are supported, including file reading and writing,
+directory listing, metadata retrieval (size, modification time, etc.), moving, renaming, creation, and deletion.
+
+The set of supported operations may be extended in future versions of the protocol.
+
+Implementers of file servers are strongly advised to always support services \verb|Read| and \verb|GetInfo|,
+as that allows clients to make assumptions about the minimal degree of available service.
+If write operations are required, all of the defined services should be supported.
+
+\DSDL{uavcan.file.* --index-only}
+
+\subsection{Generic node commands}\label{sec:application_generic_node_commands}
+
+Commonly used node-level application-agnostic auxiliary commands
+(such as: restart, power off, factory reset, emergency stop, etc.)
+are supported via the standard service \DSDLReference{uavcan.node.ExecuteCommand}.
+The service also allows vendors to define vendor-specific commands alongside the standard ones.
+
+It is recommended to support this service in all nodes.
+
+\subsection{Node software update}
+
+A simple software\footnote{Or firmware -- UAVCAN does not distinguish between the two.}
+update protocol is defined on top of the remote file system interface (section \ref{sec:application_file_system})
+and the generic node commands (section \ref{sec:application_generic_node_commands}).
+
+The process of software update involves the following data types:
+
+\begin{itemize}
+    \item \DSDLReference{uavcan.node.ExecuteCommand} -- used to initiate the software update process.
+    \item \DSDLReference{uavcan.file.Read} -- used to transfer the software image file (or multiple files)
+          from the file server to the updated node.
+\end{itemize}
+
+The software update protocol logic is described in detail in the documentation for the data type
+\DSDLReference{uavcan.node.ExecuteCommand}.
+The protocol is considered simple enough to be usable in embedded bootloaders with
+small memory-constrained microcontrollers.
 
 \subsection{Register interface}\label{sec:application_register_interface}
 
