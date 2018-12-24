@@ -201,6 +201,40 @@ small memory-constrained microcontrollers.
 
 \subsection{Register interface}\label{sec:application_register_interface}
 
+UAVCAN defines the concept of \emph{named register} -- a scalar, vector, or string value with an associated
+human-readable name that is stored on a UAVCAN node locally and is accessible via
+UAVCAN\footnote{And, possibly, other interfaces.} for reading and/or modification
+by other nodes on the bus.
+
+Named registers are designed to serve the following purposes:
+\begin{description}
+    \item[Node configuration parameter management] --- Named registers can be used to expose persistently stored
+          values that define the behaviors of the local node.
+
+    \item[Diagnostics and monitoring] --- Named registers can be used to expose internal states (variables) of
+          the node's decision-making and data processing logic (implemented in software or hardware) to provide
+          insights about its inner processes.
+
+    \item[Advanced node information reporting] --- Named registers can store any invariants provided by the vendor,
+          such as calibration coefficients or unique identifiers.
+
+    \item[Special functions] --- Non-persistent named registers can be used to trigger specific behaviors or
+          commence predefined operations when written.
+
+    \item[Advanced debugging] --- Registers following a specific naming pattern can be used to provide direct read
+          and write access to the local node's application software to facilitate in-depth debugging and monitoring.
+\end{description}
+
+The register protocol rests upon two service types defined in the namespace \DSDLReference{uavcan.register};
+the namespace index is shown in the table \ref{table:dsdl:uavcan.register}.
+Data types supported by the register protocol are defined in the nested data structure
+\DSDLReference{uavcan.register.Value}.
+
+The UAVCAN specification defines several standard naming patterns to facilitate cross-vendor compatibility
+and provide a framework of common basic functionality.
+
+\DSDL{uavcan.register.* --index-only}
+
 \subsection{Diagnostics and event logging}
 
 The message type \DSDLReference{uavcan.diagnostic.Record} is designed to facilitate emission of
