@@ -41,7 +41,7 @@ since it is instrumental for network discovery, firmware update, and various mai
 \subsection{Bus data flow monitoring}
 
 The combination of the following three services defined in the namespace \DSDLReference{uavcan.node.port}
-enables a highly capable tool of network inspection and monitoring:
+(see table \ref{table:dsdl:uavcan.node.port}) enables a highly capable tool of network inspection and monitoring:
 \begin{itemize}
     \item \DSDLReference{uavcan.node.port.List} --- designed for obtaining the full set of subjects and services
     implemented by the server node.
@@ -69,6 +69,8 @@ for each port on each node independently.
 In combination with the data exchange graph reconstruction,
 this option allows the caller to build a sophisticated real-time view of the bus.
 
+\DSDL{uavcan.node.port.* --index-only}
+
 \subsection{Network-wide time synchronization}
 
 UAVCAN provides a simple and robust method of time synchronization%
@@ -87,6 +89,8 @@ is designed to provide nodes with information about the currently used time syst
 and related data such as the number of leap seconds.
 
 Redundant time synchronization masters are supported for the benefit of high-reliability applications.
+
+\DSDL{uavcan.time.* --index-only}
 
 \subsection{Primitive types and physical quantities}
 
@@ -244,4 +248,57 @@ and for long-term storage\footnote{E.g., flight data recording.}.
 
 \subsection{Plug-and-play nodes}
 
+Every UAVCAN node must have a node-ID that is unique within the network.
+Normally, such identifiers are assigned by the network designer, integrator, some automatic external tool,
+or another entity that is external to the network.
+However, there exist circumstances where such manual assignment is either difficult or undesirable,
+and it is instead desired to be able to connect any node to an existing bus without any prior configuration
+whatsoever and expect it to join the network automatically, having figured out the necessary parameters automatically.
 
+Such nodes are called \emph{plug-and-play nodes}. Plug-and-play nodes are those that automatically obtain a node-ID
+and deduce other necessary parameters of the network (such as the bit rate of the physical layer, etc) without any
+external help.
+
+UAVCAN defines an automatic node-ID allocation protocol that is built on top of the data types defined in the
+namespace \DSDLReference{uavcan.pnp} (where \emph{pnp} stands for ``plug-and-play'')
+(see table \ref{table:dsdl:uavcan.pnp}).
+The protocol is described in the documentation for the data type \DSDLReference{uavcan.pnp.NodeIDAllocationData}.
+
+The plug-and-play node-ID allocation protocol relies on anonymous messages reviewed in the section
+\ref{sec:transport_anonymous_message_publication}.
+Remember that the plug-and-play feature is entirely optional and it is expected that some applications where a
+high degree of determinism and robustness is expected are unlikely to benefit from it.
+
+This feature derives from the work
+``In search of an understandable consensus algorithm''%
+\footnote{Proceedings of USENIX Annual Technical Conference, p. 305-320, 2014.}
+by Diego Ongaro and John Ousterhout.
+
+\DSDL{uavcan.pnp.* --index-only}
+
+\subsection{Internet/LAN forwarding interface}
+
+Data types defined in the namespace \DSDLReference{uavcan.internet} (see table \ref{table:dsdl:uavcan.internet})
+are designed for establishing robust direct connectivity between local UAVCAN nodes and hosts on the Internet
+or on a local area network (LAN) by means of so called \emph{modem nodes}%
+\footnote{Normally, a modem node would be implemented using on-board cellular, radio frequency,
+or satellite communication hardware.}
+(possibly redundant).
+
+This basic support for world-wide communication provided at the protocol level allows any component
+of a vehicle equipped with modem nodes to reach external resources or exchange arbitrary data globally
+without dependency on application-specific means of communication%
+\footnote{Information security and other security-related concerns are outside of the scope of this specification.}.
+
+The set of supported Internet/LAN protocols may be extended in future revisions of the specification.
+
+Some of the major applications for this feature are as follows:
+
+\begin{enumerate}
+    \item Direct telemetry transmission from UAVCAN nodes.
+    \item Implementation of remote API for on-board equipment (e.g., web interface).
+    \item Reception of real-time correction data streams (e.g., RTCM RC-104) for precise positioning applications.
+    \item Automatic upgrades directly from the vendor's Internet resources.
+\end{enumerate}
+
+\DSDL{uavcan.internet.* --index-only}
