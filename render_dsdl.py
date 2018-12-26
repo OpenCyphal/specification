@@ -158,7 +158,7 @@ if is_nested_namespace:
 print(r'\begin{ThreePartTable}')
 
 # FIXME this is a HACK to remove unnecessary gaps around the table caption. For some reason it only appears here.
-print(r'\setlength\belowcaptionskip{-0.5em}\setlength\abovecaptionskip{-0.5em}')
+print(r'\setlength\abovecaptionskip{-0.5em}')
 
 print(r"\captionof{table}{Index of the %s namespace ``%s''}%%" %
       ('nested' if is_nested_namespace else 'root', naked_pattern))
