@@ -11,10 +11,10 @@ they are built upon, whereas this section serves as a high-level overview or an 
 
 \subsection{Node initialization}
 
-UAVCAN does not require that nodes undergo any specific initialization upon connecting to the bus ---
+UAVCAN does not require that nodes undergo any specific initialization upon connection to the bus ---
 a node is free to begin functioning immediately once it is powered up.
-However, the transitioning to the operating state (even if there is no other state to transition from)
-is to be reflected via the mandatory heartbeat message, described in section \ref{sec:application_node_heartbeat}.
+The operating mode of the node (such as initialization, normal operation, maintenance, and so on)
+is to be reflected via the mandatory heartbeat message described in section \ref{sec:application_node_heartbeat}.
 
 \subsection{Node heartbeat}\label{sec:application_node_heartbeat}
 
@@ -46,28 +46,30 @@ The combination of the following three services defined in the namespace \DSDLRe
     \item \DSDLReference{uavcan.node.port.List} --- designed for obtaining the full set of subjects and services
     implemented by the server node.
 
-    \item \DSDLReference{uavcan.node.port.GetInfo} --- returns the static (unchanging or slowly changing)
+    \item \DSDLReference{uavcan.node.port.GetInfo} --- returns the static (unchanging or infrequently changing)
     information about the selected subject or service.
 
-    \item \DSDLReference{uavcan.node.port.GetStatistics} --- returns transfer event counters of
+    \item \DSDLReference{uavcan.node.port.GetStatistics} --- returns the transfer event counters of
     the selected subject or service.
 \end{itemize}
 
-The first service \verb|List| allows the caller to construct a list of all subjects and services used by each
-node on the bus.
+The first service \verb|List| allows the caller to construct a list of all subjects and services used by the
+server node (i.e., the node that the request was sent to).
 The second service \verb|GetInfo| allows the caller to map each subject or service to a particular data type,
-and understand the role of each node in relation to said subject or service
+and understand the role of the server node in relation to said subject or service
 (publisher, subscriber, or server).
+
 By comparing the data obtained with the help of these two services from each node on the bus,
 the caller can reconstruct the data exchange graph for the entire bus,
-thus enabling advanced network monitoring and diagnostic purposes.
+thus enabling advanced network monitoring and diagnostics
+(assuming that every node on the bus supports the services in question; they are not mandatory).
 
 The last service \verb|GetStatistics| can be used to sample the number of transfers and errors observed
 on the specified port.
 When invoked periodically, this service allows the caller to observe the real time intensity of data exchange
-for each port on each node independently.
-In combination with the data exchange graph reconstruction,
-this option allows the caller to build a sophisticated real-time view of the bus.
+for each port independently.
+In combination with the data exchange graph reconstruction described earlier,
+this service allows the caller to build a sophisticated real-time view of the bus.
 
 \DSDL{uavcan.node.port.* --index-only}
 
@@ -76,9 +78,9 @@ this option allows the caller to build a sophisticated real-time view of the bus
 UAVCAN provides a simple and robust method of time synchronization%
 \footnote{The ability to accurately synchronize time between nodes is instrumental for building distributed
 real-time data processing systems such as various robotic applications, autopilots, autonomous driving solutions,
-and so on.} that builds upon the work
+and so on.} that is built upon the work
 ``Implementing a Distributed High-Resolution Real-Time Clock using the CAN-Bus''
-published by M. Gergeleit and H. Streich%
+published by M.~Gergeleit and H.~Streich%
 \footnote{Proceedings of the 1st international CAN-Conference 94, Mainz,
 13.-14. Sep. 1994, CAN in Automation e.V., Erlangen.}.
 The detailed specification of the time synchronization algorithm is provided in the documentation
@@ -104,13 +106,13 @@ Redundant time synchronization masters are supported for the benefit of high-rel
 
 \subsection{Primitive types and physical quantities}
 
-The namespaces \DSDLReference{uavcan.primitive} and \DSDLReference{uavcan.si}
+The namespaces \DSDLReference{uavcan.si} and \DSDLReference{uavcan.primitive}
 included in the standard data type set are designed to provide a very generic and flexible,
-albeit not bandwidth-efficient nor low-latency, method of communication.
+albeit neither bandwidth-efficient nor low-latency, method of real-time data exchange.
 
 Generally, applications where the bus bandwidth and latency are important should minimize their reliance
 on these generic data types and favor more specialized types instead that are custom-designed for their
-particular application domain; e.g., vendor-specific types or application-specific types, either
+particular use cases; e.g., vendor-specific types or application-specific types, either
 designed in-house, published by third parties\footnote{As long as the license permits.}, or supplied by
 vendors of COTS equipment used in the application.
 
@@ -124,7 +126,7 @@ to be integrated into may not be able to easily support vendor-specific types.
 The \verb|si| namespace is named after the International System of Units (SI).
 The namespace contains a collection of scalar and vector value types that describe most commonly used
 physical quantities in the SI system of units; for example, velocity, mass, energy, angle, time, and so on.
-The objective of these types is to permit construction of arbitrarily complex data exchange systems without
+The objective of these types is to permit construction of arbitrarily complex distributed control systems without
 reliance on any particular vendor-specific data types.
 
 Each message type defined in the SI namespace contains a short overflowing timestamp field of type
@@ -155,9 +157,8 @@ Integer, floating point, and bit flag types are available in two categories: sca
 the latter are limited so that their serialized representation is never larger than 257 bytes.
 
 The primitive types are designed to complement the SI namespace with an even simpler set of basic types
-that do not make any assumptions about the data they contain.
-The primitive types provide a very high degree of flexibility,
-but due to their lack of semantic information,
+that do not make any assumptions about the meaning of the data they describe.
+The primitive types provide a very high degree of flexibility, but due to their lack of semantic information,
 their usage carries the risk of creating suboptimal interfaces that are difficult to use, validate, and scale.
 
 Normally, the usage of primitive types should be limited to very basic vendor-neutral interfaces for COTS
@@ -223,7 +224,7 @@ by other nodes on the bus.
 Named registers are designed to serve the following purposes:
 \begin{description}
     \item[Node configuration parameter management] --- Named registers can be used to expose persistently stored
-          values that define the behaviors of the local node.
+          values that define behaviors of the local node.
 
     \item[Diagnostics and monitoring] --- Named registers can be used to expose internal states (variables) of
           the node's decision-making and data processing logic (implemented in software or hardware) to provide
@@ -261,13 +262,13 @@ and for long-term storage\footnote{E.g., flight data recording.}.
 Every UAVCAN node must have a node-ID that is unique within the network.
 Normally, such identifiers are assigned by the network designer, integrator, some automatic external tool,
 or another entity that is external to the network.
-However, there exist circumstances where such manual assignment is either difficult or undesirable,
-and it is instead desired to be able to connect any node to an existing bus without any prior configuration
-whatsoever and expect it to join the network automatically, having figured out the necessary parameters automatically.
+However, there exist circumstances where such manual assignment is either difficult or undesirable.
 
-Such nodes are called \emph{plug-and-play nodes}. Plug-and-play nodes are those that automatically obtain a node-ID
-and deduce other necessary parameters of the network (such as the bit rate of the physical layer, etc) without any
-external help.
+Nodes that can join any UAVCAN network automatically without any prior manual configuration
+are called \emph{plug-and-play nodes} (or \emph{PnP nodes} for brevity).
+
+Plug-and-play nodes automatically obtain a node-ID and deduce all necessary parameters of the physical layer
+such as the bit rate.
 
 UAVCAN defines an automatic node-ID allocation protocol that is built on top of the data types defined in the
 namespace \DSDLReference{uavcan.pnp} (where \emph{pnp} stands for ``plug-and-play'')

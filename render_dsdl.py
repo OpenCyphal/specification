@@ -119,7 +119,7 @@ if '*' not in pattern:
 
     t = matching_except_deprecated[0]       # Due to sorting, newest version ends up first
     service_or_subject = 'service' if isinstance(t, pydsdl.data_type.ServiceType) else 'subject'
-    print(r'DSDL source text of \verb|%s|' % t.full_name)
+    print(r'The DSDL source text of \verb|%s|' % t.full_name)
     print('version %d.%d' % t.version)
     if len(matching) > 2:
         print('(there are', len(matching) - 1, 'older versions)')
@@ -129,7 +129,7 @@ if '*' not in pattern:
         print('(this is the only version)')
 
     if t.has_fixed_port_id:
-        print('with fixed', service_or_subject, 'ID', t.fixed_port_id)
+        print('with a fixed', service_or_subject, 'ID', t.fixed_port_id)
     else:
         print('without fixed', service_or_subject, 'ID')
 

@@ -37,7 +37,7 @@ Unused gaps are reserved for future expansion of adjacent ranges.
 \subsection{Coordinate frames}
 
 UAVCAN follows the conventions that are widely accepted in relevant applications.
-Adherence to the coordinate frame conventions described here maximizes system compatibility and
+Adherence to the coordinate frame conventions described here maximizes compatibility and
 reduces the amount of computations for conversions between incompatible coordinate systems and
 representations.
 It is recognized, however, that some applications may find the advised conventions unsuitable,
@@ -105,7 +105,7 @@ All applications should represent rotations using quaternions with the elements 
 }: W, X, Y, Z.
 Other forms of rotation representations should be avoided.
 
-Angular velocities should be represented using a right handed fixed axis (extrinsic) convention:
+Angular velocities should be represented using the right handed fixed axis (extrinsic) convention:
 X (roll), Y (pitch), Z (yaw).
 
 \begin{remark}
@@ -194,7 +194,7 @@ A zero covariance matrix represents an unknown covariance\footnote{%
     from which follows that an empty array represents unknown covariance.
 }.
 
-Infinite variance means that the associated value is undefined.
+Infinite error variance means that the associated value is undefined.
 
 \subsection{Physical quantity representation}
 
