@@ -138,6 +138,9 @@ autogobble
 % Continuous footnote numbering
 \counterwithout{footnote}{chapter}
 
+% Discourage carrying a footnote to the next page
+\interfootnotelinepenalty=1000
+
 % We don't need to clear double page, ever. Shall the need arise, we'll have to implement a cleaner fix.
 \renewcommand{\cleardoublepage}{\clearpage}
 
