@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import re
 import sys
 import pydsdl
 from fnmatch import fnmatch
@@ -103,11 +104,10 @@ matching = list(filter(lambda t: fnmatch(t.full_name, pattern), parsed_types))
 if not matching:
     die('No types match the pattern: %s' % pattern)
 
-# Sort by name and by version; note that the version numbers must be sorted numerically, not lexicographically;
+# Natural sorting by name and version (numerical ordering, not lexicographical);
 # newest version first, oldest version last.
-matching = list(sorted(matching, key=lambda t: '%s%03d%03d' % (t.full_name,
-                                                               999 - t.version.major,
-                                                               999 - t.version.minor)))
+matching.sort(key=lambda t: ([int(c) if c.isdigit() else c for c in re.split(r'(\d+)', t.full_name)] +
+                             [-t.version.major, -t.version.minor]))
 
 # See if we were asked to render a particular type only.
 # If that is the case, output an abridged form, provide a reference, and then exit.
