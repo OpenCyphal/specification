@@ -117,7 +117,7 @@ if '*' not in pattern:
     if not matching_except_deprecated:
         die('All versions of the type %s are deprecated, nothing to display' % pattern)
 
-    t = matching_except_deprecated[-1]       # Due to sorting, latest version ends up last
+    t = matching_except_deprecated[0]       # Due to sorting, newest version ends up first
     service_or_subject = 'service' if isinstance(t, pydsdl.data_type.ServiceType) else 'subject'
     print(r'DSDL source text of \verb|%s|' % t.full_name)
     print('version %d.%d' % t.version)
