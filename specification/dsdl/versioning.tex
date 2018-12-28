@@ -1,0 +1,487 @@
+\section{Data type compatibility and versioning}\label{sec:dsdl_versioning}
+
+\subsection{Rationale}
+
+As can be seen from the preceding sections,
+the concept of \emph{data type} is a cornerstone feature of UAVCAN,
+which sets it apart from many competing solutions.
+
+In order to be able to interoperate successfully,
+all nodes connected to the same bus must use compatible definitions of all employed data types.
+This section is dedicated to the concepts of \emph{data type compatibility}
+and \emph{data type versioning}.
+
+A \emph{data type} is a named set of data structures defined in DSDL.
+As has been explained above, in the case of message data types,
+the set consists of just one data structure, whereas in the case of service data types
+the set is a pair of request and response data structures.
+
+Data type definitions may evolve over time as they are refined to better address the needs of their applications.
+In order to formalize the data type evolution process with respect to the data type compatibility concerns,
+UAVCAN introduces two concepts: \emph{bit compatibility} and \emph{semantic compatibility},
+which are discussed below.
+
+\subsection{Bit compatibility}
+
+\subsubsection{Definition}
+
+For the purposes of the definition that follows, a \emph{valid
+serialized\footnote{The serialization rules are reviewed in detail in the section \ref{sec:dsdl_data_serialization}.}
+representation} of a data structure $A$ is a bit sequence that satisfies the \emph{serialization constraints} of $A$.
+
+\emph{Serialization constraints} limit the set of valid bit sequences according to the data type definition.
+A bit sequence meets the serialization constraints if all of the following conditions are
+satisfied\footnote{Observe that serialization constraints are not affected by void-typed fields,
+because per the serialization rules, the values of void-typed fields are to be set to zero during serialization
+and to be ignored during deserialization.}:
+\begin{itemize}
+    \item Each dynamic array length field contains a valid value;
+    i.e. the value of the length field is less than the maximum number of values in the array.
+
+    \item Each union tag field contains a valid value;
+    i.e. the value of the tag field is less than the number of alternatives in the union.
+
+    \item The bit sequence is sufficiently long.
+\end{itemize}
+
+A data type definition $A$ is bit-compatible with a data type definition $B$ if and only if
+the set of valid serialized representations of $A$ is a superset of that of $B$.
+
+$A$ and $B$ are said to be \emph{mutually compatible} if
+$A$ is compatible with $B$ and $B$ is compatible with $A$.
+
+\subsubsection{Example}
+
+A \emph{fixed-size data structure} is a structure that does not contain dynamic arrays,
+unions, or other structures that contain dynamic arrays or unions within themselves.
+As such, the bit length of an serialized representation of a fixed-size structure is constant,
+regardless of the data contained in the structure.
+Conversely, any data structure that is not fixed-size is called a \emph{variable-size data structure}.
+
+It stands to reason that any data structure definition is compatible with itself.
+The following two definitions are bit-compatible as well:
+
+\begin{minted}{python}
+uint32 a
+uint32 b
+\end{minted}
+
+\begin{minted}{python}
+uint64 c
+\end{minted}
+
+It should be observed that bit-compatibility is invariant to the complexity and the level of nesting
+of the data structure.
+From the above provided definitions follows that two fixed-size data structures are bit-compatible if the
+bit lengths of their respective serialized representations are equal.
+
+Consider the following example data type definition; assume that its full data type name is
+\verb|demo.Pair|:
+
+\begin{minted}{python}
+# demo.Pair
+float16 first
+float16 second
+\end{minted}
+
+Further, let the following be description of the data type \verb|demo.PairVector|:
+
+\begin{minted}{python}
+# demo.PairVector
+demo.Pair[3] vector
+\end{minted}
+
+Then the following two definitions are bit-compatible:
+
+\begin{minted}{python}
+demo.PairVector pair_vector
+\end{minted}
+
+\begin{minted}{python}
+float16 first_0     # pair_vector.vector[0].first
+float16 second_0    # pair_vector.vector[0].second
+float16 first_1     # pair_vector.vector[1].first
+float16 second_1    # pair_vector.vector[1].second
+float16 first_2     # pair_vector.vector[2].first
+float16 second_2    # pair_vector.vector[2].second
+\end{minted}
+
+The latter definition in the example above is a flattened unrolled form of the former definition.
+As such, in that particular example, both definitions can be used interchangeably;
+data serialized using one definition can still be meaningful if deserialized using the other definition.
+However, it is also possible to construct bit-compatible definitions that are not interchangeable:
+
+\begin{minted}{python}
+float16 a
+float32 b
+\end{minted}
+
+\begin{minted}{python}
+float32 a
+float16 b
+\end{minted}
+
+Even though the above definitions are bit-compatible, one cannot be substituted with the other.
+The problem of functional equivalency is addressed by the concept of semantic compatibility,
+explored in the section \ref{sec:dsdl_semantic_compatibility}.
+
+The examples above were focused on fixed-size structures.
+In the case of fixed-size structures, if $A$ is compatible with $B$, the reverse is also true.
+This does not hold for variable-size structures.
+Consider the following example:
+
+\begin{minted}{python}
+uint8[<=10] a
+\end{minted}
+
+\begin{minted}{python}
+void1           # The maximum array length is twice lower, so the length prefix is one bit shorter.
+uint16[<=5] a   # The 1-bit void field is needed to ensure identical bit offset of the array.
+\end{minted}
+
+For the first definition, it is evident that since it contains one dynamic array with
+11 possible length values\footnote{Which are 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, and 10.},
+and the array type is a fixed-size
+structure\footnote{Built-in types can be considered a special case of fixed-size data structures.},
+there are 11 possible bit length values for the first definition.
+
+Likewise, for the second definition, there are 6 possible bit length values.
+
+Since both arrays have the same bit offset from the beginning of the bit string,
+and taking into account the fact that the element sizes differ by an integral factor,
+the set of all possible serialized representations of the second definition is a subset of those of
+the first definition.
+Possible serialized representations are summarized in the table \ref{table:dsdl_variable_size_compat},
+where the columns labeled "First definition" and "Second definition" contain the number of elements in the
+respective arrays.
+
+\begin{minipage}{0.7\textwidth}
+\begin{UAVCANSimpleTable}{Variable-size data type compatibility example}{|lll|}\label{table:dsdl_variable_size_compat}
+    Bit length  & First definition  & Second definition \\
+    4           & 0                 & 0 \\
+    12          & 1                 & \emph{invalid} \\
+    20          & 2                 & 1 \\
+    28          & 3                 & \emph{invalid} \\
+    36          & 4                 & 2 \\
+    44          & 5                 & \emph{invalid} \\
+    52          & 6                 & 3 \\
+    60          & 7                 & \emph{invalid} \\
+    68          & 8                 & 4 \\
+    76          & 9                 & \emph{invalid} \\
+    84          & 10                & 5 \\
+\end{UAVCANSimpleTable}
+\end{minipage}
+
+The table illustrates the fact that the first definition is compatible with the second definition,
+but the reverse is not true.
+
+Complicated scenarios are possible when a bit belonging to a scalar field is handed over to a
+constrained field such as an array length field or a union tag field.
+Some interesting examples are shown in the table \ref{table:dsdl_many_compat},
+together with a set of valid serialized representation patterns.
+Remember that the bits belonging to void-typed fields are ignored during deserialization.
+
+% Please do not remove the hard placement specifier [H], it is needed to keep tables ordered.
+\begin{table}[H]\caption{Complex bit compatibility examples}\label{table:dsdl_many_compat}
+\begin{tabu}{|l|X|X|X|X|X|}
+\hline
+\rowfont{\bfseries}
+&A                   &   B                 &   C                 &   D                 &   E                 \\
+\hline
+
+\multirow{2}{*}{\textbf{Definition}}
+&\texttt{void1}      & \texttt{bool x}     & \texttt{void1}      & \texttt{bool x}     & \texttt{bool[<5] a} \\
+&\texttt{bool[<3] a} & \texttt{bool[<3] a} & \texttt{bool[<4] a} & \texttt{bool[<4] a} &                     \\
+\hline
+
+\multirow{8}{*}{\begin{tabular}[x]{@{}l@{}}\textbf{Valid}\\\textbf{serialized}\\\textbf{representations}\\\end{tabular}}
+&\multicolumn{2}{l|}{\texttt{000   }}      & \multicolumn{2}{l|}{\texttt{000    }}     & \texttt{000     } \\
+&\multicolumn{2}{l|}{\texttt{001a  }}      & \multicolumn{2}{l|}{\texttt{001a   }}     & \texttt{001a    } \\
+&\multicolumn{2}{l|}{\texttt{010aa }}      & \multicolumn{2}{l|}{\texttt{010aa  }}     & \texttt{010aa   } \\
+&\multicolumn{2}{l|}{\texttt{      }}      & \multicolumn{2}{l|}{\texttt{011aaa }}     & \texttt{011aaa  } \\
+&\multicolumn{2}{l|}{\texttt{100   }}      & \multicolumn{2}{l|}{\texttt{100    }}     & \texttt{100aaaa } \\
+&\multicolumn{2}{l|}{\texttt{101a  }}      & \multicolumn{2}{l|}{\texttt{101a   }}     & \texttt{        } \\
+&\multicolumn{2}{l|}{\texttt{110aa }}      & \multicolumn{2}{l|}{\texttt{110aa  }}     & \texttt{        } \\
+&\multicolumn{2}{l|}{\texttt{      }}      & \multicolumn{2}{l|}{\texttt{111aaa }}     & \texttt{        } \\
+\hline
+
+\textbf{Compatible with}
+&B                   & A                   & A, B, D             & A, B, C             & \emph{(none)}     \\
+\hline
+\end{tabu}
+\end{table}
+
+\subsection{Semantic compatibility}\label{sec:dsdl_semantic_compatibility}
+
+\subsubsection{Definition}
+
+A data structure definition $A$ is semantically compatible with a data structure definition $B$
+if an application that correctly uses $A$ exhibits a functionally equivalent behavior to an application
+that correctly uses $B$.
+The property of semantic compatibility is commutative.
+
+\subsubsection{Example}
+
+Despite using different binary layouts, the following two definitions are semantically compatible
+and also bit-compatible:
+
+\begin{minted}{python}
+uint16 FLAG_A = 1
+uint16 FLAG_B = 256
+uint16 flags
+\end{minted}
+
+\begin{minted}{python}
+uint8 FLAG_A = 1
+uint8 FLAG_B = 1
+uint8 flags_a
+uint8 flags_b
+\end{minted}
+
+Therefore, the definitions can be used
+interchangeably\footnote{It should be noted here that due to different set of fields and constants,
+the source code auto-generated from the provided definitions may be not drop-in replaceable,
+requiring changes in the application. However, application compatibility is orthogonal to
+data type compatibility.}.
+
+\subsection{Data type versioning}
+
+\subsubsection{Versioning principles}
+
+Every data type definition has a pair of version numbers -
+a major version number and a minor version number, following the principles of semantic versioning.
+
+For the purposes of the following definitions, a \emph{release} of a data type definition stands for
+the disclosure of the data type definition to the intended users or to the public,
+or for the commencement of usage of the data type definition in a production system.
+
+In order to ensure a deterministic application behavior and ensure a robust migration path
+as data type definitions evolve, UAVCAN requires that all data type definitions that share the same
+major version number greater than zero must be semantically compatible with each other
+and mutually bit-compatible with each other.
+
+Observe that the data type name or its ID do not affect its compatibility.
+Regardless, the default data type ID and/or the name of a data type should not be changed after its release,
+as that would essentially construe the release of a new data type.
+
+In order to ensure predictable and repeatable behavior of applications that leverage UAVCAN,
+the standard requires that once a data type definition is released, it cannot undergo any modifications to
+its attributes or directives anymore.
+Essentially, released data type definitions are to be considered immutable excepting
+comments and whitespace formatting.
+
+Therefore, substantial modifications of released data types are only possible by releasing
+new definitions of the same data type.
+If it is desired and possible to keep the same major version number for a new definition of the data type,
+the minor version number of the new definition shall be one greater than the newest existing minor version
+number before the new definition is introduced.
+Otherwise, the major version number shall be incremented by one and the minor version shall be set to zero.
+
+An exception to the above rules applies when the major version number is zero.
+Data type definitions bearing the major version number of zero are not subjected to any compatibility requirements.
+Released data type definitions with the major version number of zero are permitted to change in arbitrary
+ways without any regard for compatibility.
+It is recommended, however, to follow the principles of immutability, releasing every subsequent definition
+with the minor version number one greater than the newest existing definition.
+
+\subsubsection{Major version release constraints}
+
+The DSDL specification limits the number of coexisting major data type versions
+in order to simplify support of the data type versioning system at the transport layer
+and simplify the management of legacy data type definitions.
+As such, at any given moment, the difference between the highest released major version number
+and the lowest released major version number of any given data type must not exceed 3.
+
+For example, the following set of released data type definition versions is valid and permissible:
+\{0.1, 0.2, 0.3, 1.0, 1.1, 2.0, 2.1, 2.2, 3.0\},
+because the difference between the newest released major version (3) and the oldest released major version (0)
+does not exceed 3.
+The set of the minor versions is not subjected to any constraints,
+and as such, there are no limits on the set of concurrently released minor versions.
+
+Continuing with the above example, if it were necessary to release a newer data type definition
+under a new major version of 4, the oldest major version of 0 would have to be removed first.
+Otherwise, the maximum major version number difference constraint would be violated.
+Observe that the actual number of published major versions is irrelevant;
+the constraint only applies to the difference between the highest and the lowest released major versions.
+For example, shall the version 2 be deprecated and removed while the versions 0 and 1 were still around,
+the requirement to remove the version 0 before publishing the version 4 would still hold.
+The resulting set of versions may then look like this:
+\{1.0, 1.1, 3.0, 4.0\}.
+
+If the difference between the highest and the lowest available major version numbers exceeds 2,
+the DSDL compiler must assume that the oldest available definition is marked with an implicit
+\verb|@deprecated| directive (section \ref{sec:dsdl_directives}),
+even if it is not explicitly provided in the definition.
+
+If the difference between the highest and the lowest available major version numbers exceeds 3,
+the DSDL compiler must refuse to process the data type and abort with an error.
+
+\subsubsection{Data type version selection}
+
+There are two aspects to the problem of data type version selection:
+compile-time behavior and runtime behavior.
+They are explored in this section.
+
+As far as compile-time data type version selection is concerned,
+the DSDL compiler is required to compile every available major data type version separately,
+allowing the application to choose any available major version at runtime.
+However, there may be more than one minor version available per major version;
+the DSDL compiler must resolve this ambiguity by always selecting the newest available minor
+version per major version at the time of compilation.
+
+For example, consider the following set of data type definition versions:
+\{0.1, 0.2, 0.3, 1.0, 1.1, 2.0, 2.1, 2.2, 3.0\}.
+As there are four different major data type versions (0, 1, 2, and 3),
+the DSDL compiler will make four independent definitions available for the application.
+Following the principle of choosing the newest available minor version,
+the resulting set of definitions available at runtime will be as follows:
+\{0.3, 1.1, 2.2, 3.0\}.
+
+Seeing as the minor version ambiguity is resolved statically,
+this information becomes irrelevant for the protocol at runtime.
+While implementations can keep the minor version information for diagnostic purposes,
+it is completely unnecessary at the transport layer.
+As such, the transport layer (which is specified in the chapter \ref{sec:transport_layer})
+does not concern itself with the minor data type version information,
+whereas the major data type version is attached to every transfer.
+
+The implication is that upon reception of a transfer, the node will use the appropriate
+data type definition according to the major data type version information attached to the
+transfer; whereas the minor versions used by the emitter and the receiver may mismatch.
+The possibility of a minor version mismatch is acceptable because, by definition,
+all data type definitions sharing the same major version number are mutually semantically compatible.
+
+When initiating a data exchange (e.g. broadcasting a message or invoking a service),
+the node is free to choose the major data type version freely, according to its own application logic.
+Nodes that provide services (i.e., servers) must respond to requests using the same major service data type
+version that was used in the request.
+Again, the minor version number may mismatch, but by the compatibility requirement this is acceptable.
+
+\subsubsection{Versioning example}
+
+Suppose a vendor named \emph{Sirius Cybernetics Corporation} was contracted to design a
+cryopod management data bus for a colonial spaceship \emph{Golgafrincham B-Ark}.
+Having consulted with applicable specifications and standards, an engineer came up with the following
+definition of a cryopod status message type (named \verb|sirius_cyber_corp.golgafrincham_b_ark.cryopod.Status|):
+
+\begin{minted}{python}
+# sirius_cyber_corp.golgafrincham_b_ark.cryopod.Status.0.1
+
+float16 internal_temperature    # [kelvin]
+float16 coolant_temperature     # [kelvin]
+
+# Status flags in the low byte
+uint16 FLAG_COOLING_SYSTEM_A_ACTIVE = 1
+uint16 FLAG_COOLING_SYSTEM_B_ACTIVE = 2
+# Error flags in the high byte
+uint16 FLAG_PSU_MALFUNCTION = 8192
+uint16 FLAG_OVERHEATING     = 16384
+uint16 FLAG_CRYOBOX_BREACH  = 32768
+# Storage for the above defined flags
+uint16 flags
+\end{minted}
+
+The definition has been deployed to the first prototype for initial lab tests.
+Since the definition was experimental, the major version number was set to zero, to signify the
+tentative nature of the definition.
+Suppose that upon completion of the first trials it was identified that the units must track their power consumption
+in real time, for each of the three redundant power supplies independently.
+The definition has been amended appropriately.
+
+It is easy to see that the amended definition shown below is neither semantically compatible nor bit-compatible
+with the original definition; however, it shares the same major version number of zero, because the backward
+compatibility rules do not apply to zero-versioned data types to allow for low-overhead experimentation
+before the system is fully deployed and fielded.
+
+\begin{minted}{python}
+# sirius_cyber_corp.golgafrincham_b_ark.cryopod.Status.0.2
+
+truncated float16 internal_temperature    # [kelvin]
+truncated float16 coolant_temperature     # [kelvin]
+
+saturated float32 power_consumption_0     # Power consumption by the redundant PSU 0 [watt]
+saturated float32 power_consumption_1     # likewise for PSU 1
+saturated float32 power_consumption_2     # likewise for PSU 2
+
+# Status flags in the low byte
+uint16 FLAG_COOLING_SYSTEM_A_ACTIVE = 1
+uint16 FLAG_COOLING_SYSTEM_B_ACTIVE = 2
+# Error flags in the high byte
+uint16 FLAG_PSU_MALFUNCTION = 8192
+uint16 FLAG_OVERHEATING     = 16384
+uint16 FLAG_CRYOBOX_BREACH  = 32768
+# Storage for the above defined flags
+uint16 flags
+\end{minted}
+
+The last definition was deemed sufficient and deployed to the production system
+under the version number of 1.0: \verb|sirius_cyber_corp.golgafrincham_b_ark.cryopod.Status.1.0|.
+
+Having collected empirical data from the fielded systems, the Sirius Cybernetics Corporation has
+identified a shortcoming in the v1.0 definition, which was corrected in an updated definition.
+Since the updated definition, which is shown below, is mutually semantically
+compatible\footnote{The topic of data serialization is explored in detail in the section
+\ref{sec:dsdl_data_serialization}.}
+with v1.0, the major version number was kept the same and the minor version number was incremented by one:
+
+\begin{minted}{python}
+# sirius_cyber_corp.golgafrincham_b_ark.cryopod.Status.1.1
+
+saturated float16 internal_temperature    # [kelvin]
+saturated float16 coolant_temperature     # [kelvin]
+
+saturated float32[3] power_consumption    # Power consumption by the PSU
+
+# Status flags
+uint8 STATUS_FLAG_COOLING_SYSTEM_A_ACTIVE = 1
+uint8 STATUS_FLAG_COOLING_SYSTEM_B_ACTIVE = 2
+uint8 status_flags
+
+# Error flags
+uint8 ERROR_FLAG_PSU_MALFUNCTION = 5
+uint8 ERROR_FLAG_OVERHEATING     = 6
+uint8 ERROR_FLAG_CRYOBOX_BREACH  = 7
+uint8 error_flags
+\end{minted}
+
+Since the definitions v1.0 and v1.1 are mutually semantically compatible,
+UAVCAN nodes using either of them can successfully interoperate on the same bus.
+
+Suppose further that at some point a newer version of the cryopod module was released,
+with higher precision temperature sensors.
+The definition has to be updated accordingly to use \verb|float32| for the temperature fields
+instead of \verb|float16|.
+Seeing as that change breaks the binary compatibility,
+the major version number has to be incremented by one, and the minor version number has to be reset back to zero:
+
+\begin{minted}{python}
+# sirius_cyber_corp.golgafrincham_b_ark.cryopod.Status.2.0
+
+float32 internal_temperature    # [kelvin]
+float32 coolant_temperature     # [kelvin]
+
+float32[3] power_consumption    # Power consumption by the PSU
+
+# Status flags
+uint8 STATUS_FLAG_COOLING_SYSTEM_A_ACTIVE = 1
+uint8 STATUS_FLAG_COOLING_SYSTEM_B_ACTIVE = 2
+uint8 status_flags
+
+# Error flags
+uint8 ERROR_FLAG_PSU_MALFUNCTION = 5
+uint8 ERROR_FLAG_OVERHEATING     = 6
+uint8 ERROR_FLAG_CRYOBOX_BREACH  = 7
+uint8 error_flags
+\end{minted}
+
+Now, nodes using v1.0, v1.1, and v2.0 definitions can still coexist on the same network,
+but they are not guaranteed to understand each other unless they support all of the used data type definitions.
+
+In practice, nodes that need to maximize their compatibility are likely to employ all existing major versions of
+each used data type.
+If there are more than one minor versions available, the highest minor version within the major version should
+be used, to take advantage of the latest changes in the data type definition.
+It is also expected that in certain scenarios some nodes may resort to publishing the same message type
+using different major versions concurrently to circumvent compatibility issues (in the
+example reviewed here that would be v1.1 and v2.0).
