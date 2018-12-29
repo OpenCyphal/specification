@@ -1,5 +1,5 @@
 %
-% Copyright (c) 2017-2018  Zubax Robotics OU  <info@zubax.com>
+% Copyright (c) 2017-2018  UAVCAN Development Team  <info@zubax.com>
 %
 % Author: Pavel Kirienko <pavel.kirienko@zubax.com>
 %
@@ -66,6 +66,7 @@ numberblanklines=false,
 fontsize=\footnotesize,
 xleftmargin=\dimexpr\leftskip-2.15mm\relax,
 framesep=2mm,
+baselinestretch=1.0,
 autogobble
 }
 \renewcommand{\theFancyVerbLine}{\scriptsize \texttt \oldstylenums{\arabic{FancyVerbLine}}}
@@ -154,7 +155,7 @@ autogobble
 %
 % Page layout (tricky).
 %
-\newcommand{\DefaultParskip}{0.9em}
+\newcommand{\DefaultParskip}{0.6em}
 \raggedbottom
 \RequirePackage[a4paper]{geometry}
 \special{papersize=210mm,297mm}  % https://en.wikibooks.org/wiki/LaTeX/Page_Layout
@@ -163,8 +164,8 @@ autogobble
 \setlength{\parskip}{\DefaultParskip}
 \setlength{\abovecaptionskip}{0.2em}
 \parindent=0em
-\renewcommand{\baselinestretch}{1.2}
-\renewcommand{\arraystretch}{1.2}
+\renewcommand{\baselinestretch}{1.1}
+\renewcommand{\arraystretch}{1.1}
 \leftskip=17mm
 \headsep=8mm
 \footskip=12mm

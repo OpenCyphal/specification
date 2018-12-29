@@ -736,7 +736,6 @@ function receiveFrame(frame)
     non_wrapped_tid := computeForwardDistance(current_transfer_id, frame.transfer_id) < tid_half_range;
     not_previous_tid := computeForwardDistance(frame.transfer_id, current_transfer_id) > 1;
     iface_switch_allowed := (frame.timestamp - this_transfer_timestamp) > iface_switch_delay;
-
     // Using the state flags from above, deciding whether we need to reset:
     need_restart :=
         (!initialized) or
@@ -785,7 +784,6 @@ function receiveFrame(frame)
     {
         // CRC validation for multi-frame transfers is intentionally omitted for brevity
         processTransfer(payload, ...);
-
         current_transfer_id.increment();
         toggle := 0;
         payload.clear();
@@ -800,7 +798,6 @@ The following pseudocode demonstrates the transfer reception process for a confi
 with a non-redundant transport interface.
 This is a specialization of the more general algorithm defined for redundant transport.
 
-\clearpage
 \begin{minted}{cpp}
 // Constants:
 tid_timeout := 2 seconds;
@@ -818,7 +815,6 @@ function receiveFrame(frame)
     tid_timed_out := (frame.timestamp - this_transfer_timestamp) > tid_timeout;
     first_frame := frame.start_of_transfer;
     not_previous_tid := computeForwardDistance(frame.transfer_id, current_transfer_id) > 1;
-
     // Using the state flags from above, deciding whether we need to reset:
     need_restart :=
         (!initialized) or
@@ -860,7 +856,6 @@ function receiveFrame(frame)
     {
         // CRC validation for multi-frame transfers is intentionally omitted for brevity
         processTransfer(payload, ...);
-
         current_transfer_id.increment();
         toggle := 0;
         payload.clear();
