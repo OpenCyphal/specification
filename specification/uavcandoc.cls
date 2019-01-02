@@ -1,5 +1,5 @@
 %
-% Copyright (c) 2017-2018  UAVCAN Development Team  <info@zubax.com>
+% Copyright (c) 2018-2019  UAVCAN Development Team  <info@zubax.com>
 %
 % Author: Pavel Kirienko <pavel.kirienko@zubax.com>
 %
@@ -45,7 +45,7 @@
 \definecolor{colorlogo}{RGB}{0,124,195}
 \definecolor{colorlogolight}{RGB}{220, 242, 255}
 
-\renewcommand{\dateseparator}{.}
+\renewcommand{\dateseparator}{-}
 
 \sisetup{range-phrase = \text{--}}
 
@@ -145,7 +145,7 @@ autogobble
 %
 % Font specification.
 %
-\RequirePackage[sfdefault]{roboto}   % Option 'sfdefault' only if the base font of the document is to be sans serif
+\RequirePackage{mathptmx}
 \RequirePackage[T1]{fontenc}
 \RequirePackage{inconsolata}
 
@@ -161,7 +161,7 @@ autogobble
 \setlength{\parskip}{\DefaultParskip}
 \setlength{\abovecaptionskip}{0.2em}
 \parindent=0em
-\renewcommand{\baselinestretch}{1.1}
+\renewcommand{\baselinestretch}{1.0}
 \renewcommand{\arraystretch}{1.1}
 \leftskip=17mm
 \headsep=8mm
