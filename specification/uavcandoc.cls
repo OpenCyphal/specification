@@ -45,7 +45,7 @@
 \definecolor{colorlogo}{RGB}{0,124,195}
 \definecolor{colorlogolight}{RGB}{220, 242, 255}
 
-\renewcommand{\dateseparator}{.}
+\renewcommand{\dateseparator}{-}
 
 \sisetup{range-phrase = \text{--}}
 
