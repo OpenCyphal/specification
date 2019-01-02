@@ -415,12 +415,12 @@ The transfer CRC algorithm specification is provided in the table \ref{table:tra
 \begin{UAVCANSimpleTable}{Transfer CRC algorithm parameters}{|ll|}\label{table:transfer_crc_params}
     Property        & Value \\
     Name            & CRC-16/CCITT-FALSE \\
-    Initial value   & \texttt{0xFFFF} \\
-    Polynomial      & \texttt{0x1021} \\
+    Initial value   & $\mathrm{FFFF}_{16}$ \\
+    Polynomial      & $\mathrm{1021}_{16}$ \\
     Reverse         & No \\
     Output XOR      & $0$ \\
     Residue         & $0$ \\
-    Check           & $\left(49, 50, \ldots, 56, 57\right) \rightarrow \mathtt{0x29B1}$ \\
+    Check           & $\left(49, 50, \ldots, 56, 57\right) \rightarrow \mathrm{29B1}_{16}$ \\
 \end{UAVCANSimpleTable}
 \end{minipage}
 
