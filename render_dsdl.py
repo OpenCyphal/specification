@@ -1,4 +1,23 @@
 #!/usr/bin/env python3
+#
+# This script accepts the name of a DSDL definition, or a DSDL namespace followed by a glob asterisk,
+# and prints its LaTeX representation into stdout. Usage examples:
+#
+#       ./render_dsdl.py uavcan.node.* --index-only
+#           Prints an index table of the namespace "uavcan.node". The index table will be accessible via the
+#           reference label "table:dsdl:uavcan.node".
+#
+#       ./render_dsdl.py uavcan.node.Heartbeat
+#           Prints the source text of the definition "uavcan.node.Heartbeat" and prepends it with a brief
+#           explanatory text.
+#
+#       ./render_dsdl.py uavcan.*
+#           Generates an index table of the namespace "uavcan", and then provides a sequence of sections
+#           containing the source text of the data type definitions contained in this namespace.
+#           Each definition is provided with a label of the form like "sec:dsdl:uavcan.node.Heartbeat".
+#
+# For more info just read the code.
+#
 
 import os
 import re
