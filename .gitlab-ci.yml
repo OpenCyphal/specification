@@ -3,11 +3,13 @@ before_script:
   - PATH=$HOME/texlive/bin/x86_64-linux:$PATH
   - apt-get install -y texlive-full
   - apt-get install -y python-pygments
+  - apt-get install -y python3
   - apt-get install -y ghostscript
 
 job:
   image: ubuntu:16.04
   script:
+    - git submodule update --init --recursive
     - cd specification
     - ./compile.sh
   artifacts:
