@@ -4,6 +4,7 @@ before_script:
   - apt-get install -y texlive-full
   - apt-get install -y python-pygments
   - apt-get install -y python3
+  - apt-get install -y git
   - apt-get install -y ghostscript
 
 job:
