@@ -182,7 +182,7 @@ print(r'\begin{ThreePartTable}')
 print(r"\captionof{table}{Index of the %s namespace ``%s''}%%" %
       ('nested' if is_nested_namespace else 'root', naked_pattern))
 print(r'\label{table:dsdl:%s}%%' % naked_pattern)
-print(r'\footnotesize\setlength\tabcolsep{4pt}\setlength{\tabulinesep}{-2pt}\setlength{\extrarowsep}{-2pt}%')
+print(r'\footnotesize\setlength\tabcolsep{3pt}\setlength{\tabulinesep}{-1pt}\setlength{\extrarowsep}{-1pt}%')
 print(r'\begin{%s}{|l r r|r r|r l|c l|}\rowfont{\bfseries}\hline' % table_environment)
 print(r'Namespace tree & Ver. & FPID & \multicolumn{2}{c|}{Max bytes} & \multicolumn{2}{c|}{Page sec.} &'
       r'\multicolumn{2}{l|}{Full name and kind (message/service)} \\\hline')
