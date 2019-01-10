@@ -148,9 +148,8 @@ autogobble
 %
 % Font specification.
 %
-\RequirePackage{mathptmx}
 \RequirePackage[T1]{fontenc}
-\RequirePackage{inconsolata}
+\RequirePackage{newtxtext,newtxmath}
 
 %
 % Page layout (tricky).
