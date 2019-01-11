@@ -12,7 +12,6 @@
 
 \author{UAVCAN Development Team}
 
-\RequirePackage{lipsum}              % Lorem ipsum text generation, useful for testing.
 \RequirePackage[pagestyles]{titlesec}
 \RequirePackage{titletoc}
 \RequirePackage[table,xcdraw]{xcolor}
@@ -149,7 +148,8 @@ autogobble
 % Font specification.
 %
 \RequirePackage[T1]{fontenc}
-\RequirePackage{newtxtext,newtxmath}
+\RequirePackage{fourier}        % Main font: Utopia Regular (serif); the monospace is ugly, so we override it later
+\renewcommand*\ttdefault{txtt}  % Overriding the monospace font
 
 %
 % Page layout (tricky).
