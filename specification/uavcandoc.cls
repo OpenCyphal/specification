@@ -12,7 +12,6 @@
 
 \author{UAVCAN Development Team}
 
-\RequirePackage{lipsum}              % Lorem ipsum text generation, useful for testing.
 \RequirePackage[pagestyles]{titlesec}
 \RequirePackage{titletoc}
 \RequirePackage[table,xcdraw]{xcolor}
@@ -64,7 +63,7 @@ frame=leftline,
 linenos,
 numberblanklines=false,
 fontsize=\footnotesize,
-xleftmargin=\dimexpr\leftskip-2mm\relax,
+xleftmargin=\dimexpr\leftskip-2.15mm\relax,
 framesep=2mm,
 baselinestretch=1.0,
 autogobble
@@ -139,15 +138,18 @@ autogobble
 % Continuous footnote numbering
 \counterwithout{footnote}{chapter}
 
+% Discourage carrying a footnote to the next page
+\interfootnotelinepenalty=1000
+
 % We don't need to clear double page, ever. Shall the need arise, we'll have to implement a cleaner fix.
 \renewcommand{\cleardoublepage}{\clearpage}
 
 %
 % Font specification.
 %
-\RequirePackage{mathptmx}
 \RequirePackage[T1]{fontenc}
-\RequirePackage{inconsolata}
+\RequirePackage{fourier}        % Main font: Utopia Regular (serif); the monospace is ugly, so we override it later
+\renewcommand*\ttdefault{txtt}  % Overriding the monospace font
 
 %
 % Page layout (tricky).
@@ -221,12 +223,12 @@ autogobble
 \renewcommand{\listtablename}{List of tables}
 \setcounter{tocdepth}{2}
 \titlecontents{part}[0em]{\centering\bfseries}{}{}{}
-\dottedcontents{chapter}[10mm]{\bfseries}{10mm}{1pc}
-\dottedcontents{section}[20mm]{}{10mm}{1pc}
-\dottedcontents{subsection}[30mm]{\small}{10mm}{1pc}
+\dottedcontents{chapter}[5mm]{\bfseries}{5mm}{1pc}
+\dottedcontents{section}[14mm]{}{9mm}{1pc}
+\dottedcontents{subsection}[25mm]{\footnotesize}{11mm}{1pc}
 
-\dottedcontents{table}[2em]{}{2em}{1pc}
-\dottedcontents{figure}[2em]{}{2em}{1pc}
+\dottedcontents{table}[3em]{}{3em}{1pc}
+\dottedcontents{figure}[3em]{}{3em}{1pc}
 
 % Custom styling of TOC, LOF, LOT.
 % Using \sloppy in order to ensure that the maximum line length is not exceeded.

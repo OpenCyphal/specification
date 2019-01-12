@@ -1,0 +1,20 @@
+\chapter{List of standard data types}
+
+This chapter contains the full list of standard data types defined by the UAVCAN specification.
+The source text of the DSDL data type definitions provided here is also available via the
+official project website at \href{http://uavcan.org}{uavcan.org}.
+
+Regulated non-standard definitions\footnote{I.e., public definitions contributed by vendors and other users
+of the specification, as explained in section \ref{sec:basic_concepts_data_type_regulation}.}
+are not included in this list.
+
+Each definition is provided with a length information table for convenience,
+where the minimum and maximum serialized length is shown in several units:
+bits, bytes (octets), and transport frames for some of the supported transport protocols.
+The acronym \emph{MTU} used in the length information tables stands for
+\emph{maximum transmission unit}, which is the maximum amount of data, in bytes (octets, eight bits per byte),
+that fits into one transport frame for the specific transport protocol.
+
+The index table \ref{table:dsdl:uavcan} is provided before the definitions for ease of navigation.
+
+\clearpage\DSDL{uavcan.*}
