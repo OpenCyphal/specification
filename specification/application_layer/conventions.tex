@@ -227,12 +227,12 @@ Irrespective of the suffix, it is recommended to always specify units for every 
 \begin{minted}{python}
 float16 temperature           # [kelvin] Suffix not needed because an unscaled SI unit is used here.
 
-uint24 delay_us               # [microsecond] Scaled SI unit, suffix is required. Mu replaced with "u".
-uint24 MAX_DELAY_us = 600000  # [microsecond] The case of the suffix must not be forced to avoid confusion.
+uint24 delay_us               # [microsecond] Scaled SI unit, suffix required. Mu replaced with "u".
+uint24 MAX_DELAY_us = 600000  # [microsecond] Notice the letter case.
 
 float32 kinetic_energy_GJ     # [gigajoule] Notice the letter case.
 
-float16 estimated_charge_mAh  # [milliampere hour] Scaled non-SI unit. Highly discouraged (use coulomb).
+float16 estimated_charge_mAh  # [milliampere hour] Scaled non-SI unit. Discouraged, use coulomb.
 float16 MAX_CHARGE_mAh = 1e4  # [milliampere hour] Notice the letter case.
 \end{minted}
 \end{remark}
