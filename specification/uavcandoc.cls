@@ -65,7 +65,7 @@ numberblanklines=false,
 fontsize=\footnotesize,
 xleftmargin=\dimexpr\leftskip-2.15mm\relax,
 framesep=2mm,
-baselinestretch=0.95,
+baselinestretch=1,
 autogobble
 }
 \renewcommand{\theFancyVerbLine}{\scriptsize \texttt \oldstylenums{\arabic{FancyVerbLine}}}
@@ -163,7 +163,7 @@ autogobble
 \setlength{\parskip}{\DefaultParskip}
 \setlength{\abovecaptionskip}{0.2em}
 \parindent=0em
-\renewcommand{\baselinestretch}{0.95}
+\renewcommand{\baselinestretch}{1}
 \renewcommand{\arraystretch}{1.1}
 \leftskip=17mm
 \headsep=8mm
