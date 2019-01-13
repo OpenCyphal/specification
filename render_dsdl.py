@@ -257,8 +257,11 @@ if index_only:
 # Render definitions
 labeled_namespaces = set()
 for namespace, children in grouped.items():
-    # New section for this namespace
-    print(r'\clearpage\section{%s}' % escape(namespace))
+    # New section for each new sub-root namespace
+    if namespace.strip('. ').count('.') < 2:
+        print(r'\clearpage')
+
+    print(r'\section{%s}' % escape(namespace))
 
     # Generate labels for all namespaces, starting from the root one.
     # Each label points to the first appearance of its namespace.
