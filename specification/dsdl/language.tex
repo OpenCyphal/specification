@@ -1,2 +1,52 @@
 \section{Language specification}
 
+\subsection{Structure}
+
+Every data type is located in a namespace.
+Namespaces may be included into higher-level namespaces, forming a tree hierarchy.
+
+A namespace that is at the root of the tree hierarchy (i.e., not nested within another one)
+is called a \emph{root namespace}.
+A namespace that is located inside another namespace is called a \emph{nested namespace}.
+
+A data type is uniquely identified by its namespaces and its \emph{short name}.
+The short name of a data type is the name of the type itself excluding the containing namespaces.
+
+A \emph{full name} of a data type consists of its short name and all of the outer namespace names.
+The short name and the namespace names included in a full name are called \emph{name components}.
+Name components are ordered: the root namespace is always the first component of the name,
+followed by the nested namespaces, if there are any, in the order of their nesting;
+the short name is always the last component of the full name.
+The full name is formed by joining its name components via the ASCII dot character ``\verb|.|'' (ASCII code 46).
+
+A \emph{full namespace} is formed by joining together all name components except the short name.
+
+A \emph{sub-root namespace} is the nested namespace that is nested inside the root namespace.
+Data types that reside directly under a root namespace do not have a sub-root namespace.
+
+The name structure is illustrated on the figure \ref{fig:dsdl_data_type_name_structure}.
+
+\begin{figure}[H]
+    $$
+    \overbrace{
+        \underbrace{
+            \underbrace{\texttt{\huge{uavcan}}}_{\substack{\text{root} \\ \text{namespace}}}%
+            \texttt{\huge{.}}%
+            \underbrace{\texttt{\huge{node}}}_{\substack{\text{nested, also} \\ \text{sub-root} \\ \text{namespace}}}%
+            \texttt{\huge{.}}%
+            \underbrace{\texttt{\huge{port}}}_{\substack{\text{nested} \\ \text{namespace}}}%
+        }_{\text{full namespace}}%
+        \texttt{\huge{.}}%
+        \underbrace{\texttt{\huge{GetInfo}}}_{\text{short name}}
+    }^{\text{full name}}
+    $$
+    \caption{Data type name structure.\label{fig:dsdl_data_type_name_structure}}
+\end{figure}
+
+Every data type definition is assigned a major and minor version number pair.
+In order to uniquely identify a data type definition, its version numbers must be specified.
+
+\subsection{File hierarchy}
+
+\subsection{Syntax}
+
