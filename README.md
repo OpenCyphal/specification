@@ -4,9 +4,17 @@
 
 The sources of the UAVCAN specification and other related documents are contained here.
 
-## Writing
+When cloning this repository, don't forget to initialize the Git submodules:
+`git submodule update --init --recursive`.
 
-Use TeX Live to compile the sources (Debian/Ubuntu packages: `texlive-full lyx python-pygments`).
+## Editing and compiling
+
+In order to compile the document, install TexLive (Debian-based APT packages: `texlive-full lyx`)
+and the following Python packages:
+
+- `pygments` (for Debian-based systems, use APT package `python-pygments`)
+- [`pydsdl`](https://github.com/UAVCAN/pydsdl)
+
 Use Visual Studio Code with extensions `James-Yu.latex-workshop` and `ban.spellright` for editing.
 More info in the [Zubax Knowledge Base](https://kb.zubax.com/x/IYEh).
 
