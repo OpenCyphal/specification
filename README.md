@@ -58,6 +58,9 @@ If you're using Visual Studio Code, the following settings for `James-Yu.latex-w
 }
 ```
 
+Add the following user dictionary file to squelch bogus spelling errors from Spellright:
+<https://gist.github.com/pavel-kirienko/bd3ecf47fbdb164baeb408af31100f7d>.
+
 ## License
 
 All data contained herein is distributed under the terms of the
