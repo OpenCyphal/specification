@@ -1,8 +1,8 @@
 \section{Language specification}
 
-\subsection{Structure}
+\subsection{Data types and namespaces}
 
-Every data type is located in a namespace.
+Every data type is located in a \emph{namespace}.
 Namespaces may be included into higher-level namespaces, forming a tree hierarchy.
 
 A namespace that is at the root of the tree hierarchy (i.e., not nested within another one)
@@ -12,17 +12,17 @@ A namespace that is located inside another namespace is called a \emph{nested na
 A data type is uniquely identified by its namespaces and its \emph{short name}.
 The short name of a data type is the name of the type itself excluding the containing namespaces.
 
-A \emph{full name} of a data type consists of its short name and all of the outer namespace names.
+A \emph{full name} of a data type consists of its short name and all of its namespace names.
 The short name and the namespace names included in a full name are called \emph{name components}.
 Name components are ordered: the root namespace is always the first component of the name,
 followed by the nested namespaces, if there are any, in the order of their nesting;
 the short name is always the last component of the full name.
 The full name is formed by joining its name components via the ASCII dot character ``\verb|.|'' (ASCII code 46).
 
-A \emph{full namespace} is formed by joining together all name components except the short name.
+A \emph{full namespace} name is the full name without the short name and its component separator.
 
-A \emph{sub-root namespace} is the nested namespace that is nested inside the root namespace.
-Data types that reside directly under a root namespace do not have a sub-root namespace.
+A \emph{sub-root namespace} is a nested namespace that is located immediately under its root namespace.
+Data types that reside directly under their root namespace do not have a sub-root namespace.
 
 The name structure is illustrated on the figure \ref{fig:dsdl_data_type_name_structure}.
 
@@ -43,10 +43,121 @@ The name structure is illustrated on the figure \ref{fig:dsdl_data_type_name_str
     \caption{Data type name structure.\label{fig:dsdl_data_type_name_structure}}
 \end{figure}
 
+Data type names are case-sensitive.
+However, data type names that differ only in letter case are not permitted\footnote{%
+Because that may cause problems with case-insensitive file systems.}.
+
+A name component consists of alphanumeric ASCII characters (which are: \verb|A-Z|, \verb|a-z|, and \verb|0-9|)
+and underscore (``\verb|_|'', ASCII code 95).
+An empty string is not a valid name component.
+The first character of a name component must not be a digit.
+A name component must not match any of the reserved word patterns,
+which are listed in the table \ref{table:dsdl_reserved_word_patterns}.
+
+The length of a full data type name must not exceed 50
+characters\footnote{This includes the name component separators.}.
+
 Every data type definition is assigned a major and minor version number pair.
 In order to uniquely identify a data type definition, its version numbers must be specified.
+In the following text, the term \emph{version} without a majority qualifier refers to
+a pair of major and minor version numbers.
+
+Valid data type version numbers range from 0 to 255, inclusively.
+A data type version where both major and minor components are zero is not allowed.
 
 \subsection{File hierarchy}
 
+DSDL data type definitions are contained in UTF-8 encoded text files with a file name extension \verb|.uavcan|.
+
+One file defines exactly one version of a data type,
+meaning that each combination of major and minor version numbers must be unique per data type name.
+There may be an arbitrary number of versions of the same data type defined alongside each other,
+provided that each version is defined no more than once.
+Version number sequences can be non-contiguous,
+meaning that it is allowed to skip version numbers or remove existing definitions that are neither oldest nor newest.
+
+A data type definition may have an optional fixed port ID\footnote{Chapter \ref{sec:basic_concepts}.} value specified.
+
+The name of a data type definition file is constructed from the following entities
+joined via the ASCII dot character ``\verb|.|'' (ASCII code 46), in the specified order:
+\begin{itemize}
+    \item Fixed port ID in decimal notation, unless a fixed port ID is not defined for this definition.
+    \item Short name of the data type (mandatory, always non-empty).
+    \item Major version number in decimal notation (mandatory).
+    \item Minor version number in decimal notation (mandatory).
+    \item File name extension ``\verb|uavcan|'' (mandatory).
+\end{itemize}
+
+\begin{figure}[H]
+    $$
+    \overbrace{%
+        \underbrace{\texttt{\huge{432}}}_{\substack{\text{fixed} \\ \text{port ID}}}%
+        \texttt{\huge{.}}%
+    }^{\text{optional}}%
+    \overbrace{%
+        \underbrace{\texttt{\huge{GetInfo}}}_{\substack{\text{short name}}}%
+        \texttt{\huge{.}}%
+        \underbrace{\texttt{\huge{1.0}}}_{\substack{\text{version} \\ \text{numbers}}}%
+        \texttt{\huge{.}}%
+        \underbrace{\texttt{\huge{uavcan}}}_{\text{file extension}}%
+    }^{\text{mandatory}}
+    $$
+    \caption{Data type definition file name structure.\label{fig:dsdl_definition_file_name_structure}}
+\end{figure}
+
+DSDL namespaces are represented as directories, where one directory defines exactly one namespace, possibly nested.
+The name of the directory defines the name of its data type name component.
+A directory defining a namespace will always define said namespace in its entirety,
+meaning that the contents of a namespace cannot be spread across different directories sharing the same name.
+One directory cannot define more than one level of
+nesting\footnote{For example, ``\texttt{foo.bar}'' is not a valid directory name.
+The valid representation would be ``\texttt{bar}'' nested in ``\texttt{foo}''.}.
+
+An example DSDL directory structure is shown on the figure \ref{fig:dsdl_definition_file_name_structure}.
+
+\begin{figure}[H]
+    \begin{tabu}{|l|X|} \hline
+        \rowfont{\bfseries}
+        Directory tree & Entry description \\\hline
+
+        \texttt{vendor\_x/} &
+        Root namespace \texttt{vendor\_x}. \\\cline{2-2}
+
+        \texttt{\qquad{}foo/} &
+        Nested namespace (also sub-root) \texttt{vendor\_x.foo}. \\\cline{2-2}
+
+        \texttt{\qquad{}\qquad{}100.Run.1.0.uavcan} &
+        Data type definition v1.0 with fixed service ID 100. \\\cline{2-2}
+
+        \texttt{\qquad{}\qquad{}100.Status.1.0.uavcan} &
+        Data type definition v1.0 with fixed subject ID 100. \\\cline{2-2}
+
+        \texttt{\qquad{}\qquad{}ID.1.0.uavcan} &
+        Data type definition v1.0 without fixed port ID. \\\cline{2-2}
+
+        \texttt{\qquad{}\qquad{}ID.1.1.uavcan} &
+        Data type definition v1.1 without fixed port ID. \\\cline{2-2}
+
+        \texttt{\qquad{}\qquad{}bar\_42/} &
+        Nested namespace \texttt{vendor\_x.foo.bar\_42}. \\\cline{2-2}
+
+        \texttt{\qquad{}\qquad{}\qquad{}101.List.1.0.uavcan} &
+        Data type definition v1.0 with fixed service ID 101. \\\cline{2-2}
+
+        \texttt{\qquad{}\qquad{}\qquad{}102.List.2.0.uavcan} &
+        Data type definition v2.0 with fixed service ID 102. \\\cline{2-2}
+
+        \texttt{\qquad{}\qquad{}\qquad{}ID.1.0.uavcan} &
+        Data type definition v1.0 without fixed port ID. \\\hline
+    \end{tabu}
+    \caption{DSDL directory structure example.}\label{fig:dsdl_directory_structure_example}
+\end{figure}
+
 \subsection{Syntax}
+
+DSDL uses a simple regular grammar which can be parsed using standard POSIX regular expressions.
+The following grammar and syntax specification will rely on the standard IEEE POSIX ERE\footnote{IEEE Std 1003.1.}
+regular expression notation.
+
+
 
