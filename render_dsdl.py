@@ -164,7 +164,7 @@ if '*' not in pattern:
 # to the top.
 grouped = OrderedDict()
 for t in sorted(matching, key=lambda t: not t.has_fixed_port_id):
-    grouped.setdefault(t.namespace, OrderedDict()).setdefault(t.full_name, []).append(t)
+    grouped.setdefault(t.full_namespace, OrderedDict()).setdefault(t.full_name, []).append(t)
 
 # Render short reference
 naked_pattern = pattern.strip('.*')

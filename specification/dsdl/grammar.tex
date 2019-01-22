@@ -1,0 +1,89 @@
+\section{Grammar}
+
+\subsection{File structure}
+
+DSDL uses a simple regular grammar which can be parsed using standard POSIX regular
+expressions\footnote{Regular grammars are easier to parse than context-free grammars,
+which are commonly used in other machine languages. The set of regular grammars is a subset of context-free grammars.}.
+The following grammar and syntax specification rely on the standard IEEE POSIX ERE\footnote{IEEE Std 1003.1.}
+regular expression notation.
+
+A DSDL definition file is modeled as a sequence of \emph{lines},
+where each line is terminated with any of the following ASCII character sequences:
+
+\begin{itemize}
+    \item line feed ``\texttt{\textbackslash{}n}'' (ASCII code 10);
+    \item carriage return ``\texttt{\textbackslash{}r}'' (ASCII code 13);
+    \item line feed, then carriage return ``\texttt{\textbackslash{}r\textbackslash{}n}''
+    (ASCII codes 13 and 10, respectively).
+\end{itemize}
+
+Lines may contain \emph{horizontal whitespace characters}, which are used for token separation purposes.
+The set of horizontal whitespace characters contains the following ASCII code points:
+
+\begin{itemize}
+    \item space ``\texttt{ }'' (ASCII code 32);
+    \item horizontal tabulation ``\texttt{\textbackslash{}t}'' (ASCII code 9).
+\end{itemize}
+
+DSDL lines may contain comments for the benefit of human readers.
+A comment is delimited by a number sign ``\verb|#|'' (ASCII code 35) on the left side
+and the end of its line on the right side.
+Comments are ignored by DSDL processors, and as such,
+they are allowed to contain any Unicode characters except for the line termination characters defined earlier.
+
+Each line may contain at most one \emph{statement} situated immediately at its beginning (leftmost side),
+which may be followed by an arbitrary number of horizontal whitespace characters,
+which in turn may be followed by a comment.
+Lines that do not contain a statement are called \emph{empty lines},
+regardless of whether they contain any horizontal whitespace characters or a comment.
+
+There are three kinds of statements:
+
+\begin{description}
+    \item[Attribute declaration] --- used to declare an \emph{attribute}; section \ref{sec:dsdl_attributes}.
+
+    \item[Directive] --- used to specify a \emph{directive}; section \ref{sec:dsdl_directives}.
+
+    \item[Service response marker] --- used to denote that the current definition is of a service type,
+    and also to separate the request data structure from the response data structure;
+    section \ref{sec:dsdl_service_response_marker}.
+\end{description}
+
+\subsection{Attributes}\label{sec:dsdl_attributes}
+
+An attribute specifies a high-level data entity pertaining to its data type.
+All possible kinds of attributes are defined in this section.
+
+\subsubsection{Fields}
+
+A \emph{field} defines a data entity the value of which is set by an application at runtime.
+A collection of fields forms the body of the data structure which is then exchanged over the network in its
+serialized form.
+
+\subsubsection{Constants}
+
+A \emph{constant} defines a data entity the value of which is set by the data type designer
+when the data type is defined.
+Constants are never exchanged over the network.
+The main purpose of the constant is to define auxiliary data items for the benefit of the application.
+
+\subsubsection{Padding fields}
+
+A \emph{padding field} defines a data entity which is ignored by the application.
+Padding fields are used to manually align other data fields or to reserve space for use in future versions of the
+data type.
+
+\subsection{Directives}\label{sec:dsdl_directives}
+
+\subsubsection{Union specifier}
+
+\subsubsection{Deprecation specifier}
+
+\subsubsection{Assertion check directive}
+
+\subsubsection{Diagnostic output directive}
+
+\subsection{Service response marker}\label{sec:dsdl_service_response_marker}
+
+\subsection{Literals}\label{sec:dsdl_literals}

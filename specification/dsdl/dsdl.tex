@@ -1,7 +1,5 @@
 \chapter{Data structure description language}\label{sec:dsdl}
 
-\section{General principles}
-
 The data structure description language, or \emph{DSDL}, is a simple domain-specific language designed for
 defining compound data types.
 The defined data types are used for exchanging data between UAVCAN nodes via one of the standard UAVCAN
@@ -10,30 +8,8 @@ UAVCAN doesn't prohibit users from defining their own application-specific trans
 although users doing that are likely to encounter compatibility issues and possibly a suboptimal
 performance of the protocol.}.
 
-In accordance with the UAVCAN architecture, DSDL allows users to define data types of two kinds:
-message types and service types.
-Message types are used to exchange data over publish-subscribe one-to-many message links identified by subject-ID,
-and service types are used to perform request-response one-to-one exchanges (like RPC) identified by service-ID.
-A message data type includes one data structure which forms the message body,
-and a service data type includes two data structures: one of them is used for service request transfers
-(from client to server), and the other is used for response transfers (from the server back to the client).
-
-Following the deterministic nature of UAVCAN, the size of all data structures is bounded and statically known.
-Variable-size entities always have a fixed size limit defined by the data type designer.
-
-DSDL provides well-defined means of data type versioning, which enable data type maintainers to introduce changes
-to released data types while ensuring backward compatibility with fielded systems.
-
-DSDL is designed to support extensive static analysis. Important properties of data type definitions such as
-backward binary compatibility and data field layouts can be checked and validated by automatic software tools
-before the systems utilizing them are fielded.
-
-DSDL definitions can be used to automatically generate serialization (and deserialization) source code
-for any data structure in a target programming language.
-A tool that is capable of generating serialization code based on a DSDL definition is called a \emph{DSDL compiler}.
-More generically, a software tool designed for working with DSDL definitions is called a \emph{DSDL processor}.
-
-\input{dsdl/language.tex}
+\input{dsdl/architecture.tex}
+\input{dsdl/grammar.tex}
 \input{dsdl/serialization.tex}
 \input{dsdl/versioning.tex}
 \input{dsdl/conventions.tex}
