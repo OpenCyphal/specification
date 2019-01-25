@@ -24,7 +24,7 @@ The rule definition patterns are specified in the table \ref{table:dsdl_grammar_
 
         \emph{(space)} &
         Concatenation.
-        E.g., ``\texttt{korovan paukan excavator}'' matches a sequence where the specified tokens
+        E.g., \texttt{korovan paukan excavator} matches a sequence where the specified tokens
         appear in the defined order. \\
 
         \texttt{korovan / paukan / excavator} &
@@ -60,7 +60,6 @@ The rule definition patterns are specified in the table \ref{table:dsdl_grammar_
 
 From the top level down to the expression rule, the grammar is a valid regular grammar,
 meaning that it can be parsed using standard regular expressions.
-The constant expression syntax is modeled after the Python programming language,
-and it cannot be described in terms of a regular grammar.
+The expression syntax is modeled after that of the Python programming language.
 
 \clearpage\inputminted[fontsize=\scriptsize]{python}{dsdl/grammar.parsimonious}
