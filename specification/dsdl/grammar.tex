@@ -1,89 +1,66 @@
 \section{Grammar}
 
-\subsection{File structure}
+\subsection{Formal definition}
 
-DSDL uses a simple regular grammar which can be parsed using standard POSIX regular
-expressions\footnote{Regular grammars are easier to parse than context-free grammars,
-which are commonly used in other machine languages. The set of regular grammars is a subset of context-free grammars.}.
-The following grammar and syntax specification rely on the standard IEEE POSIX ERE\footnote{IEEE Std 1003.1.}
-regular expression notation.
+This section contains the formal definition of the DSDL grammar.
+Its notation is introduced beforehand.
 
-A DSDL definition file is modeled as a sequence of \emph{lines},
-where each line is terminated with any of the following ASCII character sequences:
+\subsubsection{Notation}
 
-\begin{itemize}
-    \item line feed ``\texttt{\textbackslash{}n}'' (ASCII code 10);
-    \item carriage return ``\texttt{\textbackslash{}r}'' (ASCII code 13);
-    \item line feed, then carriage return ``\texttt{\textbackslash{}r\textbackslash{}n}''
-    (ASCII codes 13 and 10, respectively).
-\end{itemize}
+The notation used in the following definition is a modified ISO/IEC 14977 extended Backus--Naur
+form\footnote{This notation is a subset of the notation defined in a Python parsing library titled Parsimonious.
+Parsimonious is an MIT-licensed software product authored by Erik Rose;
+its sources are available at \url{https://github.com/erikrose/parsimonious}.}.
+The rule definition patterns are specified in the table \ref{table:dsdl_grammar_definition_notation}.
 
-Lines may contain \emph{horizontal whitespace characters}, which are used for token separation purposes.
-The set of horizontal whitespace characters contains the following ASCII code points:
+\begin{table}[hbtp]
+    \begin{UAVCANSimpleTable}{Notation used in the formal grammar definition}{|l X|}
+        \label{table:dsdl_grammar_definition_notation}
+        Pattern & Description \\
 
-\begin{itemize}
-    \item space ``\texttt{ }'' (ASCII code 32);
-    \item horizontal tabulation ``\texttt{\textbackslash{}t}'' (ASCII code 9).
-\end{itemize}
+        \texttt{"korovan"} &
+        Denotes a terminal string of ASCII characters.
+        The string is case-sensitive. \\
 
-DSDL lines may contain comments for the benefit of human readers.
-A comment is delimited by a number sign ``\verb|#|'' (ASCII code 35) on the left side
-and the end of its line on the right side.
-Comments are ignored by DSDL processors, and as such,
-they are allowed to contain any Unicode characters except for the line termination characters defined earlier.
+        \emph{(space)} &
+        Concatenation.
+        E.g., ``\texttt{korovan paukan excavator}'' matches a sequence where the specified tokens
+        appear in the defined order. \\
 
-Each line may contain at most one \emph{statement} situated immediately at its beginning (leftmost side),
-which may be followed by an arbitrary number of horizontal whitespace characters,
-which in turn may be followed by a comment.
-Lines that do not contain a statement are called \emph{empty lines},
-regardless of whether they contain any horizontal whitespace characters or a comment.
+        \texttt{korovan / paukan / excavator} &
+        Alternatives.
+        The leftmost matching alternative is accepted. \\
 
-There are three kinds of statements:
+        \texttt{korovan?} &
+        Optional greedy match. \\
 
-\begin{description}
-    \item[Attribute declaration] --- used to declare an \emph{attribute}; section \ref{sec:dsdl_attributes}.
+        \texttt{paukan*} &
+        Zero or more expressions, greedy match. \\
 
-    \item[Directive] --- used to specify a \emph{directive}; section \ref{sec:dsdl_directives}.
+        \texttt{excavator+} &
+        One or more expressions, greedy match. \\
 
-    \item[Service response marker] --- used to denote that the current definition is of a service type,
-    and also to separate the request data structure from the response data structure;
-    section \ref{sec:dsdl_service_response_marker}.
-\end{description}
+        \texttt{\textasciitilde{}r"regex-pattern"} &
+        An IEEE POSIX Extended Regular Expression pattern defined between the double quotes.
+        The expression operates on the ASCII character set and is always case-sensitive.
+        ASCII escape sequences ``\texttt{\textbackslash{}r}'', ``\texttt{\textbackslash{}n}'', and
+        ``\texttt{\textbackslash{}t}'' are used to denote ASCII carriage return (code 13),
+        line feed (code 10), and tabulation (code 9) characters, respectively. \\
 
-\subsection{Attributes}\label{sec:dsdl_attributes}
+        \texttt{\textasciitilde{}r"regex-pattern"} &
+        As above, with single quotes instead of double quotes. \\
 
-An attribute specifies a high-level data entity pertaining to its data type.
-All possible kinds of attributes are defined in this section.
+        \texttt{(korovan paukan)} &
+        Parentheses are used for grouping. \\
 
-\subsubsection{Fields}
+    \end{UAVCANSimpleTable}
+\end{table}
 
-A \emph{field} defines a data entity the value of which is set by an application at runtime.
-A collection of fields forms the body of the data structure which is then exchanged over the network in its
-serialized form.
+\subsubsection{Definition}
 
-\subsubsection{Constants}
+From the top level down to the expression rule, the grammar is a valid regular grammar,
+meaning that it can be parsed using standard regular expressions.
+The constant expression syntax is modeled after the Python programming language,
+and it cannot be described in terms of a regular grammar.
 
-A \emph{constant} defines a data entity the value of which is set by the data type designer
-when the data type is defined.
-Constants are never exchanged over the network.
-The main purpose of the constant is to define auxiliary data items for the benefit of the application.
-
-\subsubsection{Padding fields}
-
-A \emph{padding field} defines a data entity which is ignored by the application.
-Padding fields are used to manually align other data fields or to reserve space for use in future versions of the
-data type.
-
-\subsection{Directives}\label{sec:dsdl_directives}
-
-\subsubsection{Union specifier}
-
-\subsubsection{Deprecation specifier}
-
-\subsubsection{Assertion check directive}
-
-\subsubsection{Diagnostic output directive}
-
-\subsection{Service response marker}\label{sec:dsdl_service_response_marker}
-
-\subsection{Literals}\label{sec:dsdl_literals}
+\clearpage\inputminted[fontsize=\scriptsize]{python}{dsdl/grammar.parsimonious}
