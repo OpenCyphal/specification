@@ -61,10 +61,10 @@ expression_list = expression (_? "," _? expression)*
 # Operators. The precedence relations are expressed in the rules; the order here is from lower to higher.
 # Operators that share common prefix (e.g. < and <=, // and /, and so on) are arranged so that the longest form
 # comes first; otherwise it would be unreachable.
-logical_or_ex     = logical_and_ex (_? "or"  _? logical_and_ex)*
-logical_and_ex    = logical_not_ex (_? "and" _? logical_not_ex)*
-logical_not_ex    = (_? "not" _? logical_not_ex) / comparison_ex
-comparison_ex     = bitwise_or_ex (_? ("==" / ">=" / "<=" / "!=" / "<" / ">" / (("not" _)? "in")) _? bitwise_or_ex)*
+logical_or_ex     = logical_and_ex (_? "||" _? logical_and_ex)*
+logical_and_ex    = logical_not_ex (_? "&&" _? logical_not_ex)*
+logical_not_ex    = (_? "!" _? logical_not_ex) / comparison_ex
+comparison_ex     = bitwise_or_ex (_? ("==" / ">=" / "<=" / "!=" / "<" / ">") _? bitwise_or_ex)*
 bitwise_or_ex     = bitwise_xor_ex    (_? "|" _? bitwise_xor_ex)*
 bitwise_xor_ex    = bitwise_and_ex    (_? "^" _? bitwise_and_ex)*
 bitwise_and_ex    = logical_shift_ex  (_? "&" _? logical_shift_ex)*
