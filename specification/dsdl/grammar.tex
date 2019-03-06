@@ -1,11 +1,10 @@
 \section{Grammar}
 
-\subsection{Formal definition}
-
 This section contains the formal definition of the DSDL grammar.
 Its notation is introduced beforehand.
+The meaning of each element of the grammar and their semantics will be explained in the following sections.
 
-\subsubsection{Notation}
+\subsection{Notation}
 
 The notation used in the following definition is a variant of the extended Backus--Naur
 form\footnote{This notation is a subset of the notation defined in a Python parsing library titled Parsimonious.
@@ -13,7 +12,7 @@ Parsimonious is an MIT-licensed software product authored by Erik Rose;
 its sources are available at \url{https://github.com/erikrose/parsimonious}.}.
 The rule definition patterns are specified in the table \ref{table:dsdl_grammar_definition_notation}.
 
-\begin{table}[hbtp]
+\begin{table}[htb]
     \begin{UAVCANSimpleTable}{Notation used in the formal grammar definition}{|l X|}
         \label{table:dsdl_grammar_definition_notation}
         Pattern & Description \\
@@ -55,7 +54,7 @@ The rule definition patterns are specified in the table \ref{table:dsdl_grammar_
     \end{UAVCANSimpleTable}
 \end{table}
 
-\subsubsection{Definition}
+\subsection{Definition}
 
 From the top level down to the expression rule, the grammar is a valid regular grammar,
 meaning that it can be parsed using standard regular expressions.

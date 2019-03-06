@@ -29,7 +29,7 @@ More generically, a software tool designed for working with DSDL definitions is 
 
 \subsection{Data types and namespaces}
 
-Every data type is located in a \emph{namespace}.
+Every data type is located inside a \emph{namespace}.
 Namespaces may be included into higher-level namespaces, forming a tree hierarchy.
 
 A namespace that is at the root of the tree hierarchy (i.e., not nested within another one)
@@ -99,7 +99,7 @@ DSDL data type definitions are contained in UTF-8 encoded text files with a file
 One file defines exactly one version of a data type,
 meaning that each combination of major and minor version numbers must be unique per data type name.
 There may be an arbitrary number of versions of the same data type defined alongside each other,
-provided that each version is defined no more than once.
+provided that each version is defined at most once.
 Version number sequences can be non-contiguous,
 meaning that it is allowed to skip version numbers or remove existing definitions that are neither oldest nor newest.
 
@@ -108,7 +108,7 @@ A data type definition may have an optional fixed port ID\footnote{Chapter \ref{
 The name of a data type definition file is constructed from the following entities
 joined via the ASCII dot character ``\verb|.|'' (ASCII code 46), in the specified order:
 \begin{itemize}
-    \item Fixed port ID in decimal notation, unless a fixed port ID is not defined for this definition.
+    \item Fixed port ID in decimal notation, unless a fixed port ID is not provided for this definition.
     \item Short name of the data type (mandatory, always non-empty).
     \item Major version number in decimal notation (mandatory).
     \item Minor version number in decimal notation (mandatory).
@@ -179,3 +179,36 @@ An example DSDL directory structure is shown on the figure \ref{fig:dsdl_definit
     \end{tabu}
     \caption{DSDL directory structure example.}\label{fig:dsdl_directory_structure_example}
 \end{figure}
+
+\subsection{Elements of data type definition}
+
+A data type definition file contains an exhaustive description of a particular version of the said data type in the
+\emph{data structure description language} (DSDL).
+As explained above, one definition contains either one or two data structures,
+for message types and service types, respectively.
+
+A data structure is an ordered, possibly empty collection of fields and/or
+unordered, possibly empty collection of constants.
+The value of a regular data structure is a function of the values of all of its fields.
+There is one special case of \emph{tagged unions} --- a tagged union is a special data structure
+for which at least two fields are defined, but it is capable of holding exactly one field at any given time.
+The value of a tagged union is a function of which field it is holding at the moment and the value of said field.
+
+A field represents a named dynamically assigned value of a statically defined type
+that can be exchanged over the network as a member of its containing data structure.
+A field can be either of a \emph{primitive type}
+(i.e., a type which is defined in this DSDL specification, known to DSDL processing tools a priori,
+which need not be defined by the user; for example, an integer)
+or a \emph{compound type}
+(i.e., a type which is defined in DSDL notation; for example, a standard message type \verb|uavcan.node.Heartbeat|).
+Fixed-size and variable-size array types are also available.
+
+A constant represents a named statically assigned value of a statically defined type
+that is provided directly in the DSDL source text by the data type designer.
+Constants are never exchanged over the network, since they are assumed to be known to all involved nodes
+by virtue of them sharing the same static definition of the data type.
+
+Data type definitions can also contain auxiliary elements, such as deprecation markers
+(notifying its users that the data type is no longer recommended for new designs)
+or assertions (special statements introduced by data type designers
+which are statically validated by DSDL processing tools).
