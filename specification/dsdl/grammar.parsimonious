@@ -1,12 +1,11 @@
 # Top-level rule: a definition is a collection of lines, the collection may be empty.
 # Lines may contain at most one statement, possibly followed by whitespaces, possibly followed by a comment.
-# Lines are terminated by an ASCII CR, LF, or CRLF sequence.
-# Unterminated line is allowed at the end of the definition.
-definition  = line*
-line        = statement? _? comment? end_of_line
+# Lines are terminated by an ASCII LF (Unix) or CRLF (Windows) sequence.
+definition  = line*                                 # An empty file is a valid definition.
+line        = statement? _? comment? end_of_line    # End-of-line after the last statement is mandatory.
 comment     = ~r"#[^\r\n]*"
-end_of_line = ~r"\r?\n?"
-_           = ~r"[ \t]+"
+end_of_line = ~r"\r?\n"                             # Unix/Windows
+_           = ~r"[ \t]+"                            # Whitespace
 
 # Possible kinds of statements.
 statement   = directive / service_response_marker / attribute
