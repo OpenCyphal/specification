@@ -35,10 +35,14 @@ The DSDL name pattern for void types is as follows: ``\verb|void[1-9]\d?|'',
 where the trailing one- or two-digit integer represents the length of the void field, in bits,
 ranging from 1 to 64, inclusive.
 
+Void types can be referred to directly by their name from any namespace.
+
 \subsubsection{Primitive types}
 
 Primitive types are defined here. They are assumed to be known to DSDL processing tools a priori,
 and as such, they need not be defined by the user.
+Primitive types can be referred to directly by their name from any namespace.
+
 The following text defines DSDL name patterns using the POSIX Extended Regular Expression (ERE) notation.
 
 The hierarchy of primitive types is documented below.
