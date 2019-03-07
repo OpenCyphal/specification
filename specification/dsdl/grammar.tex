@@ -12,47 +12,45 @@ Parsimonious is an MIT-licensed software product authored by Erik Rose;
 its sources are available at \url{https://github.com/erikrose/parsimonious}.}.
 The rule definition patterns are specified in the table \ref{table:dsdl_grammar_definition_notation}.
 
-\begin{table}[htb]
-    \begin{UAVCANSimpleTable}{Notation used in the formal grammar definition}{|l X|}
-        \label{table:dsdl_grammar_definition_notation}
-        Pattern & Description \\
+\begin{UAVCANSimpleTable}{Notation used in the formal grammar definition}{|l X|}
+    \label{table:dsdl_grammar_definition_notation}
+    Pattern & Description \\
 
-        \texttt{"korovan"} &
-        Denotes a terminal string of ASCII characters.
-        The string is case-sensitive. \\
+    \texttt{"korovan"} &
+    Denotes a terminal string of ASCII characters.
+    The string is case-sensitive. \\
 
-        \emph{(space)} &
-        Concatenation.
-        E.g., \texttt{korovan paukan excavator} matches a sequence where the specified tokens
-        appear in the defined order. \\
+    \emph{(space)} &
+    Concatenation.
+    E.g., \texttt{korovan paukan excavator} matches a sequence where the specified tokens
+    appear in the defined order. \\
 
-        \texttt{korovan / paukan / excavator} &
-        Alternatives.
-        The leftmost matching alternative is accepted. \\
+    \texttt{korovan / paukan / excavator} &
+    Alternatives.
+    The leftmost matching alternative is accepted. \\
 
-        \texttt{korovan?} &
-        Optional greedy match. \\
+    \texttt{korovan?} &
+    Optional greedy match. \\
 
-        \texttt{paukan*} &
-        Zero or more expressions, greedy match. \\
+    \texttt{paukan*} &
+    Zero or more expressions, greedy match. \\
 
-        \texttt{excavator+} &
-        One or more expressions, greedy match. \\
+    \texttt{excavator+} &
+    One or more expressions, greedy match. \\
 
-        \texttt{\textasciitilde{}r"regex-pattern"} &
-        An IEEE POSIX Extended Regular Expression pattern defined between the double quotes.
-        The expression operates on the ASCII character set and is always case-sensitive.
-        ASCII escape sequences ``\texttt{\textbackslash{}r}'', ``\texttt{\textbackslash{}n}'', and
-        ``\texttt{\textbackslash{}t}'' are used to denote ASCII carriage return (code 13),
-        line feed (code 10), and tabulation (code 9) characters, respectively. \\
+    \texttt{\textasciitilde{}r"regex-pattern"} &
+    An IEEE POSIX Extended Regular Expression pattern defined between the double quotes.
+    The expression operates on the ASCII character set and is always case-sensitive.
+    ASCII escape sequences ``\texttt{\textbackslash{}r}'', ``\texttt{\textbackslash{}n}'', and
+    ``\texttt{\textbackslash{}t}'' are used to denote ASCII carriage return (code 13),
+    line feed (code 10), and tabulation (code 9) characters, respectively. \\
 
-        \texttt{\textasciitilde{}r'regex-pattern'} &
-        As above, with single quotes instead of double quotes. \\
+    \texttt{\textasciitilde{}r'regex-pattern'} &
+    As above, with single quotes instead of double quotes. \\
 
-        \texttt{(korovan paukan)} &
-        Parentheses are used for grouping. \\
-    \end{UAVCANSimpleTable}
-\end{table}
+    \texttt{(korovan paukan)} &
+    Parentheses are used for grouping. \\
+\end{UAVCANSimpleTable}
 
 \subsection{Definition}
 
@@ -60,4 +58,4 @@ From the top level down to the expression rule, the grammar is a valid regular g
 meaning that it can be parsed using standard regular expressions.
 The expression syntax is modeled after that of the Python programming language.
 
-\clearpage\inputminted[fontsize=\scriptsize]{python}{dsdl/grammar.parsimonious}
+\inputminted[fontsize=\scriptsize]{python}{dsdl/grammar.parsimonious}

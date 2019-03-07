@@ -14,20 +14,20 @@ attribute   = constant / field
 # Fields define data entries that form the message body.
 field           = scalar_field / array_field / padding_field
 scalar_field    = field_type_spec _ attribute_name
-array_field     = fixed_size_array_field / variable_size_array_field
+array_field     = fixed_size_array_field / variable_length_array_field
 field_type_spec = (cast_mode _)? type_name
-padding_field   = ~r"void\d\d?"
+padding_field   = ~r"void[1-9]\d?"
 cast_mode       = "truncated" / "saturated"
 
 # Arrays are a special kind of fields, their syntax is slightly more complex.
 # The capacity specification expression must yield an integer.
-fixed_size_array_field    = field_type_spec _? "[" _? expression _? "]" _? attribute_name
-variable_size_array_field = field_type_spec _? "[" _? variable_size_array_capacity_spec _? expression _? "]" _?
-                            attribute_name
-variable_size_array_capacity_spec = variable_size_array_capacity_spec_inclusive /
-                                    variable_size_array_capacity_spec_exclusive
-variable_size_array_capacity_spec_inclusive = "<="  # Handled first, otherwise "=" would never be consumed.
-variable_size_array_capacity_spec_exclusive = "<"
+fixed_size_array_field      = field_type_spec _? "[" _? expression _? "]" _? attribute_name
+variable_length_array_field = field_type_spec _? "[" _? variable_length_array_capacity_spec _? expression _? "]" _?
+                              attribute_name
+variable_length_array_capacity_spec = variable_length_array_capacity_spec_inclusive /
+                                      variable_length_array_capacity_spec_exclusive
+variable_length_array_capacity_spec_inclusive = "<="  # Handled first, otherwise "=" would never be consumed.
+variable_length_array_capacity_spec_exclusive = "<"
 
 # Constants do not participate in data exchange.
 # The expression must yield a compatible type.

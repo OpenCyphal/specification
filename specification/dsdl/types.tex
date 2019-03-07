@@ -1,0 +1,197 @@
+\section{Types}
+
+\subsection{Void types}
+
+Void types are used for padding purposes.
+As will be explained in later sections, it is desirable to align fields at byte boundaries;
+void types can be used to facilitate that.
+
+Void-typed fields are set to zero when a data structure is serialized and ignored when it is deserialized.
+Void types can be used to reserve space in data type definitions for possible use in later versions of the data type.
+
+The DSDL name pattern for void types is as follows: ``\verb|void[1-9]\d?|'',
+where the trailing one- or two-digit integer represents the length of the void field, in bits,
+ranging from 1 to 64, inclusive.
+
+Void types can be referred to directly by their name from any namespace.
+
+\subsection{Primitive types}
+
+Primitive types are defined here. They are assumed to be known to DSDL processing tools a priori,
+and as such, they need not be defined by the user.
+Primitive types can be referred to directly by their name from any namespace.
+
+The following text defines DSDL name patterns using the POSIX Extended Regular Expression (ERE) notation.
+
+The hierarchy of primitive types is documented below.
+
+\begin{itemize}
+    \item \textbf{Boolean types.} A boolean-typed value represents a variable of the Boolean algebra.
+    A Boolean-typed value can have two values: true and false.
+    The corresponding DSDL data type name is ``\verb|bool|''.
+
+    \item \textbf{Algebraic types.} Those are types for which conventional algebraic operators are defined.
+    \begin{itemize}
+        \item \textbf{Integer types} are used to represent signed and unsigned integer values.
+        See table \ref{table:dsd_integer_properties}.
+        \begin{itemize}
+            \item \textbf{Signed integer types.} These are used to represent values which can be negative.
+            The corresponding DSDL data type name pattern is ``\verb|int[1-9]\d?|'',
+            where the trailing one- or two-digit integer represents the length of the
+            encoded representation of the value, in bits, ranging from 2 to 64, inclusive.
+
+            \item \textbf{Unsigned integer types.} These are used to represent non-negative values.
+            The corresponding DSDL data type name pattern is ``\verb|uint[1-9]\d?|'',
+            where the trailing one- or two-digit integer represents the length of the
+            encoded representation of the value, in bits, ranging from 2 to 64, inclusive.
+        \end{itemize}
+
+        \item \textbf{Floating point types} are used to approximately represent real values.
+        The underlying encoded representation follows the IEEE 754 standard.
+        The corresponding DSDL data type name pattern is ``\verb~float(16|32|64)~'', where the trailing
+        integer represents the type of the IEEE 754 representation.
+        See table \ref{table:dsd_floating_point_properties}.
+    \end{itemize}
+\end{itemize}
+
+\begin{UAVCANSimpleTable}{Properties of integer types}{|l X l|}
+    Category &
+    DSDL names &
+    Range, $X$ is bit length
+    \label{table:dsd_integer_properties} \\
+
+    Signed integers &
+    \texttt{int2}, \texttt{int3}, \texttt{int4} \ldots{} \texttt{int62}, \texttt{int63}, \texttt{int64} &
+    $\left[-\frac{2^{X}}{2},\frac{2^{X}}{2}-1\right]$ \\
+
+    Unsigned integers &
+    \texttt{uint2}, \texttt{uint3}, \texttt{uint4} \ldots{} \texttt{uint62}, \texttt{uint63}, \texttt{uint64} &
+    $\left[0,2^{X}-1\right]$ \\
+\end{UAVCANSimpleTable}
+
+\begin{UAVCANSimpleTable}{Properties of floating point types}{|X X X X|}
+    DSDL name        & Representation    & Approximate epsilon   & Approximate range
+    \label{table:dsd_floating_point_properties} \\
+
+    \texttt{float16} & IEEE 754 binary16 & $0.001$               & $\pm{}65504$      \\
+    \texttt{float32} & IEEE 754 binary32 & $10^{-7}$             & $\pm{}10^{39}$    \\
+    \texttt{float64} & IEEE 754 binary64 & $2 \times{} 10^{-16}$ & $\pm{}10^{308}$   \\
+\end{UAVCANSimpleTable}
+
+An exhaustive list of all void and primitive types ordered by bit length is provided below for reference.
+
+\immediate\write18{rm -f ../latex.tmp}
+\immediate\write18{../render_list_of_void_and_primitive_types.py > ../latex.tmp}
+\immediate\input{../latex.tmp}
+
+\subsection{Array types}
+
+An array type represents an ordered collection of values.
+All values in the collection share the same type, which is referred to as \emph{array element type}.
+The array element type can be any type except:
+\begin{itemize}
+    \item void type;
+    \item array type\footnote{Meaning that nested arrays are not allowed;
+    however, the array element type can be a compound type which in turn may contain arrays.
+    In other words, indirect nesting of arrays is permitted.}.
+\end{itemize}
+
+The number of elements in the array can be specified as a constant at the data type definition time,
+in which case the array is said to be a \emph{fixed-length array}.
+Alternatively, the number of elements can vary between zero and some static limit specified
+at the data type definition time,
+in which case the array is said to be a \emph{variable-length array}.
+Variable-length arrays with unbounded maximum number of elements cannot be defined in DSDL.
+
+Arrays are defined by adding a pair of square brackets after the array element type specification,
+where the brackets contain the \emph{array capacity expression}\footnote{%
+Expressions are reviewed in detail in section \ref{sec:dsdl_expressions}.}.
+The array capacity expression must yield a positive integer upon its evaluation;
+any other type or a non-positive integer must be treated as a malformed definition.
+
+The array capacity expression can be prefixed with the following character sequences in order to define
+a variable-length array:
+\begin{itemize}
+    \item ``\verb|<|'' (ASCII code 60) --- indicates that the integer value yielded by the array capacity expression
+    specifies the non-inclusive upper boundary of the number of elements.
+
+    \item ``\verb|<=|'' (ASCII code 60 followed by 61) --- same as above, but the upper boundary is inclusive.
+\end{itemize}
+If neither of the above prefixes are provided, the resultant definition is that of a fixed-length array.
+
+\subsection{Compound types}
+
+\subsubsection{Kinds}
+
+There are two kinds of compound data type definitions: message types and service types.
+All versions of a data type definition must be of the same kind\footnote{%
+For example, if a data type version 0.1 is of a message kind, all later versions of it must be messages, too.}.
+
+A message data type definition contains the description of the message data structure without any additional entities.
+The data structure description may be empty, i.e. it may define no fields or constants.
+
+A service data type definition contains the description of two data structures:
+the service request structure followed by the service response structure.
+The two structures are separated by the service response marker (``\verb|---|'') on a separate line.
+Either or both of the structures may be empty.
+
+The presence of the service response marker indicates that the data type definition at hand is of the service kind.
+There may be no more than one service response marker in a given definition.
+
+\subsubsection{Dependencies}
+
+In order to refer to a compound type from another compound type definition
+(e.g., for nesting or for referring to an external constant),
+one has to specify the full data type name of the referred data type followed by its
+major and minor version numbers separated by the namespace separator character,
+as demonstrated on the figure \ref{fig:dsdl_nested_reference}.
+
+To facilitate look-up of external dependencies,
+implementations are expected to receive from external sources%
+\footnote{For example, from user-provided configuration options.}
+the list of directories that are the roots of namespaces containing the referred dependencies.
+
+\begin{figure}[H]
+    $$
+    \underbrace{\texttt{\huge{uavcan.node.Heartbeat}}}_{\text{Full data type name}}%
+    \texttt{\huge{.}}%
+    \underbrace{\texttt{\huge{1.0}}}_{\substack{\text{version} \\ \text{numbers}}}%
+    $$
+    \caption{Reference to an external compound data type definition.\label{fig:dsdl_nested_reference}}
+\end{figure}
+
+If the referred data type and the referring data type share the same full namespace name,
+it is allowed to omit the namespace from the referred data type specification
+leaving only the short data type name, as demonstrated on the figure \ref{fig:dsdl_nested_reference_short}.
+In this case, the referred data type will be looked for in the namespace of the referrer.
+Partial omission of namespace components is not permitted.
+
+\begin{figure}[H]
+    $$
+    \underbrace{\texttt{\huge{Heartbeat}}}_{\text{Short data type name}}%
+    \texttt{\huge{.}}%
+    \underbrace{\texttt{\huge{1.0}}}_{\substack{\text{version} \\ \text{numbers}}}%
+    $$
+    \caption{Reference to an external compound data type definition located in the same namespace.
+    \label{fig:dsdl_nested_reference_short}}
+\end{figure}
+
+Circular dependencies are not permitted.
+A circular dependency renders all of the definitions involved in the dependency loop invalid.
+
+If any of the referred definitions are marked as deprecated,
+the referring definition must be marked deprecated as well\footnote{%
+Deprecation is indicated with the help of a special directive, as explained in section \ref{sec:dsdl_directives}}.
+If a non-deprecated definition refers to a deprecated definition,
+the referring definition is malformed\footnote{%
+This poisonous deprecation rule is designed to prevent unexpected breakage of
+type hierarchies when one of the deprecated dependencies reaches its end of life.}.
+
+\subsubsection{Unions}
+
+Any data structure definition can be supplied with a special directive indicating that the containing
+data structure is a tagged union\footnote{Section \ref{sec:dsdl_directives}.}.
+
+A tagged union must define at least two fields.
+The value of a tagged union is a function of the field which value it is currently holding
+and the value of the field itself.

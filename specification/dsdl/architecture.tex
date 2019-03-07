@@ -187,8 +187,8 @@ A data type definition file contains an exhaustive description of a particular v
 As explained above, one definition contains either one or two data structures,
 for message types and service types, respectively.
 
-A data structure is an ordered, possibly empty collection of fields and/or
-unordered, possibly empty collection of constants.
+A data structure is an ordered, possibly empty collection of \emph{fields} and/or
+unordered, possibly empty collection of \emph{constants}.
 The value of a regular data structure is a function of the values of all of its fields.
 There is one special case of \emph{tagged unions} --- a tagged union is a special data structure
 for which at least two fields are defined, but it is capable of holding exactly one field at any given time.
@@ -203,10 +203,16 @@ or a \emph{compound type}
 (i.e., a type which is defined in DSDL notation; for example, a standard message type \verb|uavcan.node.Heartbeat|).
 Fixed-size and variable-size array types are also available.
 
+A padding field is a special kind of field which is used for data alignment purposes.
+Padding fields are not named.
+
 A constant represents a named statically assigned value of a statically defined type
 that is provided directly in the DSDL source text by the data type designer.
 Constants are never exchanged over the network, since they are assumed to be known to all involved nodes
 by virtue of them sharing the same static definition of the data type.
+
+There is a generic term --- \emph{attribute} --- which is used to refer to
+either a field (including padding fields) or a constant.
 
 Data type definitions can also contain auxiliary elements, such as deprecation markers
 (notifying its users that the data type is no longer recommended for new designs)
