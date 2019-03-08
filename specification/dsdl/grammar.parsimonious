@@ -35,7 +35,7 @@ constant = type_name _ attribute_name _? "=" _? expression
 
 # Attribute dependency tokens; some of them are simply aliased for clarity.
 attribute_name = name_component
-type_name      = compound_name ("." type_version)?
+type_name      = compound_name ("." type_version)?  # Built-in types are not versioned
 type_version   = decimal_integer "." decimal_integer
 
 # Separates service request from service response,
@@ -53,7 +53,7 @@ directive_name = name_component
 
 # The rest of the rules is used to define expressions. The aliasing is added for clarity.
 # Since DSDL definitions cannot be used to describe runtime logic, all expressions are constant expressions,
-# evaluated at the time of definition processing.
+# evaluated at the time of parsing.
 expression      = logical_or_ex
 expression_list = expression (_? "," _? expression)*
 
@@ -73,8 +73,11 @@ multiplicative_ex = unary_ex          (_? ("*" / "//" / "/" / "%") _? unary_ex)*
 unary_ex          = power_ex / (("-" / "+") _? unary_ex)
 power_ex          = atom (_? "**" _? unary_ex)?
 
-# An atom is a basic part of an expression.
-atom = set / parenthetical / literal / compound_name
+# An atom is a basic part of an expression, such literals or attributes (local or external)
+atom = set / parenthetical / literal / attribute_reference
+
+# Reference to a local attribute or external attribute. Decimals are needed to handle version numbers.
+attribute_reference = name_component ("." (name_component / decimal_integer))*
 
 # A set is a notation used to represent mathematical sets.
 set = "{" _? expression_list _? "}"
@@ -83,7 +86,7 @@ set = "{" _? expression_list _? "}"
 parenthetical = "(" _? expression _? ")"
 
 # Literals. Reals are defined first to avoid ambiguities.
-literal = real / integer / string
+literal = real / integer / string / boolean
 
 # Integers.
 integer             = binary_integer / octal_integer / hexadecimal_integer / decimal_integer
@@ -104,3 +107,6 @@ real_digits            = ~r"[0-9](_?[0-9])*"
 string               = single_quoted_string / double_quoted_string
 single_quoted_string = ~r"'[^'\\]*(\\[^\r\n][^'\\]*)*'"
 double_quoted_string = ~r'"[^"\\]*(\\[^\r\n][^"\\]*)*"'
+
+# Boolean literals
+boolean = "true" / "false"
