@@ -23,6 +23,8 @@ import os
 import re
 import sys
 import pydsdl
+import pickle
+import subprocess
 from fnmatch import fnmatch
 from functools import partial
 from collections import OrderedDict
@@ -30,6 +32,8 @@ from collections import OrderedDict
 SOURCE_ROOT_DIRECTORY = os.path.abspath(os.path.dirname(__file__))
 
 ROOT_NAMESPACE_SUPERDIRECTORY = os.path.join(SOURCE_ROOT_DIRECTORY, 'dsdl')
+
+CACHE_FILE_NAME_SUFFIX = '.dsdl.cache'
 
 
 sys.stderr = sys.stdout
@@ -44,7 +48,12 @@ def escape(s: str) -> str:
     return s.replace('_', r'\_')
 
 
-def render_dsdl_length_table(t: pydsdl.data_type.CompoundType) -> str:
+def get_dsdl_submodule_commit_hash() -> str:
+    return subprocess.check_output(['git', 'rev-parse', 'HEAD'],
+                                   cwd=ROOT_NAMESPACE_SUPERDIRECTORY).decode('ascii').strip()
+
+
+def render_dsdl_length_table(t: pydsdl.CompoundType) -> str:
     def bit_to_byte(val: tuple) -> tuple:
         return tuple((x + 7) // 8 for x in val)
 
@@ -70,7 +79,7 @@ def render_dsdl_length_table(t: pydsdl.data_type.CompoundType) -> str:
             ]
         ]
 
-    if isinstance(t, pydsdl.data_type.ServiceType):
+    if isinstance(t, pydsdl.ServiceType):
         length_table_rows = 'Request length  &' + '&'.join(rlen_group(t.request_type.bit_length_range)) + r'\\' +\
                             'Response length &' + '&'.join(rlen_group(t.response_type.bit_length_range)) + r'\\'
     else:
@@ -86,7 +95,7 @@ def render_dsdl_length_table(t: pydsdl.data_type.CompoundType) -> str:
     ])
 
 
-def render_dsdl_definition(t: pydsdl.data_type.CompoundType) -> str:
+def render_dsdl_definition(t: pydsdl.CompoundType) -> str:
     minted_params = r'fontsize=\scriptsize, numberblanklines=true, baselinestretch=0.9, autogobble=false'
     return '\n'.join([
         r'\begin{minted}[%s]{python}' % minted_params,
@@ -105,21 +114,24 @@ try:
 except IndexError:
     die('Expected full type name glob, e.g., "uavcan.node.Heartbeat" or "uavcan.file.*"')
 
-# Find out which namespace directories to parse
+# Find out which namespace directories to read
 root_namespaces = list(filter(os.path.isdir,
                               map(partial(os.path.join, ROOT_NAMESPACE_SUPERDIRECTORY),
                                   os.listdir(ROOT_NAMESPACE_SUPERDIRECTORY))))
 
-# Parse all namespaces and join the results into one big list
-parsed_types = sum([
-    pydsdl.parse_namespace(ns,
-                           lookup_directories=root_namespaces,
-                           skip_assertion_checks=True)
-    for ns in root_namespaces
-], [])
+# Read all namespaces and join the results into one big list
+cache_file_name = get_dsdl_submodule_commit_hash() + CACHE_FILE_NAME_SUFFIX
+try:
+    types = pickle.load(open(cache_file_name, 'rb'))
+except Exception as ex:
+    if not isinstance(ex, FileNotFoundError):
+        with open('cache_read_error.tmp', 'w') as f:
+            f.write(repr(ex))
+    types = sum([pydsdl.read_namespace(ns, root_namespaces) for ns in root_namespaces], [])
+    pickle.dump(types, open(cache_file_name, 'wb'))
 
 # Filter according to the specified pattern
-matching = list(filter(lambda t: fnmatch(t.full_name, pattern), parsed_types))
+matching = list(filter(lambda t: fnmatch(t.full_name, pattern), types))
 if not matching:
     die('No types match the pattern: %s' % pattern)
 
@@ -137,7 +149,7 @@ if '*' not in pattern:
         die('All versions of the type %s are deprecated, nothing to display' % pattern)
 
     t = matching_except_deprecated[0]       # Due to sorting, newest version ends up first
-    service_or_subject = 'service' if isinstance(t, pydsdl.data_type.ServiceType) else 'subject'
+    service_or_subject = 'service' if isinstance(t, pydsdl.ServiceType) else 'subject'
     print(r'The DSDL source text of \verb|%s|' % t.full_name)
     print('version %d.%d' % t.version)
     if len(matching) > 2:
@@ -213,7 +225,7 @@ for namespace, ns_type_mapping in grouped.items():
         versions.sort(key=lambda t: -t.version.major * 1000 - t.version.minor)
         for index, t in enumerate(versions):
             is_first = index == 0
-            is_service = isinstance(t, pydsdl.data_type.ServiceType)
+            is_service = isinstance(t, pydsdl.ServiceType)
             at_least_one_type_emitted = True
 
             # Allow page breaks only when switching namespaces
@@ -271,10 +283,10 @@ for namespace, children in grouped.items():
             print(r'\label{sec:dsdl:%s}' % ns)
 
     for full_name, versions in children.items():
-        is_service = isinstance(versions[0], pydsdl.data_type.ServiceType)
+        is_service = isinstance(versions[0], pydsdl.ServiceType)
 
         print(r'\pagebreak[3]{}')
-        print(r'\subsection{%s}' % full_name.split(pydsdl.data_type.CompoundType.NAME_COMPONENT_SEPARATOR)[-1])
+        print(r'\subsection{%s}' % full_name.split(pydsdl.CompoundType.NAME_COMPONENT_SEPARATOR)[-1])
         print(r'\label{sec:dsdl:%s}' % full_name)
         print(r'Full %s type name: {\bfseries\texttt{%s}}' %
               ('service' if is_service else 'message', escape(full_name)))
