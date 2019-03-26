@@ -56,6 +56,8 @@ The rule definition patterns are specified in the table \ref{table:dsdl_grammar_
 
 From the top level down to the expression rule, the grammar is a valid regular grammar,
 meaning that it can be parsed using standard regular expressions.
-The expression syntax is modeled after that of the Python programming language.
 
-\inputminted[fontsize=\scriptsize]{python}{dsdl/grammar.parsimonious}
+The grammar definition provided here assumes lexerless parsing;
+that is, it applies directly to the unprocessed source text of the definition.
+
+\clearpage\inputminted[fontsize=\scriptsize]{python}{dsdl/grammar.parsimonious}
