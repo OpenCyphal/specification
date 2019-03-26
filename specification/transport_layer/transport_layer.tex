@@ -102,13 +102,6 @@ intended for use with anonymous message transfers:
 when used with anonymous transfers, the whole message must fit into a single transport frame;
 however, the same data type can be used with multi-frame regular (non-anonymous) transfers, if desired.
 
-The set of message subject ID values that can be used with anonymous messages may be limited
-depending on the transport protocol in use\footnote{This is considered to be an acceptable limitation because
-anonymous transfers are intended for an extremely limited set of use cases.}.
-It is guaranteed, however, that the subject ID values in the range
-from 65528 ($\text{FFF8}_\text{16}$) to 65535 ($\text{FFFF}_\text{16}$), inclusively,
-are always available for use with anonymous messages regardless of the transport in use.
-
 Anonymous messages may require special handling logic depending on the transport layer in use.
 
 \subsubsection{Message timing requirements}
