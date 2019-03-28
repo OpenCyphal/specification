@@ -51,10 +51,10 @@ but they are convenient for discussion).
 
 Message and service data types\footnote{Data types are the core concept of UAVCAN.}
 are defined using the \emph{data structure description language} (DSDL) (chapter \ref{sec:dsdl}).
-A DSDL definition specifies the name, major version, minor version, the data structure,
+A DSDL definition specifies the name, major version, minor version, the data schema,
 and an optional predefined port ID of the data type.
-Message data types always contain exactly one data structure, whereas
-service data types contain two data structures: one for request, and the other for response.
+Message data types always define exactly one data schema, whereas
+service data types contain two independent schema definitions: one for request, and the other for response.
 
 If a port identifier is specified in a data type definition, such identifier is said to be a
 \emph{fixed port identifier}
@@ -152,13 +152,14 @@ Alternatively, a DSDL description can be used to construct appropriate serializa
 DSDL ensures that the worst case memory footprint and computational complexity per data type
 are constant and easily predictable.
 
-Serialized message and service data structures are exchanged by means of the transport
+Serialized message and service objects are exchanged by means of the transport
 layer (chapter \ref{sec:transport_layer}), which implements automatic decomposition of
 long transfers into several transport frames\footnote{Here and
 elsewhere, a \emph{transport frame} means a block of data that can be atomically exchanged
 over the transport layer network, e.g., a CAN frame.} and reassembly from these transport frames
-back into a single atomic data block, allowing nodes to exchange data structures of
-arbitrary size.
+back into a single atomic data block, allowing nodes to exchange serialized objects of
+arbitrary size (DSDL guarantees, however, that the size of the serialized representation
+of any object of any data type is always bounded and known statically).
 
 \subsection{High-level functions}
 
@@ -191,7 +192,7 @@ For more information see chapter \ref{sec:application_layer}.
 
 \section{Message publication}
 
-Message publication refers to the transmission of a serialized data structure over the network to other nodes.
+Message publication refers to the transmission of a serialized message object over the network to other nodes.
 This is the primary data exchange mechanism used in UAVCAN;
 it is functionally similar to raw data exchange with minimal overhead,
 additional communication integrity guarantees, and automatic decomposition and reassembly of long payloads
@@ -203,7 +204,7 @@ Information contained in a published message is summarized in the table \ref{tab
 
 \begin{UAVCANSimpleTable}{Published message properties}{|l X|}\label{table:published_message_info}
     Property        & Description \\
-    Payload         & The serialized message data structure. \\
+    Payload         & The serialized message object. \\
     Subject ID      & Numerical identifier that indicates how the information should be interpreted. \\
     Source node ID  & The node ID of the transmitting node (excepting anonymous messages). \\
     Transfer ID     & A small overflowing integer that increments with every transfer
@@ -251,7 +252,7 @@ table \ref{table:service_req_resp_info}.
 
 \begin{UAVCANSimpleTable}{Service request/response properties}{|l X|}\label{table:service_req_resp_info}
     Property        & Description \\
-    Payload         & The serialized request/response data structure. \\
+    Payload         & The serialized request/response object. \\
     Service ID      & Numerical identifier that indicates how the service should be handled. \\
     Client node ID  & Source node ID during request transfer, destination node ID during response transfer. \\
     Server node ID  & Destination node ID during request transfer, source node ID during response transfer. \\

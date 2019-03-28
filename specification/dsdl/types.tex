@@ -2,22 +2,24 @@
 
 \subsection{Void types}
 
-Void types are used for padding purposes.
+Void types belong to the set of fundamental types.
+They are used for padding purposes.
 As will be explained in later sections, it is desirable to align fields at byte boundaries;
 void types can be used to facilitate that.
 
-Void-typed fields are set to zero when a data structure is serialized and ignored when it is deserialized.
+Void-typed fields are set to zero when an object is serialized and ignored when it is deserialized.
 Void types can be used to reserve space in data type definitions for possible use in later versions of the data type.
 
 The DSDL name pattern for void types is as follows: ``\verb|void[1-9]\d?|'',
-where the trailing one- or two-digit integer represents the length of the void field, in bits,
+where the trailing integer represents the length of the void field, in bits,
 ranging from 1 to 64, inclusive.
 
 Void types can be referred to directly by their name from any namespace.
 
 \subsection{Primitive types}
 
-Primitive types are defined here. They are assumed to be known to DSDL processing tools a priori,
+Primitive types belong to the set of fundamental types.
+They are assumed to be known to DSDL processing tools a priori,
 and as such, they need not be defined by the user.
 Primitive types can be referred to directly by their name from any namespace.
 
@@ -37,12 +39,12 @@ The hierarchy of primitive types is documented below.
         \begin{itemize}
             \item \textbf{Signed integer types.} These are used to represent values which can be negative.
             The corresponding DSDL data type name pattern is ``\verb|int[1-9]\d?|'',
-            where the trailing one- or two-digit integer represents the length of the
+            where the trailing integer represents the length of the
             encoded representation of the value, in bits, ranging from 2 to 64, inclusive.
 
             \item \textbf{Unsigned integer types.} These are used to represent non-negative values.
             The corresponding DSDL data type name pattern is ``\verb|uint[1-9]\d?|'',
-            where the trailing one- or two-digit integer represents the length of the
+            where the trailing integer represents the length of the
             encoded representation of the value, in bits, ranging from 2 to 64, inclusive.
         \end{itemize}
 
@@ -101,13 +103,13 @@ in which case the array is said to be a \emph{fixed-length array}.
 Alternatively, the number of elements can vary between zero and some static limit specified
 at the data type definition time,
 in which case the array is said to be a \emph{variable-length array}.
-Variable-length arrays with unbounded maximum number of elements cannot be defined in DSDL.
+Variable-length arrays with unbounded maximum number of elements are not allowed.
 
 Arrays are defined by adding a pair of square brackets after the array element type specification,
 where the brackets contain the \emph{array capacity expression}\footnote{%
 Expressions are reviewed in detail in section \ref{sec:dsdl_expressions}.}.
 The array capacity expression must yield a positive integer upon its evaluation;
-any other type or a non-positive integer must be treated as a malformed definition.
+any other value or type renders the current DSDL definition invalid.
 
 The array capacity expression can be prefixed with the following character sequences in order to define
 a variable-length array:
@@ -127,13 +129,11 @@ There are two kinds of compound data type definitions: message types and service
 All versions of a data type definition must be of the same kind\footnote{%
 For example, if a data type version 0.1 is of a message kind, all later versions of it must be messages, too.}.
 
-A message data type definition contains the description of the message data structure without any additional entities.
-The data structure description may be empty, i.e. it may define no fields or constants.
+A message data type defines one data schema.
 
-A service data type definition contains the description of two data structures:
-the service request structure followed by the service response structure.
-The two structures are separated by the service response marker (``\verb|---|'') on a separate line.
-Either or both of the structures may be empty.
+A service data type contains two data schema definitions:
+one for service request object, and one for service response object, in that order.
+The two schemas are separated by the service response marker (``\verb|---|'') on a separate line.
 
 The presence of the service response marker indicates that the data type definition at hand is of the service kind.
 There may be no more than one service response marker in a given definition.
@@ -184,14 +184,14 @@ the referring definition must be marked deprecated as well\footnote{%
 Deprecation is indicated with the help of a special directive, as explained in section \ref{sec:dsdl_directives}}.
 If a non-deprecated definition refers to a deprecated definition,
 the referring definition is malformed\footnote{%
-This poisonous deprecation rule is designed to prevent unexpected breakage of
+This tainting behavior is designed to prevent unexpected breakage of
 type hierarchies when one of the deprecated dependencies reaches its end of life.}.
 
 \subsubsection{Unions}
 
-Any data structure definition can be supplied with a special directive indicating that the containing
-data structure is a tagged union\footnote{Section \ref{sec:dsdl_directives}.}.
+Any data schema definition can be supplied with a special directive indicating that
+it forms a tagged union\footnote{Section \ref{sec:dsdl_directives}.}.
 
-A tagged union must define at least two fields.
-The value of a tagged union is a function of the field which value it is currently holding
+A tagged union schema must contain at least two fields.
+The value of a tagged union object is a function of the field which value it is currently holding
 and the value of the field itself.

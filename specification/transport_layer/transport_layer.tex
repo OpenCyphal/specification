@@ -62,7 +62,7 @@ The properties listed in the table \ref{table:common_transfer_properties} are co
 
 \begin{UAVCANSimpleTable}{Common transfer properties}{|l X|}\label{table:common_transfer_properties}
     Property        & Description \\
-    Payload         & The serialized data structure. \\
+    Payload         & The serialized object. \\
     Port ID         & A numerical identifier that indicates how the data should be processed.
                       This is the subject ID for message transfers and service ID for service transfers. \\
     Source node ID  & The node ID of the transmitting node (excepting anonymous message transfers). \\
@@ -76,7 +76,7 @@ The properties listed in the table \ref{table:common_transfer_properties} are co
 
 Message publication is the main method of communication between UAVCAN nodes.
 
-A published message is carried by a single message transfer that contains the serialized message data structure.
+A published message is carried by a single message transfer that contains the serialized message object.
 A published message does not contain any additional fields besides those listed in the table
 \ref{table:common_transfer_properties}.
 
@@ -132,7 +132,7 @@ The client and the server must be two distinct nodes.
 
 \begin{UAVCANSimpleTable}{Service request transfer properties}{|l X|}\label{table:service_request_transfer_properties}
     Property                        & Description \\
-    Payload                         & The serialized service request data structure. \\
+    Payload                         & The serialized service request object. \\
     Service ID                      & See the table \ref{table:common_transfer_properties}. \\
     Source node ID                  & The node ID of the client (the invoking node). \\
     Destination node ID             & The node ID of the server (the invoked node). \\
@@ -146,7 +146,7 @@ The client and the server must be two distinct nodes.
 
 \begin{UAVCANSimpleTable}{Service response transfer properties}{|l X|}\label{table:service_response_transfer_properties}
     Property                        & Description \\
-    Payload                         & The serialized service response data structure. \\
+    Payload                         & The serialized service response object. \\
     Service ID                      & Same value as in the request transfer. \\
     Source node ID                  & The node ID of the server (the invoked node). \\
     Destination node ID             & The node ID of the client (the invoking node). \\

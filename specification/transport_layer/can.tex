@@ -143,7 +143,7 @@ for message transfers and service transfers, respectively.
 
     Request not response& 1     & $\{0, 1\}$ (any)  & 1 for service request, 0 for service response. \\
 
-    Service ID          & 9     & $[0, 511]$ (any)  & Service ID of the encoded service data structure
+    Service ID          & 9     & $[0, 511]$ (any)  & Service ID of the encoded service object
                                                       (request or response). \\
 
     Destination node ID & 7     & $[0, 127]$ (any)  & Node ID of the destination
@@ -257,7 +257,7 @@ Nodes that receive anonymous transfers must ignore their source node identifiers
 The CAN frame data field may contain the following segments, in the listed order:
 \begin{samepage}
 \begin{enumerate}
-    \item The useful payload (serialized data structure). This segment may be empty.
+    \item The useful payload (serialized object). This segment may be empty.
     \item Possible padding bytes.
           Padding bytes may be necessary if the transport layer does not provide byte-level
           granularity of the data field length (e.g., CAN FD).
@@ -335,7 +335,7 @@ than expected by the deserialization routine.
 \subsubsection{Single-frame transfers}
 
 For single-frame transfers, the data field of the CAN frame contains two or three segments:
-the useful payload (which is the serialized data structure, may be empty), possible padding bytes,
+the useful payload (which is the serialized object, may be empty), possible padding bytes,
 and the tail byte (the last byte of the data field).
 
 The resulting data field segmentation is shown in the table \ref{table:can_data_segments_single_frame}.
@@ -346,7 +346,7 @@ The resulting data field segmentation is shown in the table \ref{table:can_data_
     \hline
     \rowfont{\bfseries}
     Offset                  & Length                     & Segment \\\hline
-    $0$                     & $L_\text{payload}\geq{}0$  & Useful payload (serialized data structure). \\\hline
+    $0$                     & $L_\text{payload}\geq{}0$  & Useful payload (serialized object). \\\hline
     $L_\text{payload}$      & $L_\text{padding}\geq{}0$  & Padding bytes (if necessary). \\\hline
     $L_\text{payload} + L_\text{padding}$ & $1$          & Tail byte. \\\hline
 \end{tabu}
@@ -385,7 +385,7 @@ shown in the table \ref{table:can_data_segments_multi_frame_not_last}.
     \hline
     \rowfont{\bfseries}
     Offset                  & Length                & Segment \\\hline
-    $0$                     & $L_\text{payload}>0$  & A fragment of the useful payload (serialized data structure).
+    $0$                     & $L_\text{payload}>0$  & A fragment of the useful payload (serialized object).
                                                       This segment occupies the entirety of the CAN data field
                                                       except the last byte, which is used by the tail byte.
                                                       No padding is allowed. \\\hline
@@ -408,7 +408,7 @@ The resulting data field segmentation is shown in the table \ref{table:can_data_
     \rowfont{\bfseries}
     Offset                  & Length                     & Segment \\\hline
     $0$                     & $L_\text{payload}\geq{}0$  & The last fragment of the useful payload
-                                                           (serialized data structure). \\\hline
+                                                           (serialized object). \\\hline
     $L_\text{payload}$      & $L_\text{padding}\geq{}0$  & Padding bytes (if necessary). \\\hline
 
     \multirow{2}{*}{$L_\text{payload} + L_\text{padding}$} & \multirow{2}{*}{$2$} &

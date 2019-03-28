@@ -6,14 +6,16 @@ In accordance with the UAVCAN architecture, DSDL allows users to define data typ
 message types and service types.
 Message types are used to exchange data over publish-subscribe one-to-many message links identified by subject-ID,
 and service types are used to perform request-response one-to-one exchanges (like RPC) identified by service-ID.
-A message data type includes one data structure which forms the message body,
-and a service data type includes two data structures: one of them is used for service request transfers
-(from client to server), and the other is used for response transfers (from the server back to the client).
+A message data type defines one data schema of the message object,
+and a service data type contains two independent data schema definitions:
+one of them applies to the request object (transferred from client to server),
+and the other applies to the response object (transferred from the server back to the client).
 
-Following the deterministic nature of UAVCAN, the size of all data structures is bounded and statically known.
+Following the deterministic nature of UAVCAN, the size of a serialized representation of any
+message or service object is bounded within statically known limits.
 Variable-size entities always have a fixed size limit defined by the data type designer.
 
-DSDL definitions are statically typed.
+DSDL definitions are strongly statically typed.
 
 DSDL provides well-defined means of data type versioning, which enable data type maintainers to introduce changes
 to released data types while ensuring backward compatibility with fielded systems.
@@ -23,7 +25,7 @@ backward binary compatibility and data field layouts can be checked and validate
 before the systems utilizing them are fielded.
 
 DSDL definitions can be used to automatically generate serialization (and deserialization) source code
-for any data structure in a target programming language.
+for any data type in a target programming language.
 A tool that is capable of generating serialization code based on a DSDL definition is called a \emph{DSDL compiler}.
 More generically, a software tool designed for working with DSDL definitions is called a \emph{DSDL processor}.
 
@@ -184,24 +186,27 @@ An example DSDL directory structure is shown on the figure \ref{fig:dsdl_definit
 
 A data type definition file contains an exhaustive description of a particular version of the said data type in the
 \emph{data structure description language} (DSDL).
-As explained above, one definition contains either one or two data structures,
+As explained above, one data type definition contains either one or two data schema definitions,
 for message types and service types, respectively.
 
-A data structure is an ordered, possibly empty collection of \emph{fields} and/or
+The term \emph{attribute} is used to refer to either a field (including padding fields) or a constant.
+
+A data schema definition contains an ordered, possibly empty collection of \emph{fields} and/or
 unordered, possibly empty collection of \emph{constants}.
-The value of a regular data structure is a function of the values of all of its fields.
-There is one special case of \emph{tagged unions} --- a tagged union is a special data structure
-for which at least two fields are defined, but it is capable of holding exactly one field at any given time.
-The value of a tagged union is a function of which field it is holding at the moment and the value of said field.
+A data schema may describe either a \emph{structure object} or a \emph{tagged union object}.
+The value of a structure object is a function of the values of all of its fields.
+A tagged union object is formed from at least two fields,
+but it is capable of holding exactly one field at any given time.
+The value of a tagged union object is a function of which field it is holding at the moment and the value of said field.
 
 A field represents a named dynamically assigned value of a statically defined type
-that can be exchanged over the network as a member of its containing data structure.
-A field can be either of a \emph{primitive type}
+that can be exchanged over the network as a member of its containing object.
+A field can be either of a \emph{fundamental type}
 (i.e., a type which is defined in this DSDL specification, known to DSDL processing tools a priori,
 which need not be defined by the user; for example, an integer)
 or a \emph{compound type}
 (i.e., a type which is defined in DSDL notation; for example, a standard message type \verb|uavcan.node.Heartbeat|).
-Fixed-size and variable-size array types are also available.
+Fixed-length and variable-length array types are also available.
 
 A padding field is a special kind of field which is used for data alignment purposes.
 Padding fields are not named.
@@ -211,10 +216,7 @@ that is provided directly in the DSDL source text by the data type designer.
 Constants are never exchanged over the network, since they are assumed to be known to all involved nodes
 by virtue of them sharing the same static definition of the data type.
 
-There is a generic term --- \emph{attribute} --- which is used to refer to
-either a field (including padding fields) or a constant.
-
-Data type definitions can also contain auxiliary elements, such as deprecation markers
-(notifying its users that the data type is no longer recommended for new designs)
+Data type definitions can also contain various auxiliary elements reviewed later,
+such as deprecation markers (notifying its users that the data type is no longer recommended for new designs)
 or assertions (special statements introduced by data type designers
 which are statically validated by DSDL processing tools).
