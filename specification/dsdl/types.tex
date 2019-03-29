@@ -1,5 +1,36 @@
 \section{Types}
 
+\begin{figure}[H]
+    \centering
+    \resizebox{\textwidth}{!}{
+        \Tree [
+            [
+                Void
+                [
+                    Boolean
+                    [
+                        {Floating\\point}
+                        [
+                            {Signed\\integer}
+                            {Unsigned\\integer}
+                        ].Integer
+                    ].Arithmetic
+                ].Primitive
+            ].Fundamental
+            [
+                {Fixed-length\\array}
+                {Variable-length\\array}
+            ].Array
+            [
+                Union
+                Structure
+                Service
+            ].Compound
+        ].Object
+    }
+    \caption{Data type categories.\label{fig:dsdl_data_type_hierarchy}}
+\end{figure}
+
 \subsection{Void types}
 
 Void types belong to the set of fundamental types.
