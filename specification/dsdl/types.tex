@@ -25,6 +25,8 @@ Primitive types can be referred to directly by their name from any namespace.
 
 The following text defines DSDL name patterns using the POSIX Extended Regular Expression (ERE) notation.
 
+\subsubsection{Hierarchy}
+
 The hierarchy of primitive types is documented below.
 
 \begin{itemize}
@@ -80,7 +82,56 @@ The hierarchy of primitive types is documented below.
     \texttt{float64} & IEEE 754 binary64 & $2 \times{} 10^{-16}$ & $\pm{}10^{308}$   \\
 \end{UAVCANSimpleTable}
 
-An exhaustive list of all void and primitive types ordered by bit length is provided below for reference.
+\subsubsection{Cast mode}
+
+The concept of \emph{cast mode} is defined for all primitive types.
+The cast mode defines the behavior when a primitive-typed entity is assigned a value that exceeds its range.
+Such assignment requires some of the information to be discarded;
+due to the loss of information involved, it is called a \emph{lossy assignment}.
+
+The following cast modes are defined:
+\begin{description}
+    \item[Truncated mode] --- denoted with the keyword ``\verb|truncated|'' placed before the primitive type name.
+    \item[Saturated mode] --- denoted with the optional keyword ``\verb|saturated|''
+    placed before the primitive type name. If neither cast mode is specified, saturated mode is assumed by default.
+    This essentially makes the ``\verb|saturated|'' keyword redundant; it is provided only for consistency.
+\end{description}
+
+When a primitive-typed entity is assigned a value that exceeds its range,
+the resulting value is chosen according to the lossy assignment rules
+specified in the table \ref{table:dsdl_cast_mode}.
+Cases that are marked as illegal are not permitted in DSDL definitions.
+
+\begin{UAVCANSimpleTable}{Lossy assignment rules per cast mode}{|l X X|}
+    Type category & Truncated mode & Saturated mode (default)
+    \label{table:dsdl_cast_mode} \\
+
+    Boolean &
+    Illegal: boolean type with truncated cast mode is not allowed. &
+    Falsity if the value is zero or false, truth otherwise. \\
+
+    Signed integer &
+    Illegal: signed integer types with truncated cast mode are not allowed. &
+    Nearest reachable value. \\
+
+    Unsigned integer &
+    Most significant bits are discarded. &
+    Nearest reachable value. \\
+
+    Floating point &
+    Infinity with the same sign, unless the original value is not-a-number, in which case it will be preserved. &
+    If the original value is finite, the nearest finite value will be used.
+    Otherwise, in the case of infinity or not-a-number, the original value will be preserved. \\
+\end{UAVCANSimpleTable}
+
+Rules of conversion between values of different type categories do not affect compatibility at the protocol level,
+and as such, they are to be implementation-defined.
+
+\subsubsection{List of fundamental types}
+
+An exhaustive list of all fundamental types (i.e., void and primitive types)
+ordered by bit length is provided below for reference.
+Note that the cast mode specifier is omitted intentionally.
 
 \immediate\write18{rm -f ../latex.tmp}
 \immediate\write18{../render_list_of_void_and_primitive_types.py > ../latex.tmp}
