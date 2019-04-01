@@ -1,4 +1,20 @@
-\section{Types}
+\section{Serializable types}
+
+Values of the serializable type category can be exchanged between nodes over the UAVCAN network.
+This is opposed to the expression types (section \ref{sec:dsdl_expression_types}),
+instances of which can only exist while DSDL definitions are being evaluated.
+
+The table \ref{table:dsdl_serializable_attributes}
+specifies the category attributes that are defined for all serializable types.
+
+\begin{UAVCANSimpleTable}{Serializable type attributes}{|l l X|}
+    Name & Type & Description
+    \label{table:dsdl_serializable_attributes} \\
+
+    \texttt{\_bit\_length\_} & \texttt{set} of \texttt{rational} &
+    Set of bit length values of all possible serialized representations of instances of this type. \\
+
+\end{UAVCANSimpleTable}
 
 \subsection{Void types}
 
@@ -247,7 +263,7 @@ A tagged union schema must contain at least two fields.
 The value of a tagged union object is a function of the field which value it is currently holding
 and the value of the field itself.
 
-\subsection{Expression types}
+\section{Expression types}\label{sec:dsdl_expression_types}
 
 Expression types are a special category of data types whose instances can only exist and be operated upon
 at the time of DSDL definition processing.
@@ -265,7 +281,7 @@ even if such types can't be used to define attributes,
 a well-defined formal name allows DSDL processing tools to emit well-formed
 and understandable diagnostic messages.
 
-\subsubsection{Rational number}
+\subsection{Rational number}
 
 At the time of DSDL definition processing, integer and real numbers are represented internally as rational numbers
 where the range of numerator and denominator is unlimited\footnote{%
@@ -290,19 +306,19 @@ is not allowed if the source number exceeds the finite range of the target float
 Implicit conversions between boolean-valued entities and rational numbers are not allowed.
 
 \begin{remark}
-    An integer literal \verb|-0x123| will be represented internally as a fraction $\frac{-291}{1}$.
+    An integer literal \verb|-0x123| is represented internally as $\frac{-291}{1}$.
     Such fraction is usable in contexts that expect an integer value.
 
-    A real literal \verb|3.141592653589793| is represented internally as a fraction
+    A real literal \verb|3.141592653589793| is represented internally as
     $\frac{884279719003555}{281474976710656}$.
 
-    A real literal \verb|1234.5678| is represented internally as a fraction
+    A real literal \verb|1234.5678| is represented internally as
     $\frac{6172839}{5000}$, which can be used to initialize a \verb|float16| value,
     resulting in $1235.0$.
     The resulting loss of precision ($1235 - 1234.5678 = 0.4322$) is considered acceptable.
 \end{remark}
 
-\subsubsection{Unicode string}
+\subsection{Unicode string}
 
 This type contains a sequence of Unicode characters.
 It is used to represent string literals internally.
@@ -351,7 +367,7 @@ An escape sequence begins with the ASCII backslash character ``\verb|\|''.
 The set of operations and conversions defined for Unicode strings is to be extended in future versions of
 the specification.
 
-\subsubsection{Set}
+\subsection{Set}
 
 A set type represents an unordered collection of unique objects.
 All objects must be of the same type.
@@ -368,11 +384,11 @@ where $E$ represents the set element type.
     \label{table:dsdl_set_attributes} \\
 
     \texttt{min} & $E$ &
-    Available only if ``\texttt{<}'' is defined for $E$. &
+    Operator ``\texttt{<}'' is defined \mbox{$(E, E) \rightarrow \texttt{bool}$}. &
     Smallest element in the set determined by sequential application of the operator ``\texttt{<}''. \\
 
     \texttt{max} & $E$ &
-    Available only if ``\texttt{>}'' is defined for $E$. &
+    Operator ``\texttt{>}'' is defined \mbox{$(E, E) \rightarrow \texttt{bool}$}. &
     Greatest element in the set determined by sequential application of the operator ``\texttt{>}''. \\
 
     \texttt{count} & \texttt{rational} & &
