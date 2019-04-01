@@ -145,7 +145,7 @@ The array element type can be any type except:
 \begin{itemize}
     \item void type;
     \item array type\footnote{Meaning that nested arrays are not allowed;
-    however, the array element type can be a compound type which in turn may contain arrays.
+    however, the array element type can be a composite type which in turn may contain arrays.
     In other words, indirect nesting of arrays is permitted.}.
 \end{itemize}
 
@@ -172,12 +172,12 @@ a variable-length array:
 \end{itemize}
 If neither of the above prefixes are provided, the resultant definition is that of a fixed-length array.
 
-\subsection{Compound types}
+\subsection{Composite types}
 
 \subsubsection{Kinds}
 
-There are two kinds of compound data type definitions: message types and service types.
-All versions of a data type definition must be of the same kind\footnote{%
+There are two kinds of composite data type definitions: message types and service types.
+All versions of a data type must be of the same kind\footnote{%
 For example, if a data type version 0.1 is of a message kind, all later versions of it must be messages, too.}.
 
 A message data type defines one data schema.
@@ -191,14 +191,14 @@ There may be no more than one service response marker in a given definition.
 
 \subsubsection{Dependencies}
 
-In order to refer to a compound type from another compound type definition
+In order to refer to a composite type from another composite type definition
 (e.g., for nesting or for referring to an external constant),
 one has to specify the full data type name of the referred data type followed by its
 major and minor version numbers separated by the namespace separator character,
 as demonstrated on the figure \ref{fig:dsdl_nested_reference}.
 
 To facilitate look-up of external dependencies,
-implementations are expected to receive from external sources%
+implementations are expected to obtain from external sources%
 \footnote{For example, from user-provided configuration options.}
 the list of directories that are the roots of namespaces containing the referred dependencies.
 
@@ -208,7 +208,7 @@ the list of directories that are the roots of namespaces containing the referred
     \texttt{\huge{.}}%
     \underbrace{\texttt{\huge{1.0}}}_{\substack{\text{version} \\ \text{numbers}}}%
     $$
-    \caption{Reference to an external compound data type definition.\label{fig:dsdl_nested_reference}}
+    \caption{Reference to an external composite data type definition.\label{fig:dsdl_nested_reference}}
 \end{figure}
 
 If the referred data type and the referring data type share the same full namespace name,
@@ -223,7 +223,7 @@ Partial omission of namespace components is not permitted.
     \texttt{\huge{.}}%
     \underbrace{\texttt{\huge{1.0}}}_{\substack{\text{version} \\ \text{numbers}}}%
     $$
-    \caption{Reference to an external compound data type definition located in the same namespace.
+    \caption{Reference to an external composite data type definition located in the same namespace.
     \label{fig:dsdl_nested_reference_short}}
 \end{figure}
 
@@ -246,3 +246,137 @@ it forms a tagged union\footnote{Section \ref{sec:dsdl_directives}.}.
 A tagged union schema must contain at least two fields.
 The value of a tagged union object is a function of the field which value it is currently holding
 and the value of the field itself.
+
+\subsection{Expression types}
+
+Expression types are a special category of data types whose instances can only exist and be operated upon
+at the time of DSDL definition processing.
+As such, expression types cannot be used to define attributes,
+and their instances cannot be exchanged between nodes.
+
+Expression types are used to represent values of constant expressions which are evaluated
+when a DSDL definition is processed.
+Results of such expressions can be used to define various constant properties,
+such as array length boundaries or values of constant attributes.
+
+Expression types are specified in this section.
+Each expression type has a formal DSDL name for completeness;
+even if such types can't be used to define attributes,
+a well-defined formal name allows DSDL processing tools to emit well-formed
+and understandable diagnostic messages.
+
+\subsubsection{Rational number}
+
+At the time of DSDL definition processing, integer and real numbers are represented internally as rational numbers
+where the range of numerator and denominator is unlimited\footnote{%
+Technically, the range may only be limited by the memory resources available to the DSDL processing tool.
+DSDL processing tools are not permitted to introduce any implicit rational number transformations that
+may result in a loss of information.}.
+
+The DSDL name of the rational number type is ``\verb|rational|''.
+
+Rational numbers are assumed to be stored in a normalized form, where the denominator is positive
+and the greatest common divisor of the numerator and the denominator is one.
+
+A rational number is implicitly convertible into an integer if its denominator equals one.
+Usage of any other rational number in a context that expects an integer is not allowed.
+
+Any rational number is implicitly convertible into an IEEE 754 floating point representation,
+unless it exceeds the finite range of the target floating point representation.
+The associated loss of information inherent to IEEE 754 representations is assumed to be acceptable.
+Conversion from a rational number into an IEEE 754 floating point representation
+is not allowed if the source number exceeds the finite range of the target floating point representation.
+
+Implicit conversions between boolean-valued entities and rational numbers are not allowed.
+
+\begin{remark}
+    An integer literal \verb|-0x123| will be represented internally as a fraction $\frac{-291}{1}$.
+    Such fraction is usable in contexts that expect an integer value.
+
+    A real literal \verb|3.141592653589793| is represented internally as a fraction
+    $\frac{884279719003555}{281474976710656}$.
+
+    A real literal \verb|1234.5678| is represented internally as a fraction
+    $\frac{6172839}{5000}$, which can be used to initialize a \verb|float16| value,
+    resulting in $1235.0$.
+    The resulting loss of precision ($1235 - 1234.5678 = 0.4322$) is considered acceptable.
+\end{remark}
+
+\subsubsection{Unicode string}
+
+This type contains a sequence of Unicode characters.
+It is used to represent string literals internally.
+
+The DSDL name of the Unicode string type is ``\verb|string|''.
+
+A Unicode string containing one symbol whose code point is within $[0, 127]$
+(i.e., an ASCII character) is implicitly convertible into a \verb|uint8|-typed constant attribute value,
+where the value of the constant is to be equal the code point of the symbol.
+
+The set of supported escape sequences permissible within string literals is defined in the table
+\ref{table:dsdl_string_literal_escape}.
+An escape sequence begins with the ASCII backslash character ``\verb|\|''.
+
+\begin{UAVCANSimpleTable}{String literal escape sequences}{|l X|}
+    Sequence & Interpretation
+    \label{table:dsdl_string_literal_escape} \\
+
+    \texttt{\textbackslash{}\textbackslash{}}   & Backslash, ASCII code 92. Same as the escape character. \\
+    \texttt{\textbackslash{}r}                  & Carriage return, ASCII code 13                \\
+    \texttt{\textbackslash{}n}                  & Line feed, ASCII code 10                      \\
+    \texttt{\textbackslash{}t}                  & Horizontal tabulation, ASCII code 9           \\
+
+    \texttt{\textbackslash{}\textquotesingle{}} &
+    Apostrophe (single quote), ASCII code 39. Regardless of the type of quotes around the literal. \\
+
+    \texttt{\textbackslash{}\textquotedbl{}}    &
+    Quotation mark (double quote), ASCII code 34. Regardless of the type of quotes around the literal. \\
+
+    \texttt{\textbackslash{}u????} &
+    Unicode symbol with the code point specified by a four-digit hexadecimal number.
+    The placeholder ``\texttt{?}'' represents a hexadecimal character \texttt{[0-9a-fA-F]}. \\
+
+    \texttt{\textbackslash{}U????????} &
+    Like above, the code point is specified by an eight-digit hexadecimal number. \\
+
+\end{UAVCANSimpleTable}
+
+\begin{remark}
+    The following string equality holds true:
+    \begin{minted}{python}
+        @assert "oh,\u0020hi\U0000000aMark" == 'oh, hi\nMark'
+    \end{minted}
+\end{remark}
+
+The set of operations and conversions defined for Unicode strings is to be extended in future versions of
+the specification.
+
+\subsubsection{Set}
+
+A set type represents an unordered collection of unique objects.
+All objects must be of the same type.
+
+The DSDL name of the set type is ``\verb|set|''.
+
+A set can be constructed from a set literal, in which case such set must contain at least one element.
+
+The attributes defined for set instances are listed in the table \ref{table:dsdl_set_attributes},
+where $E$ represents the set element type.
+
+\begin{UAVCANSimpleTable}{Set instance attributes}{|l l X X|}
+    Name & Type & Constraints & Description
+    \label{table:dsdl_set_attributes} \\
+
+    \texttt{min} & $E$ &
+    Available only if ``\texttt{<}'' is defined for $E$. &
+    Smallest element in the set determined by sequential application of the operator ``\texttt{<}''. \\
+
+    \texttt{max} & $E$ &
+    Available only if ``\texttt{>}'' is defined for $E$. &
+    Greatest element in the set determined by sequential application of the operator ``\texttt{>}''. \\
+
+    \texttt{count} & \texttt{rational} & &
+    Cardinality. \\
+
+\end{UAVCANSimpleTable}
+
