@@ -11,7 +11,7 @@ specifies the category attributes that are defined for all serializable types.
     Name & Type & Description
     \label{table:dsdl_serializable_attributes} \\
 
-    \texttt{\_bit\_length\_} & \texttt{set} of \texttt{rational} &
+    \texttt{\_bit\_length\_} & $\texttt{set}_\texttt{<rational>}$ &
     Set of bit length values of all possible serialized representations of instances of this type. \\
 
 \end{UAVCANSimpleTable}
@@ -142,6 +142,22 @@ Cases that are marked as illegal are not permitted in DSDL definitions.
 
 Rules of conversion between values of different type categories do not affect compatibility at the protocol level,
 and as such, they are to be implementation-defined.
+
+\subsubsection{Expression operators}
+
+\begin{UAVCANSimpleTable}{Operators defined on primitive types}{|l l X|}
+    Op & Type & Description
+    \label{table:dsdl_operators_boolean} \\
+
+    \texttt{\textbf{!}}     & $(\texttt{bool}) \rightarrow \texttt{bool}$ & Logical not. \\
+
+    \texttt{\textbf{||}}    & $(\texttt{bool}, \texttt{bool}) \rightarrow \texttt{bool}$ & Logical or. \\
+    \texttt{\textbf{\&\&}}  & $(\texttt{bool}, \texttt{bool}) \rightarrow \texttt{bool}$ & Logical and. \\
+
+    \texttt{\textbf{==}}    & $(\texttt{bool}, \texttt{bool}) \rightarrow \texttt{bool}$ & Equality. \\
+    \texttt{\textbf{!=}}    & $(\texttt{bool}, \texttt{bool}) \rightarrow \texttt{bool}$ & Inequality. \\
+
+\end{UAVCANSimpleTable}
 
 \subsubsection{List of fundamental types}
 
@@ -318,6 +334,61 @@ Implicit conversions between boolean-valued entities and rational numbers are no
     The resulting loss of precision ($1235 - 1234.5678 = 0.4322$) is considered acceptable.
 \end{remark}
 
+\begin{UAVCANSimpleTable}{Operators defined on rational numbers}{|l l X X|}
+    Op & Type & Constraints & Description
+    \label{table:dsdl_operators_rational} \\
+
+    \texttt{\textbf{+}}     & $(\texttt{rational}) \rightarrow \texttt{rational}$ & &
+    No effect. \\
+    \texttt{\textbf{-}}     & $(\texttt{rational}) \rightarrow \texttt{rational}$ & &
+    Negation. \\
+
+    \texttt{\textbf{**}}    & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{rational}$ &
+    Power denominator equals one &
+    Exact exponentiation. \\
+
+    \texttt{\textbf{**}}    & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{rational}$ &
+    Power denominator greater than one &
+    Exponentiation with imp\-lem\-en\-ta\-ti\-on-de\-fin\-ed accuracy. \\
+
+    \texttt{\textbf{*}}  & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{rational}$ & &
+    Exact multiplication. \\
+
+    \texttt{\textbf{/}}  & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{rational}$ &
+    Non-zero divisor &
+    Exact division. \\
+
+    \texttt{\textbf{\%}} & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{rational}$ &
+    Non-zero divisor &
+    Exact modulo. \\
+
+    \texttt{\textbf{+}}  & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{rational}$ & &
+    Exact addition. \\
+
+    \texttt{\textbf{-}}  & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{rational}$ & &
+    Exact subtraction. \\
+
+    \texttt{\textbf{|}}  & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{rational}$ &
+    Denominators equal one &
+    Bitwise or. \\
+
+    \texttt{\textbf{\textasciicircum{}}} & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{rational}$ &
+    Denominators equal one &
+    Bitwise xor. \\
+
+    \texttt{\textbf{\&}} & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{rational}$ &
+    Denominators equal one &
+    Bitwise and. \\
+
+    \texttt{\textbf{!=}} & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{bool}$ & & Exact inequality. \\
+    \texttt{\textbf{==}} & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{bool}$ & & Exact equality. \\
+    \texttt{\textbf{<=}} & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{bool}$ & & Less or equal. \\
+    \texttt{\textbf{>=}} & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{bool}$ & & Greater or equal. \\
+    \texttt{\textbf{<}}  & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{bool}$ & & Strictly less. \\
+    \texttt{\textbf{>}}  & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{bool}$ & & Strictly greater. \\
+
+\end{UAVCANSimpleTable}
+
 \subsection{Unicode string}
 
 This type contains a sequence of Unicode characters.
@@ -357,6 +428,21 @@ An escape sequence begins with the ASCII backslash character ``\verb|\|''.
 
 \end{UAVCANSimpleTable}
 
+\begin{UAVCANSimpleTable}{Operators defined on Unicode strings}{|l l X|}
+    Op & Type & Description
+    \label{table:dsdl_operators_string} \\
+
+    \texttt{\textbf{+}}  & $(\texttt{string}, \texttt{string}) \rightarrow \texttt{string}$ &
+    Concatenation. \\
+
+    \texttt{\textbf{!=}} & $(\texttt{string}, \texttt{string}) \rightarrow \texttt{bool}$ &
+    Inequality of normalized Unicode representations. \\
+
+    \texttt{\textbf{==}} & $(\texttt{string}, \texttt{string}) \rightarrow \texttt{bool}$ &
+    Equality of normalized Unicode representations. \\
+
+\end{UAVCANSimpleTable}
+
 \begin{remark}
     The following string equality holds true:
     \begin{minted}{python}
@@ -371,6 +457,7 @@ the specification.
 
 A set type represents an unordered collection of unique objects.
 All objects must be of the same type.
+Uniqueness of elements is determined by application of the equality operator ``\verb|==|''.
 
 The DSDL name of the set type is ``\verb|set|''.
 
@@ -384,11 +471,11 @@ where $E$ represents the set element type.
     \label{table:dsdl_set_attributes} \\
 
     \texttt{min} & $E$ &
-    Operator ``\texttt{<}'' is defined \mbox{$(E, E) \rightarrow \texttt{bool}$}. &
+    Operator ``\texttt{<}'' is defined \mbox{$(E, E) \rightarrow \texttt{bool}$} &
     Smallest element in the set determined by sequential application of the operator ``\texttt{<}''. \\
 
     \texttt{max} & $E$ &
-    Operator ``\texttt{>}'' is defined \mbox{$(E, E) \rightarrow \texttt{bool}$}. &
+    Operator ``\texttt{>}'' is defined \mbox{$(E, E) \rightarrow \texttt{bool}$} &
     Greatest element in the set determined by sequential application of the operator ``\texttt{>}''. \\
 
     \texttt{count} & \texttt{rational} & &
@@ -396,3 +483,53 @@ where $E$ represents the set element type.
 
 \end{UAVCANSimpleTable}
 
+\newcommand\SetElementwiseOperator[1]{%
+    \texttt{\textbf{#1}} & $(\texttt{set}_\texttt{<E>}, E) \rightarrow \texttt{set}_\texttt{<R>}$ & $E$ is not a set &
+    Elementwise $(E, E) \rightarrow R$.\\
+
+    \texttt{\textbf{#1}} & $(E, \texttt{set}_\texttt{<E>}) \rightarrow \texttt{set}_\texttt{<R>}$ & $E$ is not a set &
+    Elementwise $(E, E) \rightarrow R$.\\
+}
+
+\begin{UAVCANSimpleTable}{Operators defined on sets}{|l l l X|}
+    Op & Type & Constraints & Description
+    \label{table:dsdl_operators_string} \\
+
+    \texttt{\textbf{==}} & $(\texttt{set}_\texttt{<E>}, \texttt{set}_\texttt{<E>}) \rightarrow \texttt{bool}$ & &
+    Left equals right. \\
+
+    \texttt{\textbf{!=}} & $(\texttt{set}_\texttt{<E>}, \texttt{set}_\texttt{<E>}) \rightarrow \texttt{bool}$ & &
+    Left does not equal right. \\
+
+    \texttt{\textbf{<=}} & $(\texttt{set}_\texttt{<E>}, \texttt{set}_\texttt{<E>}) \rightarrow \texttt{bool}$ & &
+    Left is a subset of right. \\
+
+    \texttt{\textbf{>=}} & $(\texttt{set}_\texttt{<E>}, \texttt{set}_\texttt{<E>}) \rightarrow \texttt{bool}$ & &
+    Left is a superset of right. \\
+
+    \texttt{\textbf{<}}  & $(\texttt{set}_\texttt{<E>}, \texttt{set}_\texttt{<E>}) \rightarrow \texttt{bool}$ & &
+    Left is a proper subset of right. \\
+
+    \texttt{\textbf{>}}  & $(\texttt{set}_\texttt{<E>}, \texttt{set}_\texttt{<E>}) \rightarrow \texttt{bool}$ & &
+    Left is a proper superset of right. \\
+
+    \texttt{\textbf{|}} &
+    $(\texttt{set}_\texttt{<E>}, \texttt{set}_\texttt{<E>}) \rightarrow \texttt{set}_\texttt{<E>}$ & &
+    Union. \\
+
+    \texttt{\textbf{\textasciicircum{}}} &
+    $(\texttt{set}_\texttt{<E>}, \texttt{set}_\texttt{<E>}) \rightarrow \texttt{set}_\texttt{<E>}$ & &
+    Disjunctive union. \\
+
+    \texttt{\textbf{\&}} &
+    $(\texttt{set}_\texttt{<E>}, \texttt{set}_\texttt{<E>}) \rightarrow \texttt{set}_\texttt{<E>}$ & &
+    Intersection. \\
+
+    \SetElementwiseOperator{**}
+    \SetElementwiseOperator{*}
+    \SetElementwiseOperator{/}
+    \SetElementwiseOperator{\%}
+    \SetElementwiseOperator{+}
+    \SetElementwiseOperator{-}
+
+\end{UAVCANSimpleTable}
