@@ -189,7 +189,8 @@ A data type definition file contains an exhaustive description of a particular v
 As explained above, one data type definition contains either one or two data schema definitions,
 for message types and service types, respectively.
 
-The term \emph{attribute} is used to refer to either a field (including padding fields) or a constant.
+The term \emph{attribute} is used to refer to either a field (including padding fields) or a constant
+associated with a particular object or type.
 
 A data schema definition contains an ordered, possibly empty collection of \emph{fields} and/or
 unordered, possibly empty collection of \emph{constants}.
@@ -216,7 +217,25 @@ that is provided directly in the DSDL source text by the data type designer.
 Constants are never exchanged over the network, since they are assumed to be known to all involved nodes
 by virtue of them sharing the same static definition of the data type.
 
+Constant values are defined via \emph{DSDL expressions},
+which are evaluated at the time of DSDL definition processing.
+There is a special category of types called \emph{expression types},
+instances of which are used only during expression evaluation
+and cannot be exchanged over the network.
+
 Data type definitions can also contain various auxiliary elements reviewed later,
 such as deprecation markers (notifying its users that the data type is no longer recommended for new designs)
 or assertions (special statements introduced by data type designers
 which are statically validated by DSDL processing tools).
+
+\subsection{Serialization}
+
+Every object that can be exchanged between UAVCAN nodes has a well-defined \emph{serialized representation}.
+The value and meaning of an object can be unambiguously recovered from its serialized representation,
+provided that the type of the object is known.
+
+\label{sec:dsdl_bit_length_set}
+A serialized representation is a sequence of binary digits (bits);
+the number of bits in a serialized representation is called its \emph{bit length}.
+A \emph{bit length set} of a data type refers to the set of bit length values of all possible
+serialized representations of said data type.

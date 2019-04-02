@@ -1,0 +1,272 @@
+
+\section{Expression types}\label{sec:dsdl_expression_types}
+
+Expression types are a special category of data types whose instances can only exist and be operated upon
+at the time of DSDL definition processing.
+As such, expression types cannot be used to define attributes,
+and their instances cannot be exchanged between nodes.
+
+Expression types are used to represent values of constant expressions which are evaluated
+when a DSDL definition is processed.
+Results of such expressions can be used to define various constant properties,
+such as array length boundaries or values of constant attributes.
+
+Expression types are specified in this section.
+Each expression type has a formal DSDL name for completeness;
+even if such types can't be used to define attributes,
+a well-defined formal name allows DSDL processing tools to emit well-formed
+and understandable diagnostic messages.
+
+\subsection{Rational number}\label{sec:dsdl_rational}
+
+At the time of DSDL definition processing, integer and real numbers are represented internally as rational numbers
+where the range of numerator and denominator is unlimited\footnote{%
+Technically, the range may only be limited by the memory resources available to the DSDL processing tool.
+DSDL processing tools are not permitted to introduce any implicit rational number transformations that
+may result in a loss of information.}.
+
+The DSDL name of the rational number type is ``\verb|rational|''.
+
+Rational numbers are assumed to be stored in a normalized form, where the denominator is positive
+and the greatest common divisor of the numerator and the denominator is one.
+
+A rational number is implicitly convertible into an integer if its denominator equals one.
+Usage of any other rational number in a context that expects an integer is not allowed.
+
+Any rational number is implicitly convertible into an IEEE 754 floating point representation,
+unless it exceeds the finite range of the target floating point representation.
+The associated loss of information inherent to IEEE 754 representations is assumed to be acceptable.
+Conversion from a rational number into an IEEE 754 floating point representation
+is not allowed if the source number exceeds the finite range of the target floating point representation.
+
+Implicit conversions between boolean-valued entities and rational numbers are not allowed.
+
+\begin{remark}
+    An integer literal \verb|-0x123| is represented internally as $\frac{-291}{1}$.
+    Such fraction is usable in contexts that expect an integer value.
+
+    A real literal \verb|3.141592653589793| is represented internally as
+    $\frac{884279719003555}{281474976710656}$.
+
+    A real literal \verb|1234.5678| is represented internally as
+    $\frac{6172839}{5000}$, which can be used to initialize a \verb|float16| value,
+    resulting in $1235.0$.
+    The resulting loss of precision ($1235 - 1234.5678 = 0.4322$) is considered acceptable.
+\end{remark}
+
+\begin{UAVCANSimpleTable}{Operators defined on instances of rational numbers}{|l l X X|}
+    Op & Type & Constraints & Description
+    \label{table:dsdl_operators_rational} \\
+
+    \texttt{\textbf{+}}     & $(\texttt{rational}) \rightarrow \texttt{rational}$ & &
+    No effect. \\
+    \texttt{\textbf{-}}     & $(\texttt{rational}) \rightarrow \texttt{rational}$ & &
+    Negation. \\
+
+    \texttt{\textbf{**}}    & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{rational}$ &
+    Power denominator equals one &
+    Exact exponentiation. \\
+
+    \texttt{\textbf{**}}    & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{rational}$ &
+    Power denominator greater than one &
+    Exponentiation with imp\-lem\-en\-ta\-ti\-on-de\-fin\-ed accuracy. \\
+
+    \texttt{\textbf{*}}  & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{rational}$ & &
+    Exact multiplication. \\
+
+    \texttt{\textbf{/}}  & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{rational}$ &
+    Non-zero divisor &
+    Exact division. \\
+
+    \texttt{\textbf{\%}} & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{rational}$ &
+    Non-zero divisor &
+    Exact modulo. \\
+
+    \texttt{\textbf{+}}  & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{rational}$ & &
+    Exact addition. \\
+
+    \texttt{\textbf{-}}  & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{rational}$ & &
+    Exact subtraction. \\
+
+    \texttt{\textbf{|}}  & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{rational}$ &
+    Denominators equal one &
+    Bitwise or. \\
+
+    \texttt{\textbf{\textasciicircum{}}} & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{rational}$ &
+    Denominators equal one &
+    Bitwise xor. \\
+
+    \texttt{\textbf{\&}} & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{rational}$ &
+    Denominators equal one &
+    Bitwise and. \\
+
+    \texttt{\textbf{!=}} & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{bool}$ & & Exact inequality. \\
+    \texttt{\textbf{==}} & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{bool}$ & & Exact equality. \\
+    \texttt{\textbf{<=}} & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{bool}$ & & Less or equal. \\
+    \texttt{\textbf{>=}} & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{bool}$ & & Greater or equal. \\
+    \texttt{\textbf{<}}  & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{bool}$ & & Strictly less. \\
+    \texttt{\textbf{>}}  & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{bool}$ & & Strictly greater. \\
+
+\end{UAVCANSimpleTable}
+
+\subsection{Unicode string}
+
+This type contains a sequence of Unicode characters.
+It is used to represent string literals internally.
+
+The DSDL name of the Unicode string type is ``\verb|string|''.
+
+A Unicode string containing one symbol whose code point is within $[0, 127]$
+(i.e., an ASCII character) is implicitly convertible into a \verb|uint8|-typed constant attribute value,
+where the value of the constant is to be equal the code point of the symbol.
+
+The set of supported escape sequences permissible within string literals is defined in the table
+\ref{table:dsdl_string_literal_escape}.
+An escape sequence begins with the ASCII backslash character ``\verb|\|''.
+
+\begin{UAVCANSimpleTable}{String literal escape sequences}{|l X|}
+    Sequence & Interpretation
+    \label{table:dsdl_string_literal_escape} \\
+
+    \texttt{\textbackslash{}\textbackslash{}}   & Backslash, ASCII code 92. Same as the escape character. \\
+    \texttt{\textbackslash{}r}                  & Carriage return, ASCII code 13                \\
+    \texttt{\textbackslash{}n}                  & Line feed, ASCII code 10                      \\
+    \texttt{\textbackslash{}t}                  & Horizontal tabulation, ASCII code 9           \\
+
+    \texttt{\textbackslash{}\textquotesingle{}} &
+    Apostrophe (single quote), ASCII code 39. Regardless of the type of quotes around the literal. \\
+
+    \texttt{\textbackslash{}\textquotedbl{}}    &
+    Quotation mark (double quote), ASCII code 34. Regardless of the type of quotes around the literal. \\
+
+    \texttt{\textbackslash{}u????} &
+    Unicode symbol with the code point specified by a four-digit hexadecimal number.
+    The placeholder ``\texttt{?}'' represents a hexadecimal character \texttt{[0-9a-fA-F]}. \\
+
+    \texttt{\textbackslash{}U????????} &
+    Like above, the code point is specified by an eight-digit hexadecimal number. \\
+
+\end{UAVCANSimpleTable}
+
+\begin{UAVCANSimpleTable}{Operators defined on instances of Unicode strings}{|l l X|}
+    Op & Type & Description
+    \label{table:dsdl_operators_string} \\
+
+    \texttt{\textbf{+}}  & $(\texttt{string}, \texttt{string}) \rightarrow \texttt{string}$ &
+    Concatenation. \\
+
+    \texttt{\textbf{!=}} & $(\texttt{string}, \texttt{string}) \rightarrow \texttt{bool}$ &
+    Inequality of normalized Unicode representations. \\
+
+    \texttt{\textbf{==}} & $(\texttt{string}, \texttt{string}) \rightarrow \texttt{bool}$ &
+    Equality of normalized Unicode representations. \\
+
+\end{UAVCANSimpleTable}
+
+\begin{remark}
+    The following string equality holds true:
+    \begin{minted}{python}
+        @assert "oh,\u0020hi\U0000000aMark" == 'oh, hi\nMark'
+    \end{minted}
+\end{remark}
+
+The set of operations and conversions defined for Unicode strings is to be extended in future versions of
+the specification.
+
+\subsection{Set}
+
+A set type represents an unordered collection of unique objects.
+All objects must be of the same type.
+Uniqueness of elements is determined by application of the equality operator ``\verb|==|''.
+
+The DSDL name of the set type is ``\verb|set|''.
+
+A set can be constructed from a set literal, in which case such set must contain at least one element.
+
+The attributes defined for set instances are listed in the table \ref{table:dsdl_set_attributes},
+where $E$ represents the set element type.
+
+\begin{UAVCANSimpleTable}{Attributes defined on instances of sets}{|l l X X|}
+    Name & Type & Constraints & Description
+    \label{table:dsdl_set_attributes} \\
+
+    \texttt{min} & $E$ &
+    Operator ``\texttt{<}'' is defined \mbox{$(E, E) \rightarrow \texttt{bool}$} &
+    Smallest element in the set determined by sequential application of the operator ``\texttt{<}''. \\
+
+    \texttt{max} & $E$ &
+    Operator ``\texttt{>}'' is defined \mbox{$(E, E) \rightarrow \texttt{bool}$} &
+    Greatest element in the set determined by sequential application of the operator ``\texttt{>}''. \\
+
+    \texttt{count} & \texttt{rational} & &
+    Cardinality. \\
+
+\end{UAVCANSimpleTable}
+
+\newcommand\SetElementwiseOperator[1]{%
+    \texttt{\textbf{#1}} & $(\texttt{set}_\texttt{<E>}, E) \rightarrow \texttt{set}_\texttt{<R>}$ & $E$ is not a set &
+    Elementwise $(E, E) \rightarrow R$.\\
+
+    \texttt{\textbf{#1}} & $(E, \texttt{set}_\texttt{<E>}) \rightarrow \texttt{set}_\texttt{<R>}$ & $E$ is not a set &
+    Elementwise $(E, E) \rightarrow R$.\\
+}
+
+\begin{UAVCANSimpleTable}{Operators defined on instances of sets}{|l l l X|}
+    Op & Type & Constraints & Description \\
+
+    \texttt{\textbf{==}} & $(\texttt{set}_\texttt{<E>}, \texttt{set}_\texttt{<E>}) \rightarrow \texttt{bool}$ & &
+    Left equals right. \\
+
+    \texttt{\textbf{!=}} & $(\texttt{set}_\texttt{<E>}, \texttt{set}_\texttt{<E>}) \rightarrow \texttt{bool}$ & &
+    Left does not equal right. \\
+
+    \texttt{\textbf{<=}} & $(\texttt{set}_\texttt{<E>}, \texttt{set}_\texttt{<E>}) \rightarrow \texttt{bool}$ & &
+    Left is a subset of right. \\
+
+    \texttt{\textbf{>=}} & $(\texttt{set}_\texttt{<E>}, \texttt{set}_\texttt{<E>}) \rightarrow \texttt{bool}$ & &
+    Left is a superset of right. \\
+
+    \texttt{\textbf{<}}  & $(\texttt{set}_\texttt{<E>}, \texttt{set}_\texttt{<E>}) \rightarrow \texttt{bool}$ & &
+    Left is a proper subset of right. \\
+
+    \texttt{\textbf{>}}  & $(\texttt{set}_\texttt{<E>}, \texttt{set}_\texttt{<E>}) \rightarrow \texttt{bool}$ & &
+    Left is a proper superset of right. \\
+
+    \texttt{\textbf{|}} &
+    $(\texttt{set}_\texttt{<E>}, \texttt{set}_\texttt{<E>}) \rightarrow \texttt{set}_\texttt{<E>}$ & &
+    Union. \\
+
+    \texttt{\textbf{\textasciicircum{}}} &
+    $(\texttt{set}_\texttt{<E>}, \texttt{set}_\texttt{<E>}) \rightarrow \texttt{set}_\texttt{<E>}$ & &
+    Disjunctive union. \\
+
+    \texttt{\textbf{\&}} &
+    $(\texttt{set}_\texttt{<E>}, \texttt{set}_\texttt{<E>}) \rightarrow \texttt{set}_\texttt{<E>}$ & &
+    Intersection. \\
+
+    \SetElementwiseOperator{**}
+    \SetElementwiseOperator{*}
+    \SetElementwiseOperator{/}
+    \SetElementwiseOperator{\%}
+    \SetElementwiseOperator{+}
+    \SetElementwiseOperator{-}
+
+\end{UAVCANSimpleTable}
+
+\subsection{Serializable metatype}
+
+Serializable types (which are reviewed in section \ref{sec:dsdl_serializable_types})
+are instances of the serializable metatype.
+This metatype is convenient for expression of various relations and attributes defined on serializable types.
+
+The DSDL name of the serializable metatype is ``\verb|metaserializable|''.
+
+\begin{UAVCANSimpleTable}{Attributes defined on instances of serializable metatype}{|l l X|}
+    Name & Type & Description
+    \label{table:dsdl_metaserializable_attributes} \\
+
+    \texttt{\_bit\_length\_} & $\texttt{set}_\texttt{<rational>}$ &
+    The bit length set (section \ref{sec:dsdl_bit_length_set}) of this type. \\
+
+\end{UAVCANSimpleTable}
+
