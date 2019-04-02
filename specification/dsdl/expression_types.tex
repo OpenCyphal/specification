@@ -129,9 +129,9 @@ An escape sequence begins with the ASCII backslash character ``\verb|\|''.
     \label{table:dsdl_string_literal_escape} \\
 
     \texttt{\textbackslash{}\textbackslash{}}   & Backslash, ASCII code 92. Same as the escape character. \\
-    \texttt{\textbackslash{}r}                  & Carriage return, ASCII code 13                \\
-    \texttt{\textbackslash{}n}                  & Line feed, ASCII code 10                      \\
-    \texttt{\textbackslash{}t}                  & Horizontal tabulation, ASCII code 9           \\
+    \texttt{\textbackslash{}r}                  & Carriage return, ASCII code 13.               \\
+    \texttt{\textbackslash{}n}                  & Line feed, ASCII code 10.                     \\
+    \texttt{\textbackslash{}t}                  & Horizontal tabulation, ASCII code 9.          \\
 
     \texttt{\textbackslash{}\textquotesingle{}} &
     Apostrophe (single quote), ASCII code 39. Regardless of the type of quotes around the literal. \\
@@ -261,12 +261,4 @@ This metatype is convenient for expression of various relations and attributes d
 
 The DSDL name of the serializable metatype is ``\verb|metaserializable|''.
 
-\begin{UAVCANSimpleTable}{Attributes defined on instances of serializable metatype}{|l l X|}
-    Name & Type & Description
-    \label{table:dsdl_metaserializable_attributes} \\
-
-    \texttt{\_bit\_length\_} & $\texttt{set}_\texttt{<rational>}$ &
-    The bit length set (section \ref{sec:dsdl_bit_length_set}) of this type. \\
-
-\end{UAVCANSimpleTable}
-
+Available attributes are defined on a per-instance basis.

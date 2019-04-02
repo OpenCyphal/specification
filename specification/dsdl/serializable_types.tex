@@ -136,9 +136,8 @@ values of primitive types are represented as instances of the \verb|rational| ty
 with the exception of the type \verb|bool|,
 instances of which are usable in DSDL expressions as-is.
 
-\begin{UAVCANSimpleTable}{Operators defined on instances of type boolean}{|l l X|}
-    Op & Type & Description
-    \label{table:dsdl_operators_boolean} \\
+\begin{UAVCANSimpleTable}{Operators defined on instances of type boolean}{|l X X|}
+    Op & Type & Description \\
 
     \texttt{\textbf{!}}     & $(\texttt{bool}) \rightarrow \texttt{bool}$ & Logical not. \\
 
@@ -268,3 +267,9 @@ it forms a tagged union\footnote{Section \ref{sec:dsdl_directives}.}.
 A tagged union schema must contain at least two fields.
 The value of a tagged union object is a function of the field which value it is currently holding
 and the value of the field itself.
+
+\subsubsection{Expressions}
+
+In the case of composite definitions of the message kind,
+constant attributes of the message type are accessible through application of the
+attribute reference operator ``\verb|.|'' to the corresponding instance of the serializable metatype.
