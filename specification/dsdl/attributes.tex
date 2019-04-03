@@ -4,6 +4,11 @@ An \emph{attribute} is a named (excepting padding fields) entity associated with
 An attribute that has a value assigned at the data type definition time is called a \emph{constant attribute};
 an attribute that does not have a value assigned at the definition time is called a \emph{field attribute}.
 
+An attribute name must be unique within its data schema definition
+and it shall not match any of the reserved name patterns specified in the table
+\ref{table:dsdl_reserved_word_patterns}.
+This requirement does not apply to padding fields.
+
 \subsection{Field attributes}
 
 A field attribute represents a named dynamically assigned value of a statically defined type
