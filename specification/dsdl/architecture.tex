@@ -202,18 +202,10 @@ The value of a tagged union object is a function of which field it is holding at
 
 A field represents a named dynamically assigned value of a statically defined type
 that can be exchanged over the network as a member of its containing object.
-A field can be either of a \emph{fundamental type}
-(i.e., a type which is defined in this DSDL specification, known to DSDL processing tools a priori,
-which need not be defined by the user; for example, an integer)
-or a \emph{composite type}
-(i.e., a type which is defined in DSDL notation; for example, a standard message type \verb|uavcan.node.Heartbeat|).
-Fixed-length and variable-length array types are also available.
+A padding field is a special kind of field which is used for data alignment purposes;
+such fields are not named.
 
-A padding field is a special kind of field which is used for data alignment purposes.
-Padding fields are not named.
-
-A constant represents a named statically assigned value of a statically defined type
-that is provided directly in the DSDL source text by the data type designer.
+A constant represents a named statically defined value of a statically defined type.
 Constants are never exchanged over the network, since they are assumed to be known to all involved nodes
 by virtue of them sharing the same static definition of the data type.
 

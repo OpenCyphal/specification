@@ -1,9 +1,66 @@
 \section{Attributes}\label{sec:dsdl_attributes}
 
-\subsection{Fields}
+An \emph{attribute} is a named (excepting padding fields) entity associated with a particular data type definition.
+An attribute that has a value assigned at the data type definition time is called a \emph{constant attribute};
+an attribute that does not have a value assigned at the definition time is called a \emph{field attribute}.
 
-% padding fields have no name
+\subsection{Field attributes}
 
-\subsection{Constants}
+A field attribute represents a named dynamically assigned value of a statically defined type
+that can be exchanged over the network as a member of its containing object.
+The data type of a field must be of the serializable type category (section \ref{sec:dsdl_serializable_types}),
+excepting the void type category, which is not allowed.
 
-% Cast mode is irrelevant
+Exception applies to the special kind of fields --- \emph{padding fields}.
+The type of a padding field must be of the void category.
+A padding field may not have a name.
+
+\begin{remark}
+    Example:
+    \begin{minted}{python}
+        uint8[<=10] regular_field   # A field named "regular field"
+        void16                      # A padding field; no name is permitted
+    \end{minted}
+\end{remark}
+
+\subsection{Constant attributes}
+
+A constant attribute represents a named statically assigned value of a statically defined type.
+Constants are never exchanged over the network, since they are assumed to be known to all involved nodes
+by virtue of them sharing the same definition of the data type.
+
+The data type of a constant attribute must be of the primitive type category
+(section \ref{sec:dsdl_serializable_types}).
+
+The value of the constant is determined at the DSDL definition processing time by evaluating its
+\emph{initialization expression}.
+The expression must yield a compatible type upon its evaluation in order to initialize the constant value.
+The set of compatible types depends on the type of the initialized constant attribute,
+as specified in the table \ref{table:dsdl_constant_init_pattern}.
+
+\begin{UAVCANSimpleTable}{Permitted constant attribute value initialization patterns}{|l | X | X[2] | X[2]|}
+    \diagbox[font=\footnotesize]{Constant\\type\\category}{Expression\\type} &
+    \texttt{bool} & \texttt{rational} & \texttt{string} \\
+
+    \textbf{Boolean} &
+    Allowed. &
+    Not allowed. &
+    Not allowed. \\
+
+    \textbf{Integer} &
+    Not allowed. &
+    Allowed if the denominator equals one and the numerator value is within the range of the constant type. &
+    Allowed if the target type is \texttt{uint8} and the source string contains one symbol whose code point falls
+    into the range $[0, 127]$. \\
+
+    \textbf{Floating point} &
+    Not allowed. &
+    Allowed if the source value does not exceed the finite range of the constant type.
+    The final value must be the nearest representable value of the target floating point type. &
+    Not allowed. \label{table:dsdl_constant_init_pattern}\\
+
+\end{UAVCANSimpleTable}
+
+Due to the value of a constant attribute being defined at the data type definition time,
+the cast mode of primitive-typed constants has no observable effect.
+
