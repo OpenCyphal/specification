@@ -143,7 +143,7 @@ For tagged unions, the value of the offset attribute is defined as:
 $$
     \texttt{\_offset\_}_\text{union} =
     \bigcup\limits_{i=1}^{N_\text{fields}}
-    \left\{ \log_2\lceil{}N_\text{fields}\rceil{} + b : b \in B_i \right\}
+    \left\{ \lceil{}\log_2 N_\text{fields}\rceil{} + b : b \in B_i \right\}
 $$
 where $N_\text{fields}$ is the number of fields defined in the current union definition,
 and $B_i$ is the bit length set of the data type of the field number $i$.
