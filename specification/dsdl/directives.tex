@@ -1,1 +1,108 @@
 \section{Directives}\label{sec:dsdl_directives}
+
+Per the DSDL grammar specification (section \ref{sec:dsdl_grammar}),
+a directive may or may not have an associated expression.
+In this section, it is assumed that a directive does not expect an expression unless explicitly stated otherwise.
+
+If the expectation of an associated directive expression or lack thereof is violated,
+the containing DSDL definition is malformed.
+
+\subsection{Tagged union marker}
+
+The identifier of the tagged union marker directive is ``\verb|union|''.
+Presence of this directive in a data type definition indicates that the
+data schema definition containing this directive belongs to the tagged union category
+(section \ref{sec:dsdl_composite_tagged_unions}).
+
+Usage of this directive is subject to the following constraints:
+\begin{itemize}
+    \item The directive shall not be used more than once per data schema definition.
+
+    \item The directive shall be placed before the first composite type attribute definition
+    in the current data schema.
+
+\end{itemize}
+
+\begin{remark}
+    \begin{minted}{python}
+        uint8[<64] name # Request is not a union
+        ---
+        @union          # Response is a union
+        uint64 natural
+        #@union         # Would fail - @union is not allowed after the first attribute definition
+        float64 real
+    \end{minted}
+\end{remark}
+
+\subsection{Deprecation marker}
+
+The identifier of the deprecation marker directive is ``\verb|deprecated|''.
+Presence of this directive in a data type definition indicates that the current version of the data type definition
+is nearing the end of its life cycle and may be removed soon.
+The data type versioning principles are explained in the section \ref{sec:dsdl_versioning}.
+
+Code generation tools should use this directive to reflect the impending removal of the current data type version
+in the generated code.
+
+Usage of this directive is subject to the following constraints:
+\begin{itemize}
+    \item The directive shall not be used more than once per data type definition.
+    \item The directive shall be placed before the first composite type attribute definition in
+    the first data schema definition.
+\end{itemize}
+
+\begin{remark}
+    \begin{minted}{python}
+        @deprecated         # Applies to the entire definition
+        ---
+        #@deprecated        # Would fail - must be placed in the first data schema definition
+    \end{minted}
+
+    A C++ class generated from the above definition could be annotated with the \verb|[[deprecated]]| attribute.
+
+    A Rust structure generated from the above definition could be annotated with the \verb|#[deprecated]| attribute.
+
+    A Python class generated from the above definition could raise \verb|DeprecationWarning| upon usage.
+\end{remark}
+
+\subsection{Assertion check}
+
+The identifier of the assertion check directive is ``\verb|assert|''.
+The assertion check directive expects an expression which must yield a value of type
+``\verb|bool|'' (section \ref{sec:dsdl_primitive_types}) upon its evaluation.
+
+If the expression yields truth, the assertion check directive has no effect.
+
+If the expression yields falsity, a value of type other than ``\verb|bool|'', or fails to evaluate,
+the containing DSDL definition is malformed.
+
+\begin{remark}
+    \begin{minted}{python}
+        float64 real
+        @assert _offset_ == {32}    # Would fail: {64} != {32}
+    \end{minted}
+\end{remark}
+
+\subsection{Print}
+
+The identifier of the print directive is ``\verb|print|''.
+The print directive may or may not be provided with an associated expression.
+
+If the expression is not provided, the behavior is implementation-defined.
+
+If the expression is provided, it is evaluated and its result is displayed by the DSDL processing tool in
+a human-readable implementation-defined form.
+Implementations should strive to produce textual representations that form valid DSDL expressions themselves,
+so that they would produce the same value if evaluated by a DSDL processing tool.
+
+If the expression is provided but cannot be evaluated, the containing DSDL definition is malformed.
+
+\begin{remark}
+    \begin{minted}{python}
+        float64 real
+        @print _offset_                     # Could print: {64}
+        @print uavcan.node.Heartbeat.1.0    # Could print: uavcan.node.Heartbeat.1.0
+        @print {123 == 123, false}          # Could print: {true, false}
+    \end{minted}
+\end{remark}
+
