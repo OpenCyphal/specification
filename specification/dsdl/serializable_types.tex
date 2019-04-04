@@ -3,6 +3,7 @@
 Values of the serializable type category can be exchanged between nodes over the UAVCAN network.
 This is opposed to the expression types (section \ref{sec:dsdl_expression_types}),
 instances of which can only exist while DSDL definitions are being evaluated.
+The data serialization rules are defined in the section \ref{sec:dsdl_data_serialization}.
 
 \subsection{Void types}
 
@@ -273,3 +274,10 @@ and the value of the field itself.
 In the case of composite definitions of the message kind,
 constant attributes of the message type are accessible through application of the
 attribute reference operator ``\verb|.|'' to the corresponding instance of the serializable metatype.
+
+\begin{remark}
+    \begin{minted}{python}
+        uint64 MY_CONSTANT = vendor.MessageType.1.0.OTHER_CONSTANT
+    \end{minted}
+\end{remark}
+

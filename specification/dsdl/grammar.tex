@@ -1,4 +1,4 @@
-\section{Grammar}
+\section{Grammar}\label{sec:dsdl_grammar}
 
 This section contains the formal definition of the DSDL grammar.
 Its notation is introduced beforehand.
@@ -54,6 +54,10 @@ The text of the formal definition contains comments which begin with an octothor
 \end{UAVCANSimpleTable}
 
 \subsection{Definition}
+
+At the top level, a DSDL definition file is an ordered collection of statements;
+the order is determined by the relative placement of statements inside the DSDL source file:
+statements located closer the beginning of the file precede those that are located closer to the end of the file.
 
 From the top level down to the expression rule, the grammar is a valid regular grammar,
 meaning that it can be parsed using standard regular expressions.
@@ -200,7 +204,7 @@ from the corresponding literal.
 
 \begin{remark}
     \begin{minted}{python}
-        @assert {'cells', "inter" + "linked"} == {"cells", 'interlinked'}
+        @assert {"cells", 'interlinked'} == {"inter" + "linked", 'cells'}
     \end{minted}
 \end{remark}
 

@@ -1,24 +1,30 @@
 \section{Attributes}\label{sec:dsdl_attributes}
 
-An \emph{attribute} is a named (excepting padding fields) entity associated with a particular data type definition.
-An attribute that has a value assigned at the data type definition time is called a \emph{constant attribute};
-an attribute that does not have a value assigned at the definition time is called a \emph{field attribute}.
+An \emph{attribute} is a named (excepting padding fields) entity associated with a particular object or type.
 
-An attribute name must be unique within its data schema definition
+\subsection{Composite type attributes}
+
+A composite type attribute that has a value assigned at the data type definition time is called a
+\emph{constant attribute};
+a composite type attribute that does not have a value assigned at the definition time is called a
+\emph{field attribute}.
+
+The name of a composite type attribute must be unique within its data schema definition
 and it shall not match any of the reserved name patterns specified in the table
 \ref{table:dsdl_reserved_word_patterns}.
 This requirement does not apply to padding fields.
 
-\subsection{Field attributes}
+\subsubsection{Field attributes}
 
 A field attribute represents a named dynamically assigned value of a statically defined type
 that can be exchanged over the network as a member of its containing object.
-The data type of a field must be of the serializable type category (section \ref{sec:dsdl_serializable_types}),
+The data type of a field attribute must be of the serializable type category
+(section \ref{sec:dsdl_serializable_types}),
 excepting the void type category, which is not allowed.
 
-Exception applies to the special kind of fields --- \emph{padding fields}.
-The type of a padding field must be of the void category.
-A padding field may not have a name.
+Exception applies to the special kind of field attributes --- \emph{padding fields}.
+The type of a padding field attribute must be of the void category.
+A padding field attribute may not have a name.
 
 \begin{remark}
     Example:
@@ -28,18 +34,20 @@ A padding field may not have a name.
     \end{minted}
 \end{remark}
 
-\subsection{Constant attributes}
+\subsubsection{Constant attributes}
 
 A constant attribute represents a named statically assigned value of a statically defined type.
-Constants are never exchanged over the network, since they are assumed to be known to all involved nodes
+Values of constant attributes are never exchanged over the network,
+since they are assumed to be known to all involved nodes
 by virtue of them sharing the same definition of the data type.
 
 The data type of a constant attribute must be of the primitive type category
 (section \ref{sec:dsdl_serializable_types}).
 
-The value of the constant is determined at the DSDL definition processing time by evaluating its
+The value of the constant attribute is determined at the DSDL definition processing time by evaluating its
 \emph{initialization expression}.
-The expression must yield a compatible type upon its evaluation in order to initialize the constant value.
+The expression must yield a compatible type upon its evaluation in order to initialize
+the value of its constant attribute.
 The set of compatible types depends on the type of the initialized constant attribute,
 as specified in the table \ref{table:dsdl_constant_init_pattern}.
 
@@ -68,4 +76,58 @@ as specified in the table \ref{table:dsdl_constant_init_pattern}.
 
 Due to the value of a constant attribute being defined at the data type definition time,
 the cast mode of primitive-typed constants has no observable effect.
+
+\subsection{Local attributes}
+
+Local attributes are available at the DSDL definition processing time.
+
+As defined in the section \ref{sec:dsdl_grammar},
+a DSDL definition is an ordered collection of statements;
+a statement may contain DSDL expressions.
+An expression contained in a statement number $E$ may refer to a
+composite type attribute introduced in a statement number $A$ by its name,
+where $A < E$ and both statements belong to the same data schema definition.
+The representation of the referred attribute in the context of the referring DSDL expression
+is specified in the table \ref{table:dsdl_local_attribute_representation}.
+
+\begin{UAVCANSimpleTable}{Local attribute representation}{|l X X|}\label{table:dsdl_local_attribute_representation}%
+    Attribute category & Value type & Value \\
+
+    Constant attribute &
+    Type of the constant attribute &
+    Value of the constant attribute \\
+
+%    Field attribute &
+%    \texttt{metaserializable} &
+%    Type of the field attribute \\
+    Field attribute &
+    Illegal &
+    Illegal \\
+
+\end{UAVCANSimpleTable}
+
+\begin{remark}
+    \begin{minted}{python}
+        uint8 FOO = 123
+        uint16 BAR = FOO ** 2
+        @assert BAR == 15129
+        ---  # The request data schema definition ends here; its attributes are no longer accessible.
+        #uint16 BAZ = BAR  # Would fail - BAR is not accessible here.
+        float64 FOO = 3.14
+        @assert FOO == 3.14
+    \end{minted}
+\end{remark}
+
+\subsection{Intrinsic attributes}
+
+Intrinsic attributes are available in any expression.
+Their values are constructed by the DSDL processing tool depending on the context,
+as specified in this section.
+
+\subsubsection{Offset attribute}
+
+
+
+
+
 
