@@ -152,10 +152,34 @@ If the current data schema definition does not belong to the tagged union catego
 the referring statement may be located anywhere within the current data schema definition.
 The value of the offset attribute is defined as:
 $$
-    \texttt{\_offset\_} = \prod\limits_{i=1}^{N_\text{fields}} B_i
+    \texttt{\_offset\_} =
+    \begin{cases}
+        \prod\limits_{i=1}^{N_\text{fields}} B_i        & \quad N_\text{fields} > 0 \\
+        \left\{0\right\}                                & \quad N_\text{fields} = 0 \\
+    \end{cases}
 $$
 where $N_\text{fields}$ is the number of fields defined in statements preceding the referring statement
 (see section \ref{sec:dsdl_grammar} on statement ordering),
 $B_i$ is the bit length set of the data type of the field number $i$,
 and $\prod$ is the Cartesian product operator.
+
+\begin{remark}
+    \begin{minted}{python}
+        @union
+        uint8 a
+        #@print _offset_  # Would fail: it's a tagged union, _offset_ is undefined until after the last field
+        uint16 b
+        @assert _offset_ == {1 + 8,  1 + 16}
+        ---
+        @assert _offset_ == {0}
+        float16 a
+        @assert _offset_ == {16}
+        void4
+        @assert _offset_ == {20}
+        int4 b
+        @assert _offset_ == {24}
+        uint8[<4] c
+        @assert _offset_ == {2 + 24,  2 + 32,  2 + 40,  2 + 48}
+    \end{minted}
+\end{remark}
 
