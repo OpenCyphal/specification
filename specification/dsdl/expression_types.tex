@@ -42,12 +42,6 @@ is not allowed if the source number exceeds the finite range of the target float
 Implicit conversions between boolean-valued entities and rational numbers are not allowed.
 
 \begin{remark}
-    An integer literal \verb|-0x123| is represented internally as $\frac{-291}{1}$.
-    Such fraction is usable in contexts that expect an integer value.
-
-    A real literal \verb|3.141592653589793| is represented internally as
-    $\frac{884279719003555}{281474976710656}$.
-
     A real literal \verb|1234.5678| is represented internally as
     $\frac{6172839}{5000}$, which can be used to initialize a \verb|float16| value,
     resulting in $1235.0$.
@@ -109,7 +103,7 @@ Implicit conversions between boolean-valued entities and rational numbers are no
 
 \end{UAVCANSimpleTable}
 
-\subsection{Unicode string}
+\subsection{Unicode string}\label{sec:dsdl_string}
 
 This type contains a sequence of Unicode characters.
 It is used to represent string literals internally.
@@ -119,34 +113,6 @@ The DSDL name of the Unicode string type is ``\verb|string|''.
 A Unicode string containing one symbol whose code point is within $[0, 127]$
 (i.e., an ASCII character) is implicitly convertible into a \verb|uint8|-typed constant attribute value,
 where the value of the constant is to be equal the code point of the symbol.
-
-The set of supported escape sequences permissible within string literals is defined in the table
-\ref{table:dsdl_string_literal_escape}.
-An escape sequence begins with the ASCII backslash character ``\verb|\|''.
-
-\begin{UAVCANSimpleTable}{String literal escape sequences}{|l X|}
-    Sequence & Interpretation
-    \label{table:dsdl_string_literal_escape} \\
-
-    \texttt{\textbackslash{}\textbackslash{}}   & Backslash, ASCII code 92. Same as the escape character. \\
-    \texttt{\textbackslash{}r}                  & Carriage return, ASCII code 13.               \\
-    \texttt{\textbackslash{}n}                  & Line feed, ASCII code 10.                     \\
-    \texttt{\textbackslash{}t}                  & Horizontal tabulation, ASCII code 9.          \\
-
-    \texttt{\textbackslash{}\textquotesingle{}} &
-    Apostrophe (single quote), ASCII code 39. Regardless of the type of quotes around the literal. \\
-
-    \texttt{\textbackslash{}\textquotedbl{}}    &
-    Quotation mark (double quote), ASCII code 34. Regardless of the type of quotes around the literal. \\
-
-    \texttt{\textbackslash{}u????} &
-    Unicode symbol with the code point specified by a four-digit hexadecimal number.
-    The placeholder ``\texttt{?}'' represents a hexadecimal character \texttt{[0-9a-fA-F]}. \\
-
-    \texttt{\textbackslash{}U????????} &
-    Like above, the code point is specified by an eight-digit hexadecimal number. \\
-
-\end{UAVCANSimpleTable}
 
 \begin{UAVCANSimpleTable}{Operators defined on instances of Unicode strings}{|l l X|}
     Op & Type & Description
@@ -163,17 +129,10 @@ An escape sequence begins with the ASCII backslash character ``\verb|\|''.
 
 \end{UAVCANSimpleTable}
 
-\begin{remark}
-    The following string equality holds true:
-    \begin{minted}{python}
-        @assert "oh,\u0020hi\U0000000aMark" == 'oh, hi\nMark'
-    \end{minted}
-\end{remark}
-
 The set of operations and conversions defined for Unicode strings is to be extended in future versions of
 the specification.
 
-\subsection{Set}
+\subsection{Set}\label{sec:dsdl_set}
 
 A set type represents an unordered collection of unique objects.
 All objects must be of the same type.
@@ -253,7 +212,7 @@ where $E$ represents the set element type.
 
 \end{UAVCANSimpleTable}
 
-\subsection{Serializable metatype}
+\subsection{Serializable metatype}\label{sec:dsdl_metaserializable}
 
 Serializable types (which are reviewed in section \ref{sec:dsdl_serializable_types})
 are instances of the serializable metatype.
