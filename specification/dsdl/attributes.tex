@@ -126,8 +126,36 @@ as specified in this section.
 
 \subsubsection{Offset attribute}
 
+The offset attribute is referred to by its identifier ``\verb|_offset_|''.
+Its value is of type $\texttt{set}_\texttt{<rational>}$.
 
+In the following text, the term \emph{referring statement} denotes a statement
+containing an expression which refers to the offset attribute.
+The term \emph{bit length set} is defined in section \ref{sec:dsdl_bit_length_set}.
 
+The value of the attribute is a function of the field attribute declarations preceding the referring statement
+and the category of the containing data schema definition.
 
+If the current data schema definition belongs to the tagged union category,
+the referring statement must be located after the last field attribute definition.
+A field attribute definition following the referring statement renders the current definition invalid.
+For tagged unions, the value of the offset attribute is defined as:
+$$
+    \texttt{\_offset\_}_\text{union} =
+    \bigcup\limits_{i=1}^{N_\text{fields}}
+    \left\{ \log_2\lceil{}N_\text{fields}\rceil{} + b : b \in B_i \right\}
+$$
+where $N_\text{fields}$ is the number of fields defined in the current union definition,
+and $B_i$ is the bit length set of the data type of the field number $i$.
 
+If the current data schema definition does not belong to the tagged union category,
+the referring statement may be located anywhere within the current data schema definition.
+The value of the offset attribute is defined as:
+$$
+    \texttt{\_offset\_} = \prod\limits_{i=1}^{N_\text{fields}} B_i
+$$
+where $N_\text{fields}$ is the number of fields defined in statements preceding the referring statement
+(see section \ref{sec:dsdl_grammar} on statement ordering),
+$B_i$ is the bit length set of the data type of the field number $i$,
+and $\prod$ is the Cartesian product operator.
 
