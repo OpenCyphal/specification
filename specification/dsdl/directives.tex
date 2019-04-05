@@ -100,9 +100,12 @@ If the expression is provided but cannot be evaluated, the containing DSDL defin
 \begin{remark}
     \begin{minted}{python}
         float64 real
-        @print _offset_                     # Could print: {64}
-        @print uavcan.node.Heartbeat.1.0    # Could print: uavcan.node.Heartbeat.1.0
-        @print {123 == 123, false}          # Could print: {true, false}
+        @print _offset_ / 6                  # Possible output: {32/3}
+        @print uavcan.node.Heartbeat.1.0     # Possible output: uavcan.node.Heartbeat.1.0
+        @print bool[<4]                      # Possible output: saturated bool[<=3]
+        @print float64                       # Possible output: saturated float64
+        @print {123 == 123, false}           # Possible output: {true, false}
+        @print 'we all float64 down here\n'  # Possible output: 'we all float64 down here\n'
     \end{minted}
 \end{remark}
 

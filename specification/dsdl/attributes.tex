@@ -179,7 +179,7 @@ and $\prod$ is the Cartesian product operator.
         int4 b
         @assert _offset_ == {24}
         uint8[<4] c
-        @assert _offset_ == {2 + 24,  2 + 32,  2 + 40,  2 + 48}
+        @assert _offset_ == 2 + {24,  32,  40,  48}
     \end{minted}
 \end{remark}
 
