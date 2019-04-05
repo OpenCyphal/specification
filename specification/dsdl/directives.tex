@@ -54,6 +54,8 @@ Usage of this directive is subject to the following constraints:
 \begin{remark}
     \begin{minted}{python}
         @deprecated         # Applies to the entire definition
+        uint8 FOO = 123
+        #@deprecated        # Would fail - must be placed before the first attribute definition
         ---
         #@deprecated        # Would fail - must be placed in the first data schema definition
     \end{minted}
