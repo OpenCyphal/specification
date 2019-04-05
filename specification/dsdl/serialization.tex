@@ -1,5 +1,11 @@
 \section{Data serialization}\label{sec:dsdl_data_serialization}
 
+\newcommand{\hugett}[1]{\texttt{\huge{#1}}}
+
+\subsection{General principles}
+
+\subsubsection{Design goals}
+
 The main design principle behind the serialized representations described in this section is
 the maximization of compatibility with native representations used by currently existing and
 likely future computer microarchitectures.
@@ -7,9 +13,7 @@ The goal is to ensure that the serialized representations defined by DSDL match 
 modern computers, so that, ideally, a typical system will not have to perform any data conversion whatsoever while
 exchanging data over a UAVCAN network.
 
-\newcommand{\hugett}[1]{\texttt{\huge{#1}}}
-
-\subsection{General principles}
+\subsubsection{Bit and byte ordering}
 
 The smallest atomic data entity is a bit.
 Eight bits form one byte;
@@ -23,38 +27,62 @@ such format is also known as little-endian.
     $$
     \overset{\text{bit index}}{%
         \underbrace{%
-            \overset{0}{\hugett{0}}\quad
-            \overset{1}{\hugett{1}}\quad
-            \overset{2}{\hugett{0}}\quad
-            \overset{3}{\hugett{1}}\quad
-            \overset{4}{\hugett{0}}\quad
-            \overset{5}{\hugett{1}}\quad
-            \overset{6}{\hugett{0}}\quad
-            \overset{7}{\hugett{1}}\quad
+            \overset{0}{\hugett{\;0\;}}
+            \overset{1}{\hugett{\;1\;}}
+            \overset{2}{\hugett{\;0\;}}
+            \overset{3}{\hugett{\;1\;}}
+            \overset{4}{\hugett{\;0\;}}
+            \overset{5}{\hugett{\;1\;}}
+            \overset{6}{\hugett{\;0\;}}
+            \overset{7}{\hugett{\;1\;}}
         }_{\substack{\text{0-th byte} \\ \text{least significant byte}}}%
     }
     \hugett{\ldots}
     \overset{\text{bit index}}{%
         \underbrace{%
-            \overset{8n+0}{\hugett{0}}\quad
-            \overset{8n+1}{\hugett{1}}\quad
-            \overset{8n+2}{\hugett{0}}\quad
-            \overset{8n+3}{\hugett{1}}\quad
-            \overset{8n+4}{\hugett{0}}\quad
-            \overset{8n+5}{\hugett{1}}\quad
-            \overset{8n+6}{\hugett{0}}\quad
-            \overset{8n+7}{\hugett{1}}\quad
+            \overset{8n+0}{\hugett{\;0\;}}
+                          {\hugett{\;1\;}}
+            \overset{8n+2}{\hugett{\;0\;}}
+                          {\hugett{\;1\;}}
+                          {\hugett{\;0\;}}
+            \overset{8n+5}{\hugett{\;1\;}}
+                          {\hugett{\;0\;}}
+            \overset{8n+7}{\hugett{\;1\;}}
         }_{\substack{n\text{-th byte} \\ \text{most significant byte}}}%
     }
     $$
-    \caption{Bit ordering and grouping.\label{fig:dsdl_serialization_bit_ordering}}
+    \caption{Bit and byte ordering.\label{fig:dsdl_serialization_bit_ordering}}
 \end{figure}
 
-Upon completion, a bit sequence must be appended with zero (0) bits at the end until the total length of
-the bit sequence is an integer multiple of eight (8).
-The transport layer may introduce additional padding bytes (as opposed to bits) of arbitrary values,
-as described in relevant sections of chapter \ref{sec:transport_layer}.
-When a serialized representation is deconstructed, the values of the padding bits must be ignored.
+\subsubsection{Implicit padding}
+
+Excepting one edge case reviewed below,
+serialized representations of DSDL entities never include implicit data padding.
+Unaligned data may lead to suboptimal serialization and deserialization performance;
+therefore, the data type designer should manually align elements as necessary to prevent performance degradation.
+It is guaranteed, however, that unaligned data cannot result in unspecified or otherwise unexpected behavior
+of the data handling routines.
+The manual approach to data alignment allows the data type designer to trade-off serialization efficiency
+over network bandwidth utilization and data transfer latency as necessary without compromising functional safety.
+
+The exceptional edge case mentioned above when implicit padding is introduced is as follows.
+Serialized representations of DSDL entities operate at the bit level,
+whereas the transport protocols supported by UAVCAN\footnote{As well as the majority of network protocols in general.}
+use byte as the smallest atomic data element.
+The resulting mismatch of the data granularity levels is resolved by
+appending the serialized representation of the top-level composite type object with zero (0) bits
+until the length of its bit string is an integer multiple of eight (8).
+The term \emph{top-level object} denotes an object that is not nested inside another DSDL entity.
+In other words, padding bits may only be added before a fully constructed serialized representation is
+handed over for transmission over the UAVCAN network
+(or any other destination which does not support bit-level data granularity).
+
+Additionally, the transport layer may introduce extra padding at the end of the serialized representation,
+as described in relevant sections of chapter \ref{sec:transport_layer};
+however, such padding behavior falls outside of the scope of the DSDL specification
+as it belongs to the domain of network transports rather than data presentation.
+
+When a serialized representation is deconstructed, the value of the trailing padding bits must be ignored.
 
 \subsection{Void types}
 
@@ -85,7 +113,7 @@ introduced in newer versions of the data type (section \ref{sec:dsdl_versioning}
 
 \subsection{Primitive types}
 
-\subsubsection{Boolean types}
+\subsubsection{Boolean types}\label{sec:dsdl_serialized_bool}
 
 The serialized representation of a value of type \verb|bool| is a single bit.
 If the value represents falsity, the value of the bit is zero (0); otherwise, the value of the bit is one (1).
@@ -131,121 +159,65 @@ The serialized representation of floating point types follows the IEEE 754 serie
     \item \verb|float64| --- IEEE 754 binary64.
 \end{itemize}
 
-\subsection{Nested data structures}
+\subsection{Array types}
 
-Nested data structures are serialized directly in-place,
-as if their DSDL definition was pasted directly in place of their reference.
-No additional prefixes, suffixes, or padding is provided.
+\subsubsection{Fixed-length array types}
 
-\subsection{Fixed size arrays}
+Serialized representations of a fixed-length array of $n$ elements of type $T$ and
+a sequence of $n$ field attributes of type $T$ are equivalent.
 
-Fixed-size arrays are serialized as a plain sequence of items,
-with each item serialized independently in place, with no alignment.
-No extra data is added.
+\begin{remark}
+    Serialized representations of the following two data schema definitions are equivalent:
 
-Essentially, a fixed-size array of size $X$ elements will be serialized exactly in the same way
-as a sequence of $X$ fields of the same type in a row.
-Hence, the following two data type definitions will have identical binary representation,
-the only actual difference being their representation for the application
-if automatic code generation is used.
+    \begin{minted}{python}
+        AnyType[3] array
+    \end{minted}
 
-\begin{minted}{python}
-AnyType[3] array
-\end{minted}
+    \begin{minted}{python}
+        AnyType item_0
+        AnyType item_1
+        AnyType item_2
+    \end{minted}
+\end{remark}
 
-\begin{minted}{python}
-AnyType item_0
-AnyType item_1
-AnyType item_2
-\end{minted}
+\subsubsection{Variable-length array types}
 
-\subsection{Dynamic arrays}
+The serialized representation of a variable-length array consists of two segments:
+the implicit length field followed by the array elements.
 
-The following two array definitions are equivalent;
-the difference is their representation in the DSDL definition for better readability:
-\begin{minted}{python}
-AnyType[<42] a      # Can contain from 0 to 41 elements
-AnyType[<=41] b     # Can contain from 0 to 41 elements
-\end{minted}
+The implicit length field is an unsigned integer value whose serialized representation
+is implicitly injected in the beginning of the serialized representation of its array.
+The bit length of the unsigned integer value is determined as follows:
+$$\lceil{}\log_2 (c + 1)\rceil{}$$
+where $c$ is the capacity (i.e., the maximum number of elements) of the variable-length array.
+The number of elements $n$ contained in the variable-length array is encoded in the serialized representation
+of the implicit length field as described in section \ref{sec:dsdl_serialized_unsigned_integer}
+(including the case where the bit length of the implicit length field is one bit).
 
-A dynamic array is serialized as a sequence of serialized items prepended with an unsigned
-integer field representing the number of contained items - the \emph{length field}.
-The bit width of the length field is a function of the maximum number of items in the array:
-$$\lceil{}\log_2 (X + 1)\rceil{}$$
-where $X$ is the maximum number of items in the array.
-For example, if the maximum number of items is 251, the length field bit width must be 8 bits;
-if the maximum number of items is 1, the length field bit width will be just a single bit.
+The rest of the serialized representation is constructed as if the variable-length array was
+a fixed-length array of $n$ elements.
 
-It is recommended to manually align dynamic arrays by prepending them with void fields
-so that the first element is byte-aligned, as that enables more efficient serialization and
-deserialization.
-This recommendation does not need to be followed if the size of the array elements is not
-a multiple of eight bits or if the array elements are of variable size themselves
-(e.g., a dynamic array of nested types which contain dynamic arrays themselves).
+\begin{remark}
+    It is recommended to manually align variable-length arrays by prepending them with padding field attributes
+    so that the first element is byte-aligned, as that facilitates more efficient serialization and deserialization.
 
-Consider the following definition:
+    \begin{minted}{python}
+        void2                        # Padding - good practice but not required
+        AnyType[<42] array           # The implicit length field is 6 bits wide
+        @assert _offset_.min == 8    # Ensuring that the first element is byte-aligned
+    \end{minted}
 
-\begin{minted}{python}
-void2                       # Padding - not required, provided as an example
-AnyType[<42] array          # The length field is 6 bits wide (see the formula)
-\end{minted}
+    If the array contained three elements,
+    the resulting set of its serialized representations would be equivalent to that of the following definition:
 
-If the array contained three elements,
-the resulting binary representation would be equivalent to that of the following definition:
-
-\begin{minted}{python}
-void2                       # Padding - not required, provided as an example
-uint6 array_length          # Set to 3, because the array contains three elements
-AnyType item_0
-AnyType item_1
-AnyType item_2
-\end{minted}
-
-\subsection{Unions}
-
-Similar to dynamic arrays, tagged unions are serialized as two subsequent entities:
-the union tag followed by the selected field, with no additional data.
-
-The union tag is an unsigned integer, the bit length of which is a function of the number of fields in the union:
-$$\lceil{}\log_2 N\rceil{}$$
-where N is the number of fields in the union.
-The value serialized in the union tag is the index of the selected field.
-Field indexes are assigned according to the order in which they are defined in DSDL,
-starting from zero;
-i.e. the first defined field has the index 0, the second defined field has the index 1, and so on.
-
-Constants are not affected by the union tag.
-
-It is recommended to manually align unions when they are nested into outer data types by
-prepending them with void fields so that the elements are byte-aligned,
-as that enables more efficient serialization and deserialization.
-
-Consider the following example:
-
-\begin{minted}{python}
-@union                  # In this case, the union tag requires 2 bits
-uint16  FOO = 42        # A regular constant attribute
-uint16  a               # Index 0
-uint8   b               # Index 1
-float64 c               # Index 2
-uint32  BAR = 42        # Another regular constant
-\end{minted}
-
-In order to encode the field \verb|b|, which, according to the definition,
-has the data type \verb|uint8|, the union tag should be assigned the value 1.
-The following structure will have an identical layout:
-
-\begin{minted}{python}
-uint2 tag               # Set to 1
-uint8 b                 # The actual data
-\end{minted}
-
-If the value of \verb|b| was 7, the resulting serialized byte sequence would be (in binary):
-$$%
-\underbrace{\texttt{01}}_{\text{tag}}%
-\overbrace{\texttt{000001 11}}^{\text{field }\texttt{b}}%
-\underbrace{\texttt{000000}}_{\text{padding}}%
-$$
+    \begin{minted}{python}
+        void2                        # Padding - good practice but not required
+        uint6 implicit_length_field  # Set to 3, because the array contains three elements
+        AnyType item_0
+        AnyType item_1
+        AnyType item_2
+    \end{minted}
+\end{remark}
 
 \subsection{Composite types}
 
@@ -266,9 +238,9 @@ and improve the performance of serialization and deserialization routines.
     \begin{minted}{python}
         #                          decimal    bit string            comment
         truncated uint12 first   # +48858     1011_1110_1101_1010   overflow, MSB truncated
-        truncated int3   second  # -1         111                   two's complement
-        truncated int4   third   # -5         1011                  two's complement
-        truncated int2   fourth  # -1         11                    two's complement
+        saturated int3   second  # -1         111                   two's complement
+        saturated int4   third   # -5         1011                  two's complement
+        saturated int2   fourth  # -1         11                    two's complement
         truncated uint4  fifth   # +136       1000_1000             overflow, MSB truncated
     \end{minted}
 
@@ -276,13 +248,70 @@ and improve the performance of serialization and deserialization routines.
     boundaries, which makes it a good case study.
     The resulting serialized byte sequence is shown below in the base-2 system,
     where bytes (octets) are comma-separated:
-
     $$
         \overbrace{\hugett{11011010,1110}}^{\texttt{first}}%
         \underbrace{\hugett{111}}_{\texttt{second}}%
         \overbrace{\hugett{1,011}}^{\texttt{third}}%
         \underbrace{\hugett{11}}_{\texttt{fourth}}%
         \overbrace{\hugett{100,0}}^{\texttt{fifth}}%
-        \underbrace{\hugett{0000000}}_{\substack{\text{Implicit padding} \\ \text{to 8-bit alignment}}}
+        \underbrace{\hugett{???????}}_{\substack{\text{Next object or} \\ \text{zero padding bits}}}
     $$
 \end{remark}
+
+Nested data structures are serialized directly in-place,
+as if their DSDL definition was pasted directly in place of their reference.
+No additional prefixes, suffixes, or padding is provided.
+
+\subsubsection{Tagged unions}
+
+Similar to variable-length arrays, a serialized representation of a tagged union consists of two segments:
+the implicit \emph{union tag} followed by the selected field attribute.
+
+The implicit union tag is an unsigned integer value whose serialized representation
+is implicitly injected in the beginning of the serialized representation of its tagged union.
+The bit length of the unsigned integer value is determined as follows:
+$$\lceil{}\log_2 n\rceil{}$$
+where $n$ is the number of field attributes in the union.
+
+Each of the tagged union field attributes is assigned an index in the order of their definition;
+their order follows that of the DSDL statements (see section \ref{sec:dsdl_grammar} on statement ordering).
+The first defined field attribute is assigned the index 0 (zero),
+the index of the following field is incremented by one.
+
+The index $i$ of the field attribute whose value is currently held by the tagged union is encoded
+in the serialized representation of the implicit union tag as described in section
+\ref{sec:dsdl_serialized_unsigned_integer}
+(including the case where the bit length of the implicit length field is one bit).
+
+\begin{remark}
+    It is recommended to manually align unions when they are nested into outer data types by
+    prepending them with void fields so that the elements are byte-aligned,
+    as that enables more efficient serialization and deserialization.
+
+    Consider the following example:
+
+    \begin{minted}{python}
+        @union                  # In this case, the union tag requires 2 bits
+        uint16  FOO = 42        # A regular constant attribute
+        uint16  a               # Index 0
+        uint8   b               # Index 1
+        float64 c               # Index 2
+        uint32  BAR = 42        # Another regular constant
+    \end{minted}
+
+    In order to encode the field \verb|b|, which, according to the definition,
+    has the data type \verb|uint8|, the union tag should be assigned the value 1.
+    The following structure will have an identical layout:
+
+    \begin{minted}{python}
+        uint2 implicit_union_tag  # Set to 1
+        uint8 b                   # The actual data
+    \end{minted}
+
+    Suppose that the value of \verb|b| is 7. The resulting bit string is shown below in the base-2 system:
+    $$%
+    \underbrace{\hugett{01}}_{\substack{\text{union} \\ \text{tag}}}%
+    \underbrace{\hugett{00000111}}_{\text{field }\texttt{b}}%
+    $$
+\end{remark}
+
