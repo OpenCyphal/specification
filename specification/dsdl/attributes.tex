@@ -154,8 +154,11 @@ The value of the offset attribute is defined as:
 $$
     \texttt{\_offset\_} =
     \begin{cases}
-        \prod\limits_{i=1}^{N_\text{fields}} B_i        & \quad N_\text{fields} > 0 \\
-        \left\{0\right\}                                & \quad N_\text{fields} = 0 \\
+        \left\{ \sum s : s \in \prod\limits_{i=1}^{N_\text{fields}} B_i \right\} &
+        \quad N_\text{fields} > 0 \\
+
+        \left\{0\right\} &
+        \quad N_\text{fields} = 0 \\
     \end{cases}
 $$
 where $N_\text{fields}$ is the number of fields defined in statements preceding the referring statement
