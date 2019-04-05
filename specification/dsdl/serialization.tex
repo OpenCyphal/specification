@@ -1,88 +1,135 @@
 \section{Data serialization}\label{sec:dsdl_data_serialization}
 
+The main design principle behind the serialized representations described in this section is
+the maximization of compatibility with native representations used by currently existing and
+likely future computer microarchitectures.
+The goal is to ensure that the serialized representations defined by DSDL match internal data representations of
+modern computers, so that, ideally, a typical system will not have to perform any data conversion whatsoever while
+exchanging data over a UAVCAN network.
+
+\newcommand{\hugett}[1]{\texttt{\huge{#1}}}
+
 \subsection{General principles}
 
-A serialized data structure of type $A$ is an ordered set of data fields joined together into a bit string
-according to the DSDL definition of the data structure $A$.
-The ordering of the fields follows that of the data structure definition.
+The smallest atomic data entity is a bit.
+Eight bits form one byte;
+within the byte, the bits are ordered so that the most significant bit is considered first (0-th index),
+and the least significant bit is considered last (7-th index).
 
-Serialized bit strings do not have any implicit data entities such as padding or headers.
-Data type developers are advised\footnote{But not required.} to manually align fields at
-byte boundaries using the void data types
-in order to simplify data layouts and improve the performance of serialization and deserialization routines.
-
-Serialized fields follow the little-endian byte order\footnote{Least-significant byte (LSB) first.}.
-One byte is assumed to contain exactly eight bits.
-Bits are filled from the most significant bit to the least significant bit,
-i.e., the most significant bit has the index 0.
-
-Serialized data structures must be padded upon completion to one byte,
-with the pad bits set to zero.
-Lower layers of the protocol may also add additional padding as
-necessary\footnote{More on this in the chapter \ref{sec:transport_layer}.};
-however, the rules and patterns of such padding fall out of the scope of the DSDL specification.
-
-\subsubsection{Example}
-
-Consider the following data type definition:
-
-\begin{minted}{python}
-truncated uint12 first
-truncated int3   second
-truncated int4   third
-truncated int2   fourth
-truncated uint4  fifth
-\end{minted}
-
-It can be seen that the bit layout is rather complicated because the field boundaries do not align with byte
-boundaries, which makes it a good case study.
-Suppose that we were to encode the above structure with the fields assigned the following values
-shown in the comments:
-
-\begin{minted}{python}
-truncated uint12 first      # = 0xBEDA (48858)
-truncated int3   second     # = -1
-truncated int4   third      # = -5
-truncated int2   fourth     # = -1
-truncated uint4  fifth      # = 0x88 (136)
-\end{minted}
-
-The resulting serialized byte sequence is shown on the figure \ref{fig:dsdl_serialization_example}.
+Numeric values consisting of multiple bytes are encoded so that the least significant byte is encoded first;
+such format is also known as little-endian.
 
 \begin{figure}[H]
-    \centering
-	\includegraphics[width=\textwidth]{dsdl/bit-encoding}
-	\caption{DSDL serialization example.\label{fig:dsdl_serialization_example}}
+    $$
+    \overset{\text{bit index}}{%
+        \underbrace{%
+            \overset{0}{\hugett{0}}\quad
+            \overset{1}{\hugett{1}}\quad
+            \overset{2}{\hugett{0}}\quad
+            \overset{3}{\hugett{1}}\quad
+            \overset{4}{\hugett{0}}\quad
+            \overset{5}{\hugett{1}}\quad
+            \overset{6}{\hugett{0}}\quad
+            \overset{7}{\hugett{1}}\quad
+        }_{\substack{\text{0-th byte} \\ \text{least significant byte}}}%
+    }
+    \hugett{\ldots}
+    \overset{\text{bit index}}{%
+        \underbrace{%
+            \overset{8n+0}{\hugett{0}}\quad
+            \overset{8n+1}{\hugett{1}}\quad
+            \overset{8n+2}{\hugett{0}}\quad
+            \overset{8n+3}{\hugett{1}}\quad
+            \overset{8n+4}{\hugett{0}}\quad
+            \overset{8n+5}{\hugett{1}}\quad
+            \overset{8n+6}{\hugett{0}}\quad
+            \overset{8n+7}{\hugett{1}}\quad
+        }_{\substack{n\text{-th byte} \\ \text{most significant byte}}}%
+    }
+    $$
+    \caption{Bit ordering and grouping.\label{fig:dsdl_serialization_bit_ordering}}
 \end{figure}
 
-\subsection{Scalar values}
+Upon completion, a bit sequence must be appended with zero (0) bits at the end until the total length of
+the bit sequence is an integer multiple of eight (8).
+The transport layer may introduce additional padding bytes (as opposed to bits) of arbitrary values,
+as described in relevant sections of chapter \ref{sec:transport_layer}.
+When a serialized representation is deconstructed, the values of the padding bits must be ignored.
 
-The table \ref{table:dsdl_scalar_serialization} lists the scalar value serialization rules.
+\subsection{Void types}
 
-\begin{UAVCANSimpleTable}{Scalar value serialization}{|l l X|}\label{table:dsdl_scalar_serialization}
-    Type                    & Bit length    & Binary format \\
-    \texttt{bool}           & 1
-                            & Single bit
-                            \\
-    \texttt{int\textbf{X}}  & X
-                            & Two's complement signed integer
-                            \\
-    \texttt{uint\textbf{X}} & X
-                            & Plain bits
-                            \\
-    \texttt{float16}        & 16
-                            & IEEE 754 binary16
-                            \\
-    \texttt{float32}        & 32
-                            & IEEE 754 binary32
-                            \\
-    \texttt{float64}        & 64
-                            & IEEE 754 binary64
-                            \\
-    \texttt{void\textbf{X}} & X
-                            & X zero bits; ignore when decoding
-                            \\
-\end{UAVCANSimpleTable}
+The serialized representation of a void-typed field attribute is constructed as a sequence of zero bits.
+The length of the sequence equals the numeric suffix of the type name.
+
+When a void-typed field attribute is decoded, the values of respective bits are ignored;
+in other words, any bit sequence of correct length is a valid encoded representation of a void-typed field attribute.
+This behavior facilitates usage of void fields as placeholders for non-void fields
+introduced in newer versions of the data type (section \ref{sec:dsdl_versioning}).
+
+\begin{remark}
+    The following data schema will be encoded as a sequence of three zero bits $000_2$
+    (five trailing padding bits not included):
+    \begin{minted}{python}
+        void3
+    \end{minted}
+    The following bit sequences are valid encoded representations of the schema:
+    $000_2$,
+    $001_2$,
+    $010_2$,
+    $011_2$,
+    $100_2$,
+    $101_2$,
+    $110_2$,
+    $111_2$.
+\end{remark}
+
+\subsection{Primitive types}
+
+\subsubsection{Boolean types}
+
+The serialized representation of a value of type \verb|bool| is a single bit.
+If the value represents falsity, the value of the bit is zero (0); otherwise, the value of the bit is one (1).
+
+\subsubsection{Unsigned integer types}\label{sec:dsdl_serialized_unsigned_integer}
+
+The serialized representation of an unsigned integer value of length $n$ bits
+(which is reflected in the numerical suffix of the data type name)
+is constructed as if the number were to be written in base-2 numerical system
+with leading zeros preserved so that the total number of binary digits would equal $n$.
+
+\begin{remark}
+    The serialized representation of integer 123 of type \verb|uint9| is $001111011_2$.
+\end{remark}
+
+\subsubsection{Signed integer types}
+
+The serialized representation of a non-negative value of a signed integer type is constructed as described
+in section \ref{sec:dsdl_serialized_unsigned_integer}.
+
+The serialized representation of a negative value of a signed integer type is computed by
+applying the following transformation:
+$$2^n + x$$
+where $n$ is the bit length of the serialized representation
+(which is reflected in the numerical suffix of the data type name)
+and $x$ is the value whose serialized representation is being constructed.
+The result of the transformation is a positive number,
+whose serialized representation is then constructed as described in section \ref{sec:dsdl_serialized_unsigned_integer}.
+
+The representation described here is widely known as \emph{two's complement}.
+
+\begin{remark}
+    The serialized representation of integer -123 of type \verb|int9| is $110000101_2$.
+\end{remark}
+
+\subsubsection{Floating point types}
+
+The serialized representation of floating point types follows the IEEE 754 series of standards as follows:
+
+\begin{itemize}
+    \item \verb|float16| --- IEEE 754 binary16;
+    \item \verb|float32| --- IEEE 754 binary32;
+    \item \verb|float64| --- IEEE 754 binary64.
+\end{itemize}
 
 \subsection{Nested data structures}
 
@@ -199,3 +246,43 @@ $$%
 \overbrace{\texttt{000001 11}}^{\text{field }\texttt{b}}%
 \underbrace{\texttt{000000}}_{\text{padding}}%
 $$
+
+\subsection{Composite types}
+
+A serialized representation of an object of composite type $T$ is an ordered set of serialized representations of
+its field attribute values joined into a bit string.
+The ordering of the serialized representations of the field attribute values follows the order
+of field attribute declaration of $T$.
+
+Bit strings do not have any implicit entities such as padding or headers.
+Data type developers are advised\footnote{But not required.} to manually align field attributes at
+byte boundaries using padding field attributes in order to simplify data layouts
+and improve the performance of serialization and deserialization routines.
+
+\begin{remark}
+    Consider the following data schema definition,
+    where the fields are assigned runtime values shown in the comments:
+
+    \begin{minted}{python}
+        #                          decimal    bit string            comment
+        truncated uint12 first   # +48858     1011_1110_1101_1010   overflow, MSB truncated
+        truncated int3   second  # -1         111                   two's complement
+        truncated int4   third   # -5         1011                  two's complement
+        truncated int2   fourth  # -1         11                    two's complement
+        truncated uint4  fifth   # +136       1000_1000             overflow, MSB truncated
+    \end{minted}
+
+    It can be seen that the bit layout is rather complicated because the field boundaries do not align with byte
+    boundaries, which makes it a good case study.
+    The resulting serialized byte sequence is shown below in the base-2 system,
+    where bytes (octets) are comma-separated:
+
+    $$
+        \overbrace{\hugett{11011010,1110}}^{\texttt{first}}%
+        \underbrace{\hugett{111}}_{\texttt{second}}%
+        \overbrace{\hugett{1,011}}^{\texttt{third}}%
+        \underbrace{\hugett{11}}_{\texttt{fourth}}%
+        \overbrace{\hugett{100,0}}^{\texttt{fifth}}%
+        \underbrace{\hugett{0000000}}_{\substack{\text{Implicit padding} \\ \text{to 8-bit alignment}}}
+    $$
+\end{remark}
