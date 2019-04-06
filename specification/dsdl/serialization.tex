@@ -182,11 +182,12 @@ a sequence of $n$ field attributes of type $T$ are equivalent.
 
 \subsubsection{Variable-length array types}
 
-The serialized representation of a variable-length array consists of two segments:
+A serialized representation of a variable-length array consists of two segments:
 the implicit length field followed by the array elements.
 
-The implicit length field is an unsigned integer value whose serialized representation
-is implicitly injected in the beginning of the serialized representation of its array.
+The implicit length field is of an unsigned integer type.
+The serialized representation of the implicit length field
+is injected in the beginning of the serialized representation of its array.
 The bit length of the unsigned integer value is determined as follows:
 $$\lceil{}\log_2 (c + 1)\rceil{}$$
 where $c$ is the capacity (i.e., the maximum number of elements) of the variable-length array.
@@ -203,7 +204,7 @@ a fixed-length array of $n$ elements.
 
     \begin{minted}{python}
         void2                        # Padding - good practice but not required
-        AnyType[<42] array           # The implicit length field is 6 bits wide
+        AnyType.1.0[<42] array       # The implicit length field is 6 bits wide
         @assert _offset_.min == 8    # Ensuring that the first element is byte-aligned
     \end{minted}
 
@@ -213,9 +214,9 @@ a fixed-length array of $n$ elements.
     \begin{minted}{python}
         void2                        # Padding - good practice but not required
         uint6 implicit_length_field  # Set to 3, because the array contains three elements
-        AnyType item_0
-        AnyType item_1
-        AnyType item_2
+        AnyType.1.0 item_0
+        AnyType.1.0 item_1
+        AnyType.1.0 item_2
     \end{minted}
 \end{remark}
 
@@ -265,53 +266,79 @@ No additional prefixes, suffixes, or padding is provided.
 \subsubsection{Tagged unions}
 
 Similar to variable-length arrays, a serialized representation of a tagged union consists of two segments:
-the implicit \emph{union tag} followed by the selected field attribute.
+the implicit \emph{union tag} value followed by the selected field attribute value.
 
 The implicit union tag is an unsigned integer value whose serialized representation
 is implicitly injected in the beginning of the serialized representation of its tagged union.
-The bit length of the unsigned integer value is determined as follows:
+The bit length of the implicit union tag is determined as follows:
 $$\lceil{}\log_2 n\rceil{}$$
-where $n$ is the number of field attributes in the union.
+where $n$ is the number of field attributes in the union, $n \geq 2$.
 
-Each of the tagged union field attributes is assigned an index in the order of their definition;
-their order follows that of the DSDL statements (see section \ref{sec:dsdl_grammar} on statement ordering).
+Each of the tagged union field attributes is assigned an index according to the order of their definition;
+the order follows that of the DSDL statements (see section \ref{sec:dsdl_grammar} on statement ordering).
 The first defined field attribute is assigned the index 0 (zero),
-the index of the following field is incremented by one.
+the index of each following field attribute is incremented by one.
 
-The index $i$ of the field attribute whose value is currently held by the tagged union is encoded
+The index of the field attribute whose value is currently held by the tagged union is encoded
 in the serialized representation of the implicit union tag as described in section
 \ref{sec:dsdl_serialized_unsigned_integer}
 (including the case where the bit length of the implicit length field is one bit).
 
-\begin{remark}
-    It is recommended to manually align unions when they are nested into outer data types by
-    prepending them with void fields so that the elements are byte-aligned,
-    as that enables more efficient serialization and deserialization.
+The serialized representation of the implicit union tag is immediately followed by
+the serialized representation of the currently selected field attribute value.
 
+\begin{remark}
     Consider the following example:
 
     \begin{minted}{python}
-        @union                  # In this case, the union tag requires 2 bits
-        uint16  FOO = 42        # A regular constant attribute
-        uint16  a               # Index 0
-        uint8   b               # Index 1
-        float64 c               # Index 2
-        uint32  BAR = 42        # Another regular constant
+        @union           # In this case, the implicit union tag is 2 bit wide
+        uint16 FOO = 42  # A regular constant attribute
+        uint16 a         # Field index 0
+        uint8 b          # Field index 1
+        uint32 BAR = 42  # Another regular constant attribute
+        float64 c        # Field index 2
     \end{minted}
 
-    In order to encode the field \verb|b|, which, according to the definition,
-    has the data type \verb|uint8|, the union tag should be assigned the value 1.
-    The following structure will have an identical layout:
+    In order to encode the field \verb|b|, the implicit union tag shall be assigned the value 1.
+    The following data schema will have an identical layout:
 
     \begin{minted}{python}
         uint2 implicit_union_tag  # Set to 1
-        uint8 b                   # The actual data
+        uint8 b                   # The actual value
     \end{minted}
 
-    Suppose that the value of \verb|b| is 7. The resulting bit string is shown below in the base-2 system:
+    Suppose that the value of \verb|b| is 7.
+    The resulting serialized representation is shown below in the base-2 system:
     $$%
     \underbrace{\hugett{01}}_{\substack{\text{union} \\ \text{tag}}}%
     \underbrace{\hugett{00000111}}_{\text{field }\texttt{b}}%
     $$
+
+    It is recommended to manually align tagged unions when they are nested into outer objects by
+    prepending them with a padding field attribute so that the value contained in the union is byte-aligned
+    after the tag, as that facilitates more efficient serialization and deserialization.
+\end{remark}
+
+\begin{remark}
+    Let the following data type be defined under the short name \verb|Empty| and version 1.0:
+
+    \begin{minted}{python}
+        # Empty. The only valid serialized representation is an empty bit string.
+    \end{minted}
+
+    Consider the following union schema definition:
+
+    \begin{minted}{python}
+        @union
+        Empty.1.0 none
+        AnyType.1.0 some
+    \end{minted}
+
+    The set of serialized representations of the union schema definition given above is equivalent to
+    that of the following variable-length array:
+
+    \begin{minted}{python}
+        AnyType.1.0[<=1] maybe_some
+    \end{minted}
 \end{remark}
 
