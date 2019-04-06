@@ -27,28 +27,28 @@ such format is also known as little-endian.
     $$
     \overset{\text{bit index}}{%
         \underbrace{%
-            \overset{0}{\hugett{\;0\;}}
-            \overset{1}{\hugett{\;1\;}}
-            \overset{2}{\hugett{\;0\;}}
-            \overset{3}{\hugett{\;1\;}}
-            \overset{4}{\hugett{\;0\;}}
-            \overset{5}{\hugett{\;1\;}}
-            \overset{6}{\hugett{\;0\;}}
-            \overset{7}{\hugett{\;1\;}}
-        }_{\substack{\text{0-th byte} \\ \text{least significant byte}}}%
+            \overset{0}{\hugett{0}}
+            \overset{1}{\hugett{1}}
+            \overset{2}{\hugett{0}}
+            \overset{3}{\hugett{1}}
+            \overset{4}{\hugett{0}}
+            \overset{5}{\hugett{1}}
+            \overset{6}{\hugett{0}}
+            \overset{7}{\hugett{1}}
+        }_\text{least significant byte}%
     }
     \hugett{\ldots}
     \overset{\text{bit index}}{%
         \underbrace{%
-            \overset{8n+0}{\hugett{\;0\;}}
-                          {\hugett{\;1\;}}
-            \overset{8n+2}{\hugett{\;0\;}}
-                          {\hugett{\;1\;}}
-                          {\hugett{\;0\;}}
-            \overset{8n+5}{\hugett{\;1\;}}
-                          {\hugett{\;0\;}}
-            \overset{8n+7}{\hugett{\;1\;}}
-        }_{\substack{n\text{-th byte} \\ \text{most significant byte}}}%
+            \overset{0}{\hugett{0}}
+            \overset{1}{\hugett{1}}
+            \overset{2}{\hugett{0}}
+            \overset{3}{\hugett{1}}
+            \overset{4}{\hugett{0}}
+            \overset{5}{\hugett{1}}
+            \overset{6}{\hugett{0}}
+            \overset{7}{\hugett{1}}
+        }_\text{most significant byte}%
     }
     $$
     \caption{Bit and byte ordering.\label{fig:dsdl_serialization_bit_ordering}}
@@ -239,9 +239,9 @@ and improve the performance of serialization and deserialization routines.
     \begin{minted}{python}
         #                          decimal    bit string            comment
         truncated uint12 first   # +48858     1011_1110_1101_1010   overflow, MSB truncated
-        saturated int3   second  # -1         111                   two's complement
-        saturated int4   third   # -5         1011                  two's complement
-        saturated int2   fourth  # -1         11                    two's complement
+        saturated  int3  second  # -1         111                   two's complement
+        saturated  int4  third   # -5         1011                  two's complement
+        saturated  int2  fourth  # -1         11                    two's complement
         truncated uint4  fifth   # +136       1000_1000             overflow, MSB truncated
     \end{minted}
 
