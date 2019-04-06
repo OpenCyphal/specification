@@ -222,27 +222,22 @@ a fixed-length array of $n$ elements.
 
 \subsection{Composite types}
 
-A serialized representation of an object of composite type $T$ is an ordered set of serialized representations of
+A serialized representation of an object of a composite type is an ordered set of serialized representations of
 its field attribute values joined into a bit string.
 The ordering of the serialized representations of the field attribute values follows the order
-of field attribute declaration of $T$.
-
-Bit strings do not have any implicit entities such as padding or headers.
-Data type developers are advised\footnote{But not required.} to manually align field attributes at
-byte boundaries using padding field attributes in order to simplify data layouts
-and improve the performance of serialization and deserialization routines.
+of field attribute declaration.
 
 \begin{remark}
     Consider the following data schema definition,
     where the fields are assigned runtime values shown in the comments:
 
     \begin{minted}{python}
-        #                          decimal    bit string            comment
+        #                          decimal             bit string   comment
         truncated uint12 first   # +48858     1011_1110_1101_1010   overflow, MSB truncated
-        saturated  int3  second  # -1         111                   two's complement
-        saturated  int4  third   # -5         1011                  two's complement
-        saturated  int2  fourth  # -1         11                    two's complement
-        truncated uint4  fifth   # +136       1000_1000             overflow, MSB truncated
+        saturated  int3  second  #     -1                     111   two's complement
+        saturated  int4  third   #     -5                    1011   two's complement
+        saturated  int2  fourth  #     -1                      11   two's complement
+        truncated uint4  fifth   #   +136               1000_1000   overflow, MSB truncated
     \end{minted}
 
     It can be seen that the bit layout is rather complicated because the field boundaries do not align with byte
@@ -258,10 +253,6 @@ and improve the performance of serialization and deserialization routines.
         \underbrace{\hugett{???????}}_{\substack{\text{Next object or} \\ \text{zero padding bits}}}
     $$
 \end{remark}
-
-Nested data structures are serialized directly in-place,
-as if their DSDL definition was pasted directly in place of their reference.
-No additional prefixes, suffixes, or padding is provided.
 
 \subsubsection{Tagged unions}
 
