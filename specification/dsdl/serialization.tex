@@ -71,7 +71,7 @@ whereas the transport protocols supported by UAVCAN\footnote{As well as the majo
 use byte as the smallest atomic data element.
 The resulting mismatch of the data granularity levels is resolved by
 appending the serialized representation of the top-level composite type object with zero (0) bits
-until the length of its bit string is an integer multiple of eight (8).
+until the length of its bit sequence is an integer multiple of eight (8).
 The term \emph{top-level object} denotes an object that is not nested inside another DSDL entity.
 In other words, padding bits may only be added before a fully constructed serialized representation is
 handed over for transmission over the UAVCAN network
@@ -84,7 +84,7 @@ as it belongs to the domain of network transports rather than data presentation.
 
 When a serialized representation is deconstructed, the value of the trailing padding bits must be ignored.
 
-\subsection{Void types}
+\subsection{Void types}\label{sec:dsdl_serialized_void}
 
 The serialized representation of a void-typed field attribute is constructed as a sequence of zero bits.
 The length of the sequence equals the numeric suffix of the type name.
@@ -191,8 +191,13 @@ is injected in the beginning of the serialized representation of its array.
 The bit length of the unsigned integer value is determined as follows:
 $$\lceil{}\log_2 (c + 1)\rceil{}$$
 where $c$ is the capacity (i.e., the maximum number of elements) of the variable-length array.
-The number of elements $n$ contained in the variable-length array is encoded in the serialized representation
-of the implicit length field as described in section \ref{sec:dsdl_serialized_unsigned_integer}
+The number of elements $n$ contained in the variable-length array is encoded
+in the serialized representation of the implicit length field%
+\footnote{%
+    Seeing as $n \leq c$ always holds, bit sequences where the implicit length field contains values
+    greater than $c$ do not belong to the set of serialized representations of the array.
+}
+as described in section \ref{sec:dsdl_serialized_unsigned_integer}
 (including the case where the bit length of the implicit length field is one bit).
 
 The rest of the serialized representation is constructed as if the variable-length array was
@@ -223,7 +228,7 @@ a fixed-length array of $n$ elements.
 \subsection{Composite types}
 
 A serialized representation of an object of a composite type is an ordered set of serialized representations of
-its field attribute values joined into a bit string.
+its field attribute values joined into a bit sequence.
 The ordering of the serialized representations of the field attribute values follows the order
 of field attribute declaration.
 
@@ -232,7 +237,7 @@ of field attribute declaration.
     where the fields are assigned runtime values shown in the comments:
 
     \begin{minted}{python}
-        #                          decimal             bit string   comment
+        #                          decimal           bit sequence   comment
         truncated uint12 first   # +48858     1011_1110_1101_1010   overflow, MSB truncated
         saturated  int3  second  #     -1                     111   two's complement
         saturated  int4  third   #     -5                    1011   two's complement
@@ -271,8 +276,13 @@ The first defined field attribute is assigned the index 0 (zero),
 the index of each following field attribute is incremented by one.
 
 The index of the field attribute whose value is currently held by the tagged union is encoded
-in the serialized representation of the implicit union tag as described in section
-\ref{sec:dsdl_serialized_unsigned_integer}
+in the serialized representation of the implicit union tag%
+\footnote{%
+    Seeing as $i < n$ always holds, where $i$ is the index of the current field attribute,
+    bit sequences where the implicit union tag field contains values
+    that are greater than or equal $n$ do not belong to the set of serialized representations of the tagged union.
+}
+as described in section \ref{sec:dsdl_serialized_unsigned_integer}
 (including the case where the bit length of the implicit length field is one bit).
 
 The serialized representation of the implicit union tag is immediately followed by
@@ -314,7 +324,7 @@ the serialized representation of the currently selected field attribute value.
     Let the following data type be defined under the short name \verb|Empty| and version 1.0:
 
     \begin{minted}{python}
-        # Empty. The only valid serialized representation is an empty bit string.
+        # Empty. The only valid serialized representation is an empty bit sequence.
     \end{minted}
 
     Consider the following union schema definition:

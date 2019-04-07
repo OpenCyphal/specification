@@ -2,242 +2,153 @@
 
 \subsection{Rationale}
 
-As can be seen from the preceding sections,
-the concept of \emph{data type} is a cornerstone feature of UAVCAN,
-which sets it apart from many competing solutions.
-
-In order to be able to interoperate successfully,
-all nodes connected to the same bus must use compatible definitions of all employed data types.
-This section is dedicated to the concepts of \emph{data type compatibility}
-and \emph{data type versioning}.
-
 Data type definitions may evolve over time as they are refined to better address the needs of their applications.
-In order to formalize the data type evolution process with respect to the data type compatibility concerns,
-UAVCAN introduces two concepts: \emph{bit compatibility} and \emph{semantic compatibility},
-which are discussed below.
+UAVCAN defines a set of rules that allow data type designers to modify and advance their
+data type definitions while ensuring backward compatibility and functional safety.
 
 \subsection{Bit compatibility}
 
-\subsubsection{Definition}
+A data type or schema $A$ is bit-compatible with a data type or schema $B$ if and only if
+the set of serialized representations\footnote{The serialization rules are reviewed
+in detail in the section \ref{sec:dsdl_data_serialization}.}
+of $A$ is a superset of the set of serialized representations of $B$.
 
-For the purposes of the definition that follows, a \emph{valid
-serialized\footnote{The serialization rules are reviewed in detail in the section \ref{sec:dsdl_data_serialization}.}
-representation} of a data structure $A$ is a bit sequence that satisfies the \emph{serialization constraints} of $A$.
+$A$ and $B$ are said to be \emph{mutually bit-compatible} if
+their sets of serialized representations are equal.
 
-\emph{Serialization constraints} limit the set of valid bit sequences according to the data type definition.
-A bit sequence meets the serialization constraints if all of the following conditions are
-satisfied\footnote{Observe that serialization constraints are not affected by void-typed fields,
-because per the serialization rules, the values of void-typed fields are to be set to zero during serialization
-and to be ignored during deserialization.}:
-\begin{itemize}
-    \item Each dynamic array length field contains a valid value;
-    i.e. the value of the length field is less than the maximum number of values in the array.
+A \emph{variable-length} data type or schema is a serializable data type or schema
+whose set of serialized representations contains bit sequences of different lengths.
+Conversely, any data type or schema that is not variable-length is \emph{fixed-length}.
 
-    \item Each union tag field contains a valid value;
-    i.e. the value of the tag field is less than the number of alternatives in the union.
+\begin{remark}[breakable]
+    The following two definitions are bit-compatible:
 
-    \item The bit sequence is sufficiently long.
-\end{itemize}
+    \begin{minted}{python}
+        uint32 a
+        uint32 b
+    \end{minted}
 
-A data type definition $A$ is bit-compatible with a data type definition $B$ if and only if
-the set of valid serialized representations of $A$ is a superset of that of $B$.
+    \begin{minted}{python}
+        uint64 c
+    \end{minted}
 
-$A$ and $B$ are said to be \emph{mutually compatible} if
-$A$ is compatible with $B$ and $B$ is compatible with $A$.
+    Consider the following example data type definition; assume that its full data type name is
+    \verb|demo.Pair|:
 
-\subsubsection{Example}
+    \begin{minted}{python}
+        # demo.Pair
+        float16 first
+        float16 second
+    \end{minted}
 
-A \emph{fixed-size data structure} is a structure that does not contain dynamic arrays,
-unions, or other structures that contain dynamic arrays or unions within themselves.
-As such, the bit length of an serialized representation of a fixed-size structure is constant,
-regardless of the data contained in the structure.
-Conversely, any data structure that is not fixed-size is called a \emph{variable-size data structure}.
+    Further, let the following define a data type named \verb|demo.PairVector|:
 
-It stands to reason that any data structure definition is compatible with itself.
-The following two definitions are bit-compatible as well:
+    \begin{minted}{python}
+        # demo.PairVector
+        demo.Pair[3] vector
+    \end{minted}
 
-\begin{minted}{python}
-uint32 a
-uint32 b
-\end{minted}
+    Then the following two definitions are bit-compatible:
 
-\begin{minted}{python}
-uint64 c
-\end{minted}
+    \begin{minted}{python}
+        demo.PairVector pair_vector
+    \end{minted}
 
-It should be observed that bit-compatibility is invariant to the complexity and the level of nesting
-of the data structure.
-From the above provided definitions follows that two fixed-size data structures are bit-compatible if the
-bit lengths of their respective serialized representations are equal.
+    \begin{minted}{python}
+        float16 first_0     # pair_vector.vector[0].first
+        float16 second_0    # pair_vector.vector[0].second
+        float16 first_1     # pair_vector.vector[1].first
+        float16 second_1    # pair_vector.vector[1].second
+        float16 first_2     # pair_vector.vector[2].first
+        float16 second_2    # pair_vector.vector[2].second
+    \end{minted}
 
-Consider the following example data type definition; assume that its full data type name is
-\verb|demo.Pair|:
+    The latter definition in the example above is a flattened unrolled form of the former definition.
+    As such, in that particular example, both definitions can be used interchangeably;
+    an object serialized using one definition can be deserialized using the other definition.
+    However, it is also possible to construct bit-compatible definitions that are not functionally equivalent:
 
-\begin{minted}{python}
-# demo.Pair
-float16 first
-float16 second
-\end{minted}
+    \begin{minted}{python}
+        float16 a
+        float32 b
+    \end{minted}
 
-Further, let the following be description of the data type \verb|demo.PairVector|:
+    \begin{minted}{python}
+        float32 a
+        float16 b
+    \end{minted}
 
-\begin{minted}{python}
-# demo.PairVector
-demo.Pair[3] vector
-\end{minted}
+    Even though the above definitions are bit-compatible, one cannot be substituted with the other.
+    The problem of functional equivalency is addressed by the concept of semantic compatibility,
+    explored in the section \ref{sec:dsdl_semantic_compatibility}.
 
-Then the following two definitions are bit-compatible:
+    Complicated scenarios are possible when a bit belonging to a primitive-typed field attribute
+    is handed over to a constrained field such as an implicit array length field or an implicit union tag field.
+    Some interesting examples are shown in the table \ref{table:dsdl_many_compat},
+    together with a set of serialized representation patterns.
+    Remember that the bits belonging to void-typed field attributes are ignored during deserialization.
 
-\begin{minted}{python}
-demo.PairVector pair_vector
-\end{minted}
+    % Please do not remove the hard placement specifier [H], it is needed to keep tables ordered.
+    \begin{table}[H]\caption{Complex bit compatibility examples}\label{table:dsdl_many_compat}
+        \begin{tabu}{|l|X|X|X|X|X|}
+            \hline
+            \rowfont{\bfseries}
+            &A                  &  B                &  C                &  D                &  E                 \\
+            \hline
 
-\begin{minted}{python}
-float16 first_0     # pair_vector.vector[0].first
-float16 second_0    # pair_vector.vector[0].second
-float16 first_1     # pair_vector.vector[1].first
-float16 second_1    # pair_vector.vector[1].second
-float16 first_2     # pair_vector.vector[2].first
-float16 second_2    # pair_vector.vector[2].second
-\end{minted}
+            \multirow{2}{*}{\textbf{Definition}}
+            &\texttt{void1}     &\texttt{bool x}    &\texttt{void1}     &\texttt{bool x}    &\texttt{bool[<5] a} \\
+            &\texttt{bool[<3] a}&\texttt{bool[<3] a}&\texttt{bool[<4] a}&\texttt{bool[<4] a}&                    \\
+            \hline
 
-The latter definition in the example above is a flattened unrolled form of the former definition.
-As such, in that particular example, both definitions can be used interchangeably;
-data serialized using one definition can still be meaningful if deserialized using the other definition.
-However, it is also possible to construct bit-compatible definitions that are not interchangeable:
+            \multirow{8}{*}{\begin{tabular}[x]{@{}l@{}}\textbf{Serialized}\\\textbf{representations}\end{tabular}}
+            &\multicolumn{2}{l|}{\texttt{000   }}   &\multicolumn{2}{l|}{\texttt{000    }}  &\texttt{000     } \\
+            &\multicolumn{2}{l|}{\texttt{001a  }}   &\multicolumn{2}{l|}{\texttt{001a   }}  &\texttt{001a    } \\
+            &\multicolumn{2}{l|}{\texttt{010aa }}   &\multicolumn{2}{l|}{\texttt{010aa  }}  &\texttt{010aa   } \\
+            &\multicolumn{2}{l|}{\texttt{      }}   &\multicolumn{2}{l|}{\texttt{011aaa }}  &\texttt{011aaa  } \\
+            &\multicolumn{2}{l|}{\texttt{100   }}   &\multicolumn{2}{l|}{\texttt{100    }}  &\texttt{100aaaa } \\
+            &\multicolumn{2}{l|}{\texttt{101a  }}   &\multicolumn{2}{l|}{\texttt{101a   }}  &\texttt{        } \\
+            &\multicolumn{2}{l|}{\texttt{110aa }}   &\multicolumn{2}{l|}{\texttt{110aa  }}  &\texttt{        } \\
+            &\multicolumn{2}{l|}{\texttt{      }}   &\multicolumn{2}{l|}{\texttt{111aaa }}  &\texttt{        } \\
+            \hline
 
-\begin{minted}{python}
-float16 a
-float32 b
-\end{minted}
-
-\begin{minted}{python}
-float32 a
-float16 b
-\end{minted}
-
-Even though the above definitions are bit-compatible, one cannot be substituted with the other.
-The problem of functional equivalency is addressed by the concept of semantic compatibility,
-explored in the section \ref{sec:dsdl_semantic_compatibility}.
-
-The examples above were focused on fixed-size structures.
-In the case of fixed-size structures, if $A$ is compatible with $B$, the reverse is also true.
-This does not hold for variable-size structures.
-Consider the following example:
-
-\begin{minted}{python}
-uint8[<=10] a
-\end{minted}
-
-\begin{minted}{python}
-void1           # The maximum array length is twice lower, so the length prefix is one bit shorter.
-uint16[<=5] a   # The 1-bit void field is needed to ensure identical bit offset of the array.
-\end{minted}
-
-For the first definition, it is evident that since it contains one dynamic array with
-11 possible length values\footnote{Which are 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, and 10.},
-and the array type is a fixed-size
-structure\footnote{Built-in types can be considered a special case of fixed-size data structures.},
-there are 11 possible bit length values for the first definition.
-
-Likewise, for the second definition, there are 6 possible bit length values.
-
-Since both arrays have the same bit offset from the beginning of the bit string,
-and taking into account the fact that the element sizes differ by an integral factor,
-the set of all possible serialized representations of the second definition is a subset of those of
-the first definition.
-Possible serialized representations are summarized in the table \ref{table:dsdl_variable_size_compat},
-where the columns labeled "First definition" and "Second definition" contain the number of elements in the
-respective arrays.
-
-\begin{minipage}{0.7\textwidth}
-\begin{UAVCANSimpleTable}{Variable-size data type compatibility example}{|lll|}\label{table:dsdl_variable_size_compat}
-    Bit length  & First definition  & Second definition \\
-    4           & 0                 & 0 \\
-    12          & 1                 & \emph{invalid} \\
-    20          & 2                 & 1 \\
-    28          & 3                 & \emph{invalid} \\
-    36          & 4                 & 2 \\
-    44          & 5                 & \emph{invalid} \\
-    52          & 6                 & 3 \\
-    60          & 7                 & \emph{invalid} \\
-    68          & 8                 & 4 \\
-    76          & 9                 & \emph{invalid} \\
-    84          & 10                & 5 \\
-\end{UAVCANSimpleTable}
-\end{minipage}
-
-The table illustrates the fact that the first definition is compatible with the second definition,
-but the reverse is not true.
-
-Complicated scenarios are possible when a bit belonging to a scalar field is handed over to a
-constrained field such as an array length field or a union tag field.
-Some interesting examples are shown in the table \ref{table:dsdl_many_compat},
-together with a set of valid serialized representation patterns.
-Remember that the bits belonging to void-typed fields are ignored during deserialization.
-
-% Please do not remove the hard placement specifier [H], it is needed to keep tables ordered.
-\begin{table}[H]\caption{Complex bit compatibility examples}\label{table:dsdl_many_compat}
-\begin{tabu}{|l|X|X|X|X|X|}
-\hline
-\rowfont{\bfseries}
-&A                   &   B                 &   C                 &   D                 &   E                 \\
-\hline
-
-\multirow{2}{*}{\textbf{Definition}}
-&\texttt{void1}      & \texttt{bool x}     & \texttt{void1}      & \texttt{bool x}     & \texttt{bool[<5] a} \\
-&\texttt{bool[<3] a} & \texttt{bool[<3] a} & \texttt{bool[<4] a} & \texttt{bool[<4] a} &                     \\
-\hline
-
-\multirow{8}{*}{\begin{tabular}[x]{@{}l@{}}\textbf{Valid}\\\textbf{serialized}\\\textbf{representations}\\\end{tabular}}
-&\multicolumn{2}{l|}{\texttt{000   }}      & \multicolumn{2}{l|}{\texttt{000    }}     & \texttt{000     } \\
-&\multicolumn{2}{l|}{\texttt{001a  }}      & \multicolumn{2}{l|}{\texttt{001a   }}     & \texttt{001a    } \\
-&\multicolumn{2}{l|}{\texttt{010aa }}      & \multicolumn{2}{l|}{\texttt{010aa  }}     & \texttt{010aa   } \\
-&\multicolumn{2}{l|}{\texttt{      }}      & \multicolumn{2}{l|}{\texttt{011aaa }}     & \texttt{011aaa  } \\
-&\multicolumn{2}{l|}{\texttt{100   }}      & \multicolumn{2}{l|}{\texttt{100    }}     & \texttt{100aaaa } \\
-&\multicolumn{2}{l|}{\texttt{101a  }}      & \multicolumn{2}{l|}{\texttt{101a   }}     & \texttt{        } \\
-&\multicolumn{2}{l|}{\texttt{110aa }}      & \multicolumn{2}{l|}{\texttt{110aa  }}     & \texttt{        } \\
-&\multicolumn{2}{l|}{\texttt{      }}      & \multicolumn{2}{l|}{\texttt{111aaa }}     & \texttt{        } \\
-\hline
-
-\textbf{Compatible with}
-&B                   & A                   & A, B, D             & A, B, C             & \emph{(none)}     \\
-\hline
-\end{tabu}
-\end{table}
+            \textbf{Compatible with}
+            &B                  & A                 & A, B, D           & A, B, C           & \emph{(none)}    \\
+            \hline
+        \end{tabu}
+    \end{table}
+\end{remark}
 
 \subsection{Semantic compatibility}\label{sec:dsdl_semantic_compatibility}
 
-\subsubsection{Definition}
-
-A data structure definition $A$ is semantically compatible with a data structure definition $B$
+A data type $A$ is semantically compatible with a data type $B$
 if an application that correctly uses $A$ exhibits a functionally equivalent behavior to an application
 that correctly uses $B$.
 The property of semantic compatibility is commutative.
 
-\subsubsection{Example}
+\begin{remark}[breakable]
+    Despite using different binary layouts, the following two definitions are semantically compatible
+    and also bit-compatible:
 
-Despite using different binary layouts, the following two definitions are semantically compatible
-and also bit-compatible:
+    \begin{minted}{python}
+        uint16 FLAG_A = 1
+        uint16 FLAG_B = 256
+        uint16 flags
+    \end{minted}
 
-\begin{minted}{python}
-uint16 FLAG_A = 1
-uint16 FLAG_B = 256
-uint16 flags
-\end{minted}
+    \begin{minted}{python}
+        uint8 FLAG_A = 1
+        uint8 FLAG_B = 1
+        uint8 flags_a
+        uint8 flags_b
+    \end{minted}
 
-\begin{minted}{python}
-uint8 FLAG_A = 1
-uint8 FLAG_B = 1
-uint8 flags_a
-uint8 flags_b
-\end{minted}
-
-Therefore, the definitions can be used
-interchangeably\footnote{It should be noted here that due to different set of fields and constants,
-the source code auto-generated from the provided definitions may be not drop-in replaceable,
-requiring changes in the application. However, application compatibility is orthogonal to
-data type compatibility.}.
+    Therefore, the definitions can be used interchangeably.
+    It should be noted here that due to different set of field and constant attributes,
+    the source code auto-generated from the provided definitions may be not drop-in replaceable,
+    requiring changes in the application;
+    however, source-code-level application compatibility is orthogonal to data type compatibility.
+\end{remark}
 
 \subsection{Data type versioning}
 
