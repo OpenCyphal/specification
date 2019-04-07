@@ -227,6 +227,11 @@ a fixed-length array of $n$ elements.
 
 \subsection{Composite types}
 
+As explained in the section \ref{sec:dsdl_composite_types}, a data type of the service kind contains
+two data schema definitions: one for request object, one for response object.
+Unless explicitly specified otherwise, any reference to serialized representations of a service type
+implies either or both of its data schema definitions, depending on context.
+
 A serialized representation of an object of a composite type is an ordered set of serialized representations of
 its field attribute values joined into a bit sequence.
 The ordering of the serialized representations of the field attribute values follows the order

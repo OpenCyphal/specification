@@ -15,7 +15,7 @@ Void-typed field attributes are set to zero when an object is serialized and ign
 Void types can be used to reserve space in data type definitions for possible use in later versions of the data type.
 
 The DSDL name pattern for void types is as follows: ``\verb|void[1-9]\d*|'',
-where the trailing integer represents the length of the void field attribute, in bits,
+where the trailing integer represents its width, in bits,
 ranging from 1 to 64, inclusive.
 
 Void types can be referred to directly by their name from any namespace.
@@ -45,16 +45,16 @@ The hierarchy of primitive types is documented below.
             \item \textbf{Signed integer types.} These are used to represent values which can be negative.
             The corresponding DSDL data type name pattern is ``\verb|int[1-9]\d*|'',
             where the trailing integer represents the length of the
-            encoded representation of the value, in bits, ranging from 2 to 64, inclusive.
+            serialized representation of the value, in bits, ranging from 2 to 64, inclusive.
 
             \item \textbf{Unsigned integer types.} These are used to represent non-negative values.
             The corresponding DSDL data type name pattern is ``\verb|uint[1-9]\d*|'',
             where the trailing integer represents the length of the
-            encoded representation of the value, in bits, ranging from 2 to 64, inclusive.
+            serialized representation of the value, in bits, ranging from 2 to 64, inclusive.
         \end{itemize}
 
         \item \textbf{Floating point types} are used to approximately represent real values.
-        The underlying encoded representation follows the IEEE 754 standard.
+        The underlying serialized representation follows the IEEE 754 standard.
         The corresponding DSDL data type name pattern is ``\verb~float(16|32|64)~'', where the trailing
         integer represents the type of the IEEE 754 representation.
         See table \ref{table:dsd_floating_point_properties}.
@@ -194,7 +194,7 @@ a variable-length array:
 \end{itemize}
 If neither of the above prefixes are provided, the resultant definition is that of a fixed-length array.
 
-\subsection{Composite types}
+\subsection{Composite types}\label{sec:dsdl_composite_types}
 
 \subsubsection{Kinds}
 
