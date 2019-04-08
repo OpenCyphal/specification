@@ -6,7 +6,9 @@ Data type definitions may evolve over time as they are refined to better address
 UAVCAN defines a set of rules that allow data type designers to modify and advance their
 data type definitions while ensuring backward compatibility and functional safety.
 
-\subsection{Bit compatibility}
+\subsection{Compatibility}
+
+\subsubsection{Bit compatibility}
 
 A data type or schema $A$ is bit-compatible with a data type or schema $B$ if and only if
 the set of serialized representations\footnote{The serialization rules are reviewed
@@ -101,7 +103,9 @@ Conversely, any data type or schema that is not variable-length is \emph{fixed-l
             &\texttt{bool[<3] a}&\texttt{bool[<3] a}&\texttt{bool[<4] a}&\texttt{bool[<4] a}&                    \\
             \hline
 
-            \multirow{8}{*}{\begin{tabular}[x]{@{}l@{}}\textbf{Serialized}\\\textbf{representations}\end{tabular}}
+            \multirow{8}{*}{%
+                \begin{tabular}[x]{@{}l@{}}\textbf{Serialized}\\\textbf{representations}\end{tabular}%
+            }
             &\multicolumn{2}{l|}{\texttt{000   }}   &\multicolumn{2}{l|}{\texttt{000    }}  &\texttt{000     } \\
             &\multicolumn{2}{l|}{\texttt{001a  }}   &\multicolumn{2}{l|}{\texttt{001a   }}  &\texttt{001a    } \\
             &\multicolumn{2}{l|}{\texttt{010aa }}   &\multicolumn{2}{l|}{\texttt{010aa  }}  &\texttt{010aa   } \\
@@ -112,14 +116,14 @@ Conversely, any data type or schema that is not variable-length is \emph{fixed-l
             &\multicolumn{2}{l|}{\texttt{      }}   &\multicolumn{2}{l|}{\texttt{111aaa }}  &\texttt{        } \\
             \hline
 
-            \textbf{Compatible with}
+            {\begin{tabular}[x]{@{}l@{}}\textbf{Bit-compatible}\\\textbf{with}\end{tabular}}
             &B                  & A                 & A, B, D           & A, B, C           & \emph{(none)}    \\
             \hline
         \end{tabu}
     \end{table}
 \end{remark}
 
-\subsection{Semantic compatibility}\label{sec:dsdl_semantic_compatibility}
+\subsubsection{Semantic compatibility}\label{sec:dsdl_semantic_compatibility}
 
 A data type $A$ is semantically compatible with a data type $B$
 if an application that correctly uses $A$ exhibits a functionally equivalent behavior to an application
@@ -150,11 +154,11 @@ The property of semantic compatibility is commutative.
     however, source-code-level application compatibility is orthogonal to data type compatibility.
 \end{remark}
 
-\subsection{Data type versioning}
+\subsection{Versioning}
 
 \subsubsection{Versioning principles}
 
-Every data type definition has a pair of version numbers -
+Every data type definition has a pair of version numbers ---
 a major version number and a minor version number, following the principles of semantic versioning.
 
 For the purposes of the following definitions, a \emph{release} of a data type definition stands for

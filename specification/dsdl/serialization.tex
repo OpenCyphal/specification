@@ -20,7 +20,7 @@ Eight bits form one byte;
 within the byte, the bits are ordered so that the most significant bit is considered first (0-th index),
 and the least significant bit is considered last (7-th index).
 
-Numeric values consisting of multiple bytes are encoded so that the least significant byte is encoded first;
+Numeric values consisting of multiple bytes are arranged so that the least significant byte is encoded first;
 such format is also known as little-endian.
 
 \begin{figure}[H]
@@ -90,17 +90,18 @@ The serialized representation of a void-typed field attribute is constructed as 
 The length of the sequence equals the numeric suffix of the type name.
 
 When a void-typed field attribute is decoded, the values of respective bits are ignored;
-in other words, any bit sequence of correct length is a valid encoded representation of a void-typed field attribute.
+in other words, any bit sequence of correct length is a valid serialized representation
+of a void-typed field attribute.
 This behavior facilitates usage of void fields as placeholders for non-void fields
 introduced in newer versions of the data type (section \ref{sec:dsdl_versioning}).
 
 \begin{remark}
-    The following data schema will be encoded as a sequence of three zero bits $000_2$
+    The following data schema will be serialized as a sequence of three zero bits $000_2$
     (five trailing padding bits not included):
     \begin{minted}{python}
         void3
     \end{minted}
-    The following bit sequences are valid encoded representations of the schema:
+    The following bit sequences are valid serialized representations of the schema:
     $000_2$,
     $001_2$,
     $010_2$,
