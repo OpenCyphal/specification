@@ -261,7 +261,7 @@ network analysis software.
 
 The kind is specified above explicitly due to the fact that the sets of subject-ID and service-ID are orthogonal.
 In other words,
-the numeric value of a port-ID may refer to different data types provided that they are of different kinds.
+the numeric value of a port-ID may refer to different data types if they are of different kinds.
 
 \subsubsection{Data type version selection}
 
@@ -284,129 +284,128 @@ The minor versions may differ, which is acceptable due to the major version comp
 \begin{remark}[breakable]
     A simple usage example is provided in this intermission.
 
-    Suppose a vendor named \emph{Sirius Cybernetics Corporation} was contracted to design a
-    cryopod management data bus for a colonial spaceship \emph{Golgafrincham B-Ark}.
+    Suppose a vendor named ``Sirius Cybernetics Corporation'' is contracted to design a
+    cryopod management data bus for a colonial spaceship ``Golgafrincham B-Ark''.
     Having consulted with applicable specifications and standards, an engineer came up with the following
-    definition of a cryopod status message type (named \verb|sirius_cyber_corp.golgafrincham_b_ark.cryopod.Status|):
+    definition of a cryopod status message type (named \verb|sirius_cyber_corp.b_ark.cryopod.Status|):
 
     \begin{minted}{python}
-        # sirius_cyber_corp.golgafrincham_b_ark.cryopod.Status.0.1
+        # sirius_cyber_corp.b_ark.cryopod.Status.0.1
 
         float16 internal_temperature    # [kelvin]
         float16 coolant_temperature     # [kelvin]
 
-        # Status flags in the low byte
-        uint16 FLAG_COOLING_SYSTEM_A_ACTIVE = 1
-        uint16 FLAG_COOLING_SYSTEM_B_ACTIVE = 2
-        # Error flags in the high byte
-        uint16 FLAG_PSU_MALFUNCTION = 8192
-        uint16 FLAG_OVERHEATING     = 16384
-        uint16 FLAG_CRYOBOX_BREACH  = 32768
-        # Storage for the above defined flags
-        uint16 flags
+        # Status flags in the lower bits
+        uint8 FLAG_COOLING_SYSTEM_A_ACTIVE = 1
+        uint8 FLAG_COOLING_SYSTEM_B_ACTIVE = 2
+        # Error flags in the higher bits
+        uint8 FLAG_PSU_MALFUNCTION = 32
+        uint8 FLAG_OVERHEATING     = 64
+        uint8 FLAG_CRYOBOX_BREACH  = 128
+        # Storage for the above defined flags (this is not the recommended practice)
+        uint8 flags
     \end{minted}
 
-    The definition has been deployed to the first prototype for initial lab tests.
-    Since the definition was experimental, the major version number was set to zero, to signify the
+    The definition is then deployed to the first prototype for initial laboratory testing.
+    Since the definition is experimental, the major version number is set to zero in order to signify the
     tentative nature of the definition.
-    Suppose that upon completion of the first trials it was identified that the units must track their power consumption
-    in real time, for each of the three redundant power supplies independently.
-    The definition has been amended appropriately.
+    Suppose that upon completion of the first trials it is identified that the units must track their power consumption
+    in real time for each of the three redundant power supplies independently.
 
     It is easy to see that the amended definition shown below is neither semantically compatible nor bit-compatible
     with the original definition; however, it shares the same major version number of zero, because the backward
     compatibility rules do not apply to zero-versioned data types to allow for low-overhead experimentation
-    before the system is fully deployed and fielded.
+    before the system is deployed and fielded.
 
     \begin{minted}{python}
-        # sirius_cyber_corp.golgafrincham_b_ark.cryopod.Status.0.2
+        # sirius_cyber_corp.b_ark.cryopod.Status.0.2
 
         truncated float16 internal_temperature    # [kelvin]
         truncated float16 coolant_temperature     # [kelvin]
 
-        saturated float32 power_consumption_0     # Power consumption by the redundant PSU 0 [watt]
-        saturated float32 power_consumption_1     # likewise for PSU 1
-        saturated float32 power_consumption_2     # likewise for PSU 2
+        saturated float32 power_consumption_0     # [watt] Power consumption by the redundant PSU 0
+        saturated float32 power_consumption_1     # [watt] likewise for PSU 1
+        saturated float32 power_consumption_2     # [watt] likewise for PSU 2
 
-        # Status flags in the low byte
-        uint16 FLAG_COOLING_SYSTEM_A_ACTIVE = 1
-        uint16 FLAG_COOLING_SYSTEM_B_ACTIVE = 2
-        # Error flags in the high byte
-        uint16 FLAG_PSU_MALFUNCTION = 8192
-        uint16 FLAG_OVERHEATING     = 16384
-        uint16 FLAG_CRYOBOX_BREACH  = 32768
-        # Storage for the above defined flags
-        uint16 flags
+        # Status flags in the lower bits
+        uint8 FLAG_COOLING_SYSTEM_B_ACTIVE = 1
+        uint8 FLAG_COOLING_SYSTEM_A_ACTIVE = 2
+        # Error flags in the higher bits
+        uint8 FLAG_PSU_MALFUNCTION = 32
+        uint8 FLAG_OVERHEATING     = 64
+        uint8 FLAG_CRYOBOX_BREACH  = 128
+        # Storage for the above defined flags (this is not the recommended practice)
+        uint8 flags
     \end{minted}
 
-    The last definition was deemed sufficient and deployed to the production system
-    under the version number of 1.0: \verb|sirius_cyber_corp.golgafrincham_b_ark.cryopod.Status.1.0|.
+    The last definition is deemed sufficient and is deployed to the production system
+    under the version number of 1.0: \verb|sirius_cyber_corp.b_ark.cryopod.Status.1.0|.
 
     Having collected empirical data from the fielded systems, the Sirius Cybernetics Corporation has
-    identified a shortcoming in the v1.0 definition, which was corrected in an updated definition.
+    identified a shortcoming in the v1.0 definition, which is corrected in an updated definition.
     Since the updated definition, which is shown below, is mutually semantically
     compatible\footnote{The topic of data serialization is explored in detail in the section
     \ref{sec:dsdl_data_serialization}.}
-    with v1.0, the major version number was kept the same and the minor version number was incremented by one:
+    with v1.0, the major version number is kept the same and the minor version number is incremented by one:
 
     \begin{minted}{python}
-        # sirius_cyber_corp.golgafrincham_b_ark.cryopod.Status.1.1
+        # sirius_cyber_corp.b_ark.cryopod.Status.1.1
 
         saturated float16 internal_temperature    # [kelvin]
         saturated float16 coolant_temperature     # [kelvin]
 
-        saturated float32[3] power_consumption    # Power consumption by the PSU
+        float32[3] power_consumption    # [watt] Power consumption by the PSU
 
-        # Status flags
-        uint8 STATUS_FLAG_COOLING_SYSTEM_A_ACTIVE = 1
-        uint8 STATUS_FLAG_COOLING_SYSTEM_B_ACTIVE = 2
-        uint8 status_flags
+        # Error flags (this is the recommended practice)
+        bool flag_cryobox_breach
+        bool flag_overheating
+        bool flag_psu_malfunction
 
-        # Error flags
-        uint8 ERROR_FLAG_PSU_MALFUNCTION = 5
-        uint8 ERROR_FLAG_OVERHEATING     = 6
-        uint8 ERROR_FLAG_CRYOBOX_BREACH  = 7
-        uint8 error_flags
+        void3   # Reserved for other flags
+
+        # Status flags (this is the recommended practice)
+        bool flag_cooling_system_a_active
+        bool flag_cooling_system_b_active
     \end{minted}
 
-    Since the definitions v1.0 and v1.1 are mutually semantically compatible,
+    Since the definitions v1.0 and v1.1 are mutually bit-compatible and semantically compatible,
     UAVCAN nodes using either of them can successfully interoperate on the same bus.
 
-    Suppose further that at some point a newer version of the cryopod module was released,
-    with higher precision temperature sensors.
-    The definition has to be updated accordingly to use \verb|float32| for the temperature fields
-    instead of \verb|float16|.
-    Seeing as that change breaks the binary compatibility,
-    the major version number has to be incremented by one, and the minor version number has to be reset back to zero:
+    Suppose further that at some point a newer version of the cryopod module,
+    equipped with better temperature sensors, is released.
+    The definition is updated accordingly to use \verb|float32| for the temperature fields instead of \verb|float16|.
+    Seeing as that change breaks the bit compatibility,
+    the major version number has to be incremented by one,
+    and the minor version number has to be reset back to zero:
 
     \begin{minted}{python}
-        # sirius_cyber_corp.golgafrincham_b_ark.cryopod.Status.2.0
+        # sirius_cyber_corp.b_ark.cryopod.Status.2.0
 
         float32 internal_temperature    # [kelvin]
         float32 coolant_temperature     # [kelvin]
 
-        float32[3] power_consumption    # Power consumption by the PSU
+        float32[3] power_consumption    # [watt] Power consumption by the PSU
 
-        # Status flags
-        uint8 STATUS_FLAG_COOLING_SYSTEM_A_ACTIVE = 1
-        uint8 STATUS_FLAG_COOLING_SYSTEM_B_ACTIVE = 2
-        uint8 status_flags
+        # Error flags (this is the recommended practice)
+        bool flag_cryobox_breach
+        bool flag_overheating
+        bool flag_psu_malfunction
 
-        # Error flags
-        uint8 ERROR_FLAG_PSU_MALFUNCTION = 5
-        uint8 ERROR_FLAG_OVERHEATING     = 6
-        uint8 ERROR_FLAG_CRYOBOX_BREACH  = 7
-        uint8 error_flags
+        void3   # Reserved for other flags
+
+        # Status flags (this is the recommended practice)
+        bool flag_cooling_system_a_active
+        bool flag_cooling_system_b_active
     \end{minted}
 
-    Now, nodes using v1.0, v1.1, and v2.0 definitions can still coexist on the same network,
-    but they are not guaranteed to understand each other unless they support all of the used data type definitions.
+    Nodes using v1.0, v1.1, and v2.0 definitions can still coexist on the same network,
+    and they can interoperate successfully as long as they all support at least v1.x or v2.x.
 
-    In practice, nodes that need to maximize their compatibility are likely to employ all existing major versions of
+    In general, nodes that need to maximize their compatibility are likely to employ all existing major versions of
     each used data type.
     If there are more than one minor versions available, the highest minor version within the major version should
-    be used, to take advantage of the latest changes in the data type definition.
+    be used in order to take advantage of the latest changes in the data type definition.
     It is also expected that in certain scenarios some nodes may resort to publishing the same message type
-    using different major versions concurrently to circumvent compatibility issues (in the
-    example reviewed here that would be v1.1 and v2.0).
+    using different major versions concurrently to circumvent compatibility issues
+    (in the example reviewed here that would be v1.1 and v2.0).
 \end{remark}
