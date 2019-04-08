@@ -228,25 +228,40 @@ All data types under the same name must be also of the same kind.
 In other words, if the first released definition of a data type is of the message kind,
 all other versions must also be of the message kind.
 
-\subsubsection{Port-ID assignment constraints}
+\subsubsection{Fixed port identifier assignment constraints}
 
 The following constraints apply to fixed port ID assignments:
 \begin{align*}
     \exists P(x_{a.b})                          &\rightarrow \exists P(x_{a.c})
-    &\mid& b < c;\ x \in (M \cup S)
+    &\mid&\ b < c;\ x \in (M \cup S)
     \\
     \exists P(x_{a.b})                          &\rightarrow         P(x_{a.b}) =    P(x_{a.c})
-    &\mid& b < c;\ x \in (M \cup S)
+    &\mid&\ b < c;\ x \in (M \cup S)
     \\
     \exists P(x_{a.b}) \land \exists P(x_{c.d}) &\rightarrow         P(x_{a.b}) \neq P(x_{c.d})
-    &\mid& a \neq c;\ x \in (M \cup S)
+    &\mid&\ a \neq c;\ x \in (M \cup S)
     \\
     \exists P(x_{a.b}) \land \exists P(y_{c.d}) &\rightarrow         P(x_{a.b}) \neq P(y_{c.d})
-    &\mid& x \neq y;\ x \in T;\ y \in T;\ T = \left\{ M, S \right\}
+    &\mid&\ x \neq y;\ x \in T;\ y \in T;\ T = \left\{ M, S \right\}
 \end{align*}
 where $t_{a.b}$ denotes a data type $t$ version $a.b$ ($a$ major, $b$ minor);
 $P(t)$ denotes the fixed port-ID (whose existence is optional) of data type $t$;
 $M$ is the set of message types, and $S$ is the set of service types.
+
+\subsubsection{Runtime port identifier assignment recommendations}
+
+For port identifiers assigned at runtime
+it is recommended to ensure that any port identifier of a given kind (subject or service)
+is only used with one major version of one data type.
+
+Sharing a port identifier of a given kind with different major versions of the same data type or different data types
+is not recommended even if such different types are bit-compatible and semantically compatible
+because it may complicate network maintenance and analysis; additionally, it may confuse automated
+network analysis software.
+
+The kind is specified above explicitly due to the fact that the sets of subject-ID and service-ID are orthogonal.
+In other words,
+the numeric value of a port-ID may refer to different data types provided that they are of different kinds.
 
 \subsubsection{Data type version selection}
 
