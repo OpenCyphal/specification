@@ -233,16 +233,19 @@ all other versions must also be of the message kind.
 The following constraints apply to fixed port ID assignments:
 \begin{align*}
     \exists P(x_{a.b})                          &\rightarrow \exists P(x_{a.c})
-    &\mid& b < c;\ x \in (M \cup S) \\
+    &\mid& b < c;\ x \in (M \cup S)
+    \\
     \exists P(x_{a.b})                          &\rightarrow         P(x_{a.b}) =    P(x_{a.c})
-    &\mid& b < c;\ x \in (M \cup S) \\
+    &\mid& b < c;\ x \in (M \cup S)
+    \\
     \exists P(x_{a.b}) \land \exists P(x_{c.d}) &\rightarrow         P(x_{a.b}) \neq P(x_{c.d})
-    &\mid& a \neq c;\ x \in (M \cup S) \\
+    &\mid& a \neq c;\ x \in (M \cup S)
+    \\
     \exists P(x_{a.b}) \land \exists P(y_{c.d}) &\rightarrow         P(x_{a.b}) \neq P(y_{c.d})
-    &\mid& x \neq y;\ x \in T;\ y \in T;\ T = \left\{ M, S \right\} \\
+    &\mid& x \neq y;\ x \in T;\ y \in T;\ T = \left\{ M, S \right\}
 \end{align*}
 where $t_{a.b}$ denotes a data type $t$ version $a.b$ ($a$ major, $b$ minor);
-$P(t)$ denotes the fixed port-ID value of data type $t$ (which may or may not exist);
+$P(t)$ denotes the fixed port-ID (whose existence is optional) of data type $t$;
 $M$ is the set of message types, and $S$ is the set of service types.
 
 \subsubsection{Data type version selection}
