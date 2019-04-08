@@ -142,10 +142,10 @@ A field attribute definition following the referring statement renders the curre
 For tagged unions, the value of the offset attribute is defined as:
 $$
     \texttt{\_offset\_}_\text{union} =
-    \bigcup\limits_{i=1}^{N_\text{fields}}
-    \left\{ \lceil{}\log_2 N_\text{fields}\rceil{} + b : b \in B_i \right\}
+    \bigcup\limits_{i=1}^{n}
+    \left\{ \lceil{}\log_2 n\rceil{} + b : b \in B_i \right\}
 $$
-where $N_\text{fields}$ is the number of fields defined in the current union definition,
+where $n$ is the number of fields defined in the current union definition,
 and $B_i$ is the bit length set of the data type of the field number $i$.
 
 If the current data schema definition does not belong to the tagged union category,
@@ -154,14 +154,11 @@ The value of the offset attribute is defined as:
 $$
     \texttt{\_offset\_} =
     \begin{cases}
-        \left\{ \sum s : s \in \prod\limits_{i=1}^{N_\text{fields}} B_i \right\} &
-        \quad N_\text{fields} > 0 \\
-
-        \left\{0\right\} &
-        \quad N_\text{fields} = 0 \\
+        \left\{ \sum s : s \in \prod\limits_{i=1}^{n} B_i \right\} &\mid n > 0 \\
+        \left\{0\right\}                                           &\mid n = 0 \\
     \end{cases}
 $$
-where $N_\text{fields}$ is the number of fields defined in statements preceding the referring statement
+where $n$ is the number of fields defined in statements preceding the referring statement
 (see section \ref{sec:dsdl_grammar} on statement ordering),
 $B_i$ is the bit length set of the data type of the field number $i$,
 and $\prod$ is the Cartesian product operator.
