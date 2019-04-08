@@ -1,4 +1,114 @@
 \section{Conventions and recommendations}
 
-% Data type comments
-% Field comments https://forum.uavcan.org/t/dsdl-documentation-comments/407
+This section is dedicated to conventions and recommendations
+intended to help data type designers maintain a consistent style across the ecosystem
+and avoid some common pitfalls.
+Some of the conventions are mandatory to follow, others are optional.
+
+\subsection{Standard namespace}
+
+This specification defines a set of standard regulated DSDL data types located under
+the root namespace named ``\verb"uavcan"'' (section~\ref{sec:list_of_standard_data_types}).
+
+Vendor-specific, user-specific, or any other data types not defined by this specification
+must not be defined inside the standard root namespace.
+Vendor-specific or user-specific root namespaces must be used instead.
+
+\subsection{Naming recommendations}
+
+The DSDL naming recommendations follow those that are widely accepted in the general software development industry.
+
+\begin{itemize}
+    \item Namespaces and field attributes should be named in the \verb|snake_case|.
+    \item Constant attribute should be named in the \verb|SCREAMING_SNAKE_CASE|.
+    \item Data types (excluding their namespaces) should be named in the \verb|PascalCase|.
+    \item Names of message types should form a declarative phrase or a noun. For example,
+    \verb|BatteryStatus| or \verb|OutgoingPacket|.
+    \item Names of service types should form an imperative phrase or a verb. For example,
+    \verb|GetInfo| or \verb|HandleIncomingPacket|.
+\end{itemize}
+
+\subsection{Comments}
+
+Every data type definition file should begin with a header comment that provides an exhaustive description
+of the data type, its purpose, semantics, usage patterns, any related data exchange patterns,
+assumptions, constraints, and all other information that may be necessary or generally useful for the usage of the
+data type definition.
+
+Every attribute of the data type definition, and especially every field attribute of it,
+should have an associated comment explaining the purpose of the attribute, its semantics, usage patterns,
+assumptions, constraints, and any other pertinent information.
+Exception applies to attributes supplied with sufficiently descriptive and unambiguous names.
+
+% Field comment placement https://forum.uavcan.org/t/dsdl-documentation-comments/407
+
+\subsection{Optional value representation}
+
+Data structures may include optional field attributes that are not necessarily always populated.
+
+The recommended approach for representing optional field attributes
+is to use variable-length arrays with the capacity of one element,
+prefixed with padding bits as necessary to retain byte alignment.
+
+Alternatively, such one-element variable-length arrays can be replaced with two-field unions,
+where the first field is empty and the second field contains the desired optional value.
+The described layout is bit-compatible and semantically compatible with the one-element array described above,
+provided that the field attributes are not swapped.
+
+Floating-point-typed field attributes may be assigned the value of not-a-number (NaN) per IEEE 754
+to indicate that the value is not specified;
+however, this pattern is discouraged because some nodes may not support IEEE 754 NaN values internally,
+the value would still have to be transferred over the bus even if not populated,
+and special case values undermine type safety.
+
+\begin{remark}
+    Array-based optional field:
+
+    \begin{minted}{python}
+        void7                           # It is recommended to ensure byte alignment.
+        MyType[<=1] optional_field
+    \end{minted}
+
+    Union-based optional field:
+
+    \begin{minted}{python}
+        @union                          # The implicit tag is one bit long.
+        uavcan.primitive.Empty none     # Represents lack of value, unpopulated field.
+        MyType some                     # The field of interest; field ordering is important.
+    \end{minted}
+
+    The defined above union can be used as follows (suppose it is named \verb|MaybeMyType|):
+
+    \begin{minted}{python}
+        void7                           # It is recommended to ensure byte alignment.
+        MaybeMyType optional_field
+    \end{minted}
+
+    The shown approaches are mutually bit-compatible and semantically compatible.
+\end{remark}
+
+\subsection{Bit flag representation}
+
+The recommended approach to defining a set of bit flags is to dedicate a \verb|bool|-typed field attribute for each.
+Representations based on an integer sum of powers of two\footnote{Which are popular in programming.}
+are discouraged due to their obscurity and failure to express the intent clearly.
+
+\begin{remark}
+    Recommended approach:
+
+    \begin{minted}{python}
+        void5
+        bool flag_foo
+        bool flag_bar
+        bool flag_baz
+    \end{minted}
+
+    Not recommended:
+
+    \begin{minted}{python}
+        uint8 flags             # Not recommended
+        uint8 FLAG_BAZ = 1
+        uint8 FLAG_BAR = 2
+        uint8 FLAG_FOO = 4
+    \end{minted}
+\end{remark}
