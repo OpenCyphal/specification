@@ -114,6 +114,28 @@ introduced in newer versions of the data type (section \ref{sec:dsdl_versioning}
 
 \subsection{Primitive types}
 
+Serialized representations of instances of the primitive type category that are longer than one byte (8 bits)
+are constructed as follows.
+First, only the least significant bytes that contain the used bits of the value are preserved;
+the rest are discarded following the transformation policy selected by the specified cast mode.
+Then the bytes are arranged in the least-significant-byte-first order\footnote{Also known as ``little endian''.}.
+If the bit width of the value is not an integer multiple of eight (8),
+the rightmost byte (i.e., the most significant byte) is shifted left until the most significant bit of the value
+is aligned with the most significant bit of the byte.
+
+\begin{remark}
+    The value $1110\,1101\,1010_2$ (3802 in base-10) of type \verb|uint12| is encoded as follows.
+    The bit sequence is shown in the base-2 system, where bytes (octets) are comma-separated:
+    $$
+        \overbrace{%
+            \underbrace{\hugett{11011010}}_{\substack{\text{Least significant} \\ \text{bits/byte}}}%
+            \hugett{,}%
+            \underbrace{\hugett{1110}}_{\substack{\text{Most} \\ \text{significant} \\ \text{bits}}}%
+        }^{\text{The value }3802_{10}}%
+        \underbrace{\hugett{????}}_{\substack{\text{Next object} \\ \text{or zero} \\ \text{padding bits}}}
+    $$
+\end{remark}
+
 \subsubsection{Boolean types}\label{sec:dsdl_serialized_bool}
 
 The serialized representation of a value of type \verb|bool| is a single bit.
