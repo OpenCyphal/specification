@@ -53,7 +53,7 @@ def get_dsdl_submodule_commit_hash() -> str:
                                    cwd=ROOT_NAMESPACE_SUPERDIRECTORY).decode('ascii').strip()
 
 
-def render_dsdl_length_table(t: pydsdl.CompoundType) -> str:
+def render_dsdl_length_table(t: pydsdl.CompositeType) -> str:
     def bit_to_byte(val: tuple) -> tuple:
         return tuple((x + 7) // 8 for x in val)
 
@@ -95,7 +95,7 @@ def render_dsdl_length_table(t: pydsdl.CompoundType) -> str:
     ])
 
 
-def render_dsdl_definition(t: pydsdl.CompoundType) -> str:
+def render_dsdl_definition(t: pydsdl.CompositeType) -> str:
     minted_params = r'fontsize=\scriptsize, numberblanklines=true, baselinestretch=0.9, autogobble=false'
     return '\n'.join([
         r'\begin{minted}[%s]{python}' % minted_params,
@@ -286,7 +286,7 @@ for namespace, children in grouped.items():
         is_service = isinstance(versions[0], pydsdl.ServiceType)
 
         print(r'\pagebreak[3]{}')
-        print(r'\subsection{%s}' % full_name.split(pydsdl.CompoundType.NAME_COMPONENT_SEPARATOR)[-1])
+        print(r'\subsection{%s}' % full_name.split(pydsdl.CompositeType.NAME_COMPONENT_SEPARATOR)[-1])
         print(r'\label{sec:dsdl:%s}' % full_name)
         print(r'Full %s type name: {\bfseries\texttt{%s}}' %
               ('service' if is_service else 'message', escape(full_name)))
