@@ -72,9 +72,17 @@ The name structure is illustrated on the figure \ref{fig:dsdl_data_type_name_str
     \caption{Data type name structure.\label{fig:dsdl_data_type_name_structure}}
 \end{figure}
 
-Data type names are case-sensitive.
-However, data type names that differ only in letter case are not permitted\footnote{%
+A set of full namespace names and a set of full data type names must not intersect\footnote{%
+    For example, a namespace ``\texttt{vendor.example}'' and a data type ``\texttt{vendor.example.1.0}''
+    are mutually exclusive.
+    Note the data type name shown in this example violates the naming conventions
+    which are reviewed in a separate section.
+}.
+
+All names are case-sensitive.
+However, names that differ only in letter case are not permitted\footnote{%
 Because that may cause problems with case-insensitive file systems.}.
+In other words, a pair of names which differ only in letter case is considered to constitute a name collision.
 
 A name component consists of alphanumeric ASCII characters (which are: \verb|A-Z|, \verb|a-z|, and \verb|0-9|)
 and underscore (``\verb|_|'', ASCII code 95).
