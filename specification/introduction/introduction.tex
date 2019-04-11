@@ -24,7 +24,18 @@ All such code is distributed under the same license as this specification, unles
 print('Hello world!')
 \end{minted}
 
-It is assumed that a byte always contains eight bits.
+A byte is a group of eight (8) bits.
+
+Textual patterns are specified using the standard
+POSIX Extended Regular Expression (ERE) syntax.
+
+Type parametrization expressions use subscript notation,
+where the parameter is specified in the subscript enclosed in angle brackets:
+$\texttt{type}_\texttt{<parameter>}$.
+
+Numbers are represented in base-10 by default.
+If a different base is used, it is specified after the number in the subscript:
+$\text{BADC0FFEE}_{16} = 50159747054$, $10101_2$.
 
 \section{Design principles}
 
