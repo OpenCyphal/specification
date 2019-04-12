@@ -27,7 +27,8 @@ before the systems utilizing them are fielded.
 DSDL definitions can be used to automatically generate serialization (and deserialization) source code
 for any data type in a target programming language.
 A tool that is capable of generating serialization code based on a DSDL definition is called a \emph{DSDL compiler}.
-More generically, a software tool designed for working with DSDL definitions is called a \emph{DSDL processor}.
+More generically, a software tool designed for working with DSDL definitions is called a
+\emph{DSDL processing tool}.
 
 \subsection{Data types and namespaces}
 
@@ -113,12 +114,12 @@ provided that each version is defined at most once.
 Version number sequences can be non-contiguous,
 meaning that it is allowed to skip version numbers or remove existing definitions that are neither oldest nor newest.
 
-A data type definition may have an optional fixed port ID\footnote{Chapter \ref{sec:basic_concepts}.} value specified.
+A data type definition may have an optional fixed port-ID\footnote{Chapter \ref{sec:basic_concepts}.} value specified.
 
 The name of a data type definition file is constructed from the following entities
 joined via the ASCII dot character ``\verb|.|'' (ASCII code 46), in the specified order:
 \begin{itemize}
-    \item Fixed port ID in decimal notation, unless a fixed port ID is not provided for this definition.
+    \item Fixed port-ID in decimal notation, unless a fixed port-ID is not provided for this definition.
     \item Short name of the data type (mandatory, always non-empty).
     \item Major version number in decimal notation (mandatory).
     \item Minor version number in decimal notation (mandatory).
@@ -128,7 +129,7 @@ joined via the ASCII dot character ``\verb|.|'' (ASCII code 46), in the specifie
 \begin{figure}[H]
     $$
     \overbrace{%
-        \underbrace{\texttt{\huge{432}}}_{\substack{\text{fixed} \\ \text{port ID}}}%
+        \underbrace{\texttt{\huge{432}}}_{\substack{\text{fixed} \\ \text{port-ID}}}%
         \texttt{\huge{.}}%
     }^{\text{optional}}%
     \overbrace{%
@@ -164,28 +165,28 @@ An example DSDL directory structure is shown on the figure \ref{fig:dsdl_definit
         Nested namespace (also sub-root) \texttt{vendor\_x.foo}. \\\cline{2-2}
 
         \texttt{\qquad{}\qquad{}100.Run.1.0.uavcan} &
-        Data type definition v1.0 with fixed service ID 100. \\\cline{2-2}
+        Data type definition v1.0 with fixed service-ID 100. \\\cline{2-2}
 
         \texttt{\qquad{}\qquad{}100.Status.1.0.uavcan} &
-        Data type definition v1.0 with fixed subject ID 100. \\\cline{2-2}
+        Data type definition v1.0 with fixed subject-ID 100. \\\cline{2-2}
 
         \texttt{\qquad{}\qquad{}ID.1.0.uavcan} &
-        Data type definition v1.0 without fixed port ID. \\\cline{2-2}
+        Data type definition v1.0 without fixed port-ID. \\\cline{2-2}
 
         \texttt{\qquad{}\qquad{}ID.1.1.uavcan} &
-        Data type definition v1.1 without fixed port ID. \\\cline{2-2}
+        Data type definition v1.1 without fixed port-ID. \\\cline{2-2}
 
         \texttt{\qquad{}\qquad{}bar\_42/} &
         Nested namespace \texttt{vendor\_x.foo.bar\_42}. \\\cline{2-2}
 
         \texttt{\qquad{}\qquad{}\qquad{}101.List.1.0.uavcan} &
-        Data type definition v1.0 with fixed service ID 101. \\\cline{2-2}
+        Data type definition v1.0 with fixed service-ID 101. \\\cline{2-2}
 
         \texttt{\qquad{}\qquad{}\qquad{}102.List.2.0.uavcan} &
-        Data type definition v2.0 with fixed service ID 102. \\\cline{2-2}
+        Data type definition v2.0 with fixed service-ID 102. \\\cline{2-2}
 
         \texttt{\qquad{}\qquad{}\qquad{}ID.1.0.uavcan} &
-        Data type definition v1.0 without fixed port ID. \\\hline
+        Data type definition v1.0 without fixed port-ID. \\\hline
     \end{tabu}
     \caption{DSDL directory structure example.}\label{fig:dsdl_directory_structure_example}
 \end{figure}

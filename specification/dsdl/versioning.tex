@@ -191,7 +191,7 @@ the version numbers of its first definition must be assigned ``1.0'' (major 1, m
 
 In order to ensure predictability and functional safety of applications that leverage UAVCAN,
 the standard requires that once a data type definition is released,
-its DSDL source text, name, version numbers, fixed port ID, and other properties cannot undergo any
+its DSDL source text, name, version numbers, fixed port-ID, and other properties cannot undergo any
 modifications whatsoever, with the following exceptions:
 \begin{itemize}
     \item Whitespace changes of the DSDL source text are allowed,
@@ -230,7 +230,7 @@ all other versions must also be of the message kind.
 
 \subsubsection{Fixed port identifier assignment constraints}
 
-The following constraints apply to fixed port ID assignments:
+The following constraints apply to fixed port-ID assignments:
 \begin{align*}
     \exists P(x_{a.b})                          &\rightarrow \exists P(x_{a.c})
     &\mid&\ b < c;\ x \in (M \cup S)
@@ -250,7 +250,7 @@ $M$ is the set of message types, and $S$ is the set of service types.
 
 \subsubsection{Non-fixed port identifier assignment recommendations}
 
-For non-fixed port identifiers assigned
+For non-fixed port identifiers
 it is recommended to ensure that any port identifier of a given kind (subject or service)
 is only used with one major version of one data type.
 
