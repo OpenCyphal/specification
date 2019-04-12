@@ -44,6 +44,7 @@ likewise, each service is identified by a unique \emph{service-ID}.
 An umbrella term \emph{port-ID} is used to refer either to a subject-ID or to a service-ID
 (port identifiers have no direct manifestation in the construction of the protocol,
 but they are convenient for discussion).
+The sets of subject-ID and service-ID are orthogonal.
 
 Port identifiers are assigned to various functions, processes, or data streams within the network
 at the system definition time.
@@ -65,7 +66,7 @@ but not more than one fixed port identifier.
 Message and service data types
 are defined using the \emph{data structure description language} (DSDL) (chapter \ref{sec:dsdl}).
 A DSDL definition specifies the name, major version, minor version, the data schemas,
-and an optional predefined port-ID of the data type among other less important properties.
+and an optional fixed port-ID of the data type among other less important properties.
 Message data types always define exactly one data schema, whereas
 service data types contain two independent schema definitions: one for request, and the other for response.
 
