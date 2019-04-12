@@ -45,6 +45,19 @@ An umbrella term \emph{port-ID} is used to refer either to a subject-ID or to a 
 (port identifiers have no direct manifestation in the construction of the protocol,
 but they are convenient for discussion).
 
+Port identifiers are assigned to various functions, processes, or data streams within the network
+at the system definition time.
+Generally, a port identifier can be selected arbitrarily by a system integrator
+by changing relevant configuration parameters of connected nodes,
+in which case such port identifiers are called \emph{non-fixed port identifiers}.
+It is also possible to permanently associate any data type definition with a particular port identifier
+at a data type definition time,
+in which case such port identifiers are called \emph{fixed port identifiers};
+their usage is governed by rules and regulations described in later sections.
+
+A data type can be used with an arbitrary number of non-fixed different port identifiers,
+but not more than one fixed port identifier.
+
 \subsection{Data types}
 
 \subsubsection{Data type definitions}
@@ -55,12 +68,6 @@ A DSDL definition specifies the name, major version, minor version, the data sch
 and an optional predefined port-ID of the data type among other less important properties.
 Message data types always define exactly one data schema, whereas
 service data types contain two independent schema definitions: one for request, and the other for response.
-
-If a port identifier is specified in a data type definition, such identifier is said to be a
-\emph{fixed port identifier}
-(by inheritance, the same naming principle applies to \emph{fixed subject-ID} and \emph{fixed service-ID}).
-A data type can be used with an arbitrary number of different port identifiers assigned on a per-application basis,
-but not more than one fixed port identifier.
 
 \subsubsection{Regulation}\label{sec:basic_concepts_data_type_regulation}
 
@@ -131,7 +138,8 @@ segregated into three categories (the ranges are documented in chapter \ref{sec:
 
 \begin{itemize}
     \item Application-specific port identifiers.
-    These can be assigned at runtime (in which case they are called non-fixed or runtime-assigned)
+    These can be assigned by changing relevant configuration parameters of the connected nodes
+    (in which case they are called \emph{non-fixed} or runtime-assigned),
     or at the data type definition time (in which case they are called \emph{fixed unregulated},
     and they generally should be avoided due to the risks of collisions as explained earlier).
 
