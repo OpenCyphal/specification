@@ -250,7 +250,7 @@ $M$ is the set of message types, and $S$ is the set of service types.
 
 \subsubsection{Non-fixed port identifier assignment recommendations}
 
-For port identifiers assigned at runtime
+For non-fixed port identifiers assigned
 it is recommended to ensure that any port identifier of a given kind (subject or service)
 is only used with one major version of one data type.
 
@@ -272,7 +272,7 @@ When emitting a transfer, the major version of the data type is chosen at the di
 The minor version should be the newest available one under the chosen major version.
 
 When receiving a transfer, the node deduces which major version of the data type to use
-from its port identifier (either fixed or runtime-assigned).
+from its port identifier (either fixed or non-fixed).
 The minor version should be the newest available one under the deduced major version\footnote{%
 Such liberal minor version selection policy poses no compatibility risks since all definitions under the same
 major version are compatible with each other.}.
