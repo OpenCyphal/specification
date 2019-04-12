@@ -96,8 +96,7 @@ This behavior facilitates usage of void fields as placeholders for non-void fiel
 introduced in newer versions of the data type (section \ref{sec:dsdl_versioning}).
 
 \begin{remark}
-    The following data schema will be serialized as a sequence of three zero bits $000_2$
-    (five trailing padding bits not included):
+    The following data schema will be serialized as a sequence of three zero bits $000_2$:
     \begin{minted}{python}
         void3
     \end{minted}
@@ -117,7 +116,7 @@ introduced in newer versions of the data type (section \ref{sec:dsdl_versioning}
 Serialized representations of instances of the primitive type category that are longer than one byte (8 bits)
 are constructed as follows.
 First, only the least significant bytes that contain the used bits of the value are preserved;
-the rest are discarded following the transformation policy selected by the specified cast mode.
+the rest are discarded following the lossy assignment policy selected by the specified cast mode.
 Then the bytes are arranged in the least-significant-byte-first order\footnote{Also known as ``little endian''.}.
 If the bit width of the value is not an integer multiple of eight (8),
 the rightmost byte (i.e., the most significant byte) is shifted left until the most significant bit of the value
