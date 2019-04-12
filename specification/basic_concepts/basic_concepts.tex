@@ -147,11 +147,9 @@ segregated into three categories (the ranges are documented in chapter \ref{sec:
     \item Regulated non-standard fixed port identifiers.
     These are assigned by the specification maintainers for non-standard contributed
     vendor-specific public data types.
-    They are always fixed and can't be assigned at runtime.
 
     \item Standard fixed port identifiers. These are assigned by the specification maintainers
     for standard regulated public data types.
-    They are always fixed and can't be assigned at runtime.
 \end{itemize}
 
 Data type authors that want to release regulated data type definitions or contribute to the standard data
@@ -174,14 +172,17 @@ Alternatively, a DSDL description can be used to construct appropriate serializa
 DSDL ensures that the worst case memory footprint and computational complexity per data type
 are constant and easily predictable.
 
-Serialized message and service objects are exchanged by means of the transport
+Serialized message and service objects\footnote{%
+    Here and elsewhere, an \emph{object} means a value that is an instance of a well-defined type.
+}
+are exchanged by means of the transport
 layer (chapter \ref{sec:transport_layer}), which implements automatic decomposition of
 long transfers into several transport frames\footnote{Here and
 elsewhere, a \emph{transport frame} means a block of data that can be atomically exchanged
 over the transport layer network, e.g., a CAN frame.} and reassembly from these transport frames
 back into a single atomic data block, allowing nodes to exchange serialized objects of
-arbitrary size (DSDL guarantees, however, that the size of the serialized representation
-of any object of any data type is always bounded and known statically).
+arbitrary size (DSDL guarantees, however, that the minimum and maximum size of the serialized representation
+of any object of any data type is always known statically).
 
 \subsection{High-level functions}
 
