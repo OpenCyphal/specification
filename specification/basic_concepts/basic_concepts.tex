@@ -9,7 +9,8 @@
 A UAVCAN network is a decentralized peer network, where each peer (node) has a unique
 numeric identifier\footnote{Here and elsewhere in this specification, \emph{ID} and \emph{identifier} are used
 interchangeably unless specifically indicated otherwise.}
---- \emph{node-ID} --- ranging from 0 up to a transport-specific upper boundary which is guaranteed to be above 127.
+--- \emph{node-ID} --- ranging from 0 up to a transport-specific upper boundary which is guaranteed to be
+not less than 127.
 Nodes of a UAVCAN network can communicate using the following communication methods:
 
 \begin{description}
