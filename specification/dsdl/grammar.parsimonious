@@ -65,7 +65,7 @@ type_primitive_name_floating_point   = "float" type_bit_length_suffix
 
 type_void = "void" type_bit_length_suffix
 
-type_bit_length_suffix = ~"[1-9]\d*"
+type_bit_length_suffix = ~r"[1-9]\d*"
 
 # ==================================================== Expressions ====================================================
 
