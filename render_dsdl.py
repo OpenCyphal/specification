@@ -53,7 +53,7 @@ def get_dsdl_submodule_commit_hash() -> str:
                                    cwd=ROOT_NAMESPACE_SUPERDIRECTORY).decode('ascii').strip()
 
 
-def render_dsdl_length_table(t: pydsdl.CompoundType) -> str:
+def render_dsdl_length_table(t: pydsdl.CompositeType) -> str:
     def bit_to_byte(val: tuple) -> tuple:
         return tuple((x + 7) // 8 for x in val)
 
@@ -68,7 +68,8 @@ def render_dsdl_length_table(t: pydsdl.CompoundType) -> str:
 
         return tuple(once(x) for x in val)
 
-    def rlen_group(blr: tuple) -> list:
+    def rlen_group(bit_length_set: pydsdl.BitLengthSet) -> list:
+        blr = min(bit_length_set), max(bit_length_set)
         return [
             str(x[0]) if x[0] == x[1] else ('[%d, %d]' % x)
             for x in [
@@ -80,10 +81,10 @@ def render_dsdl_length_table(t: pydsdl.CompoundType) -> str:
         ]
 
     if isinstance(t, pydsdl.ServiceType):
-        length_table_rows = 'Request length  &' + '&'.join(rlen_group(t.request_type.bit_length_range)) + r'\\' +\
-                            'Response length &' + '&'.join(rlen_group(t.response_type.bit_length_range)) + r'\\'
+        length_table_rows = 'Request length  &' + '&'.join(rlen_group(t.request_type.bit_length_set)) + r'\\' +\
+                            'Response length &' + '&'.join(rlen_group(t.response_type.bit_length_set)) + r'\\'
     else:
-        length_table_rows = 'Message length &' + '&'.join(rlen_group(t.bit_length_range)) + r'\\'
+        length_table_rows = 'Message length &' + '&'.join(rlen_group(t.bit_length_set)) + r'\\'
 
     return '\n'.join([
         r'{\footnotesize',
@@ -95,7 +96,7 @@ def render_dsdl_length_table(t: pydsdl.CompoundType) -> str:
     ])
 
 
-def render_dsdl_definition(t: pydsdl.CompoundType) -> str:
+def render_dsdl_definition(t: pydsdl.CompositeType) -> str:
     minted_params = r'fontsize=\scriptsize, numberblanklines=true, baselinestretch=0.9, autogobble=false'
     return '\n'.join([
         r'\begin{minted}[%s]{python}' % minted_params,
@@ -234,10 +235,10 @@ for namespace, ns_type_mapping in grouped.items():
             # Max length in bytes
             b2b = lambda x: (x + 7) // 8
             if is_service:
-                max_bytes = '%d & %d' % (b2b(t.request_type.bit_length_range[1]),
-                                         b2b(t.response_type.bit_length_range[1]))
+                max_bytes = '%d & %d' % (b2b(max(t.request_type.bit_length_set)),
+                                         b2b(max(t.response_type.bit_length_set)))
             else:
-                max_bytes = '%d &' % b2b(t.bit_length_range[1])
+                max_bytes = '%d &' % b2b(max(t.bit_length_set))
 
             weak = lambda s: r'\emph{\color{gray}%s}' % s
 
@@ -286,7 +287,7 @@ for namespace, children in grouped.items():
         is_service = isinstance(versions[0], pydsdl.ServiceType)
 
         print(r'\pagebreak[3]{}')
-        print(r'\subsection{%s}' % full_name.split(pydsdl.CompoundType.NAME_COMPONENT_SEPARATOR)[-1])
+        print(r'\subsection{%s}' % full_name.split(pydsdl.CompositeType.NAME_COMPONENT_SEPARATOR)[-1])
         print(r'\label{sec:dsdl:%s}' % full_name)
         print(r'Full %s type name: {\bfseries\texttt{%s}}' %
               ('service' if is_service else 'message', escape(full_name)))
