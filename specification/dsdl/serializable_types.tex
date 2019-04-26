@@ -265,8 +265,8 @@ type hierarchies when one of the deprecated dependencies reaches its end of life
 Any data schema definition can be supplied with a special directive (section \ref{sec:dsdl_directives})
 indicating that it forms a tagged union.
 
-A tagged union schema must contain at least two field attributes.
-A tagged union must not contain padding field attributes.
+A tagged union schema shall contain at least two field attributes.
+A tagged union shall not contain padding field attributes.
 
 The value of a tagged union object is a function of the field attribute which value it is currently holding
 and the value of the field attribute itself.
