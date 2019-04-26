@@ -4,6 +4,8 @@ comment     = ~r"#[^\r\n]*"
 end_of_line = ~r"\r?\n"                 # Unix/Windows
 _           = ~r"[ \t]+"                # Whitespace
 
+identifier = ~r"[a-zA-Z_][a-zA-Z0-9_]*"
+
 # ==================================================== Statements ====================================================
 
 statement = statement_directive
@@ -18,14 +20,12 @@ statement_constant      = type _ identifier _? "=" _? expression
 statement_field         = type _ identifier
 statement_padding_field = type_void ""  # The trailing empty symbol is to prevent the node from being optimized away.
 
-statement_service_response_marker = "---"  # Separates request/response, specifies that the definition is a service.
+statement_service_response_marker = ~r"---+"  # Separates request/response, specifies that the definition is a service.
 
 statement_directive = statement_directive_with_expression
                     / statement_directive_without_expression
 statement_directive_with_expression    = "@" identifier _ expression  # The expression type must match the directive.
 statement_directive_without_expression = "@" identifier
-
-identifier = ~r"[a-zA-Z_][a-zA-Z0-9_]*"
 
 # ==================================================== Data types ====================================================
 
@@ -65,7 +65,7 @@ type_primitive_name_floating_point   = "float" type_bit_length_suffix
 
 type_void = "void" type_bit_length_suffix
 
-type_bit_length_suffix = ~"[1-9]\d*"
+type_bit_length_suffix = ~r"[1-9]\d*"
 
 # ==================================================== Expressions ====================================================
 
