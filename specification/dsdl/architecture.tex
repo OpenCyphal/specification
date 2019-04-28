@@ -238,3 +238,9 @@ A serialized representation is a sequence of binary digits (bits);
 the number of bits in a serialized representation is called its \emph{bit length}.
 A \emph{bit length set} of a data type (or a data schema) refers to the set of bit length values of all possible
 serialized representations of objects that are instances of the data type (or that follow the data schema).
+
+The data type of a serialized message or service object exchanged over the network
+is recovered from its subject-ID or service-ID, respectively,
+which is attached to the serialized object among other related metadata as dictated by the applicable
+transport layer specification (chapter \ref{sec:transport_layer}).
+For more information on port identifiers and data type mapping refer to section \ref{sec:basic_subjects_and_services}.

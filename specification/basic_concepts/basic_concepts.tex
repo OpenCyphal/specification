@@ -27,7 +27,7 @@ migration path if backward-incompatible changes are introduced.
 Some data types are standard and defined by the protocol specification (of which only a small
 subset are required); others may be specific to a particular application or vendor.
 
-\subsubsection{Subjects and services}
+\subsubsection{Subjects and services}\label{sec:basic_subjects_and_services}
 
 Message exchanges between nodes are grouped into \emph{subjects} by the semantic meaning of the message.
 Message exchanges belonging to the same subject use same message data type down to the major version
@@ -57,7 +57,15 @@ at a data type definition time,
 in which case such port identifiers are called \emph{fixed port identifiers};
 their usage is governed by rules and regulations described in later sections.
 
-A data type can be used with an arbitrary number of non-fixed different port identifiers,
+A port-ID used in a given UAVCAN network shall not be shared between functions, processes, or data streams
+that have different semantic meaning.
+
+A port-ID used in a given UAVCAN network shall not be used with different data type definitions unless they
+share the same full name and the same major version number\footnote{More on data type versioning in section
+\ref{sec:dsdl_versioning}.}.
+
+A data type of a given major version can be used simultaneously with
+an arbitrary number of non-fixed different port identifiers,
 but not more than one fixed port identifier.
 
 \subsection{Data types}

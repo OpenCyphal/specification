@@ -228,7 +228,15 @@ All data types under the same name must be also of the same kind.
 In other words, if the first released definition of a data type is of the message kind,
 all other versions must also be of the message kind.
 
-\subsubsection{Fixed port identifier assignment constraints}
+\subsubsection{Port identifier assignment constraints}
+
+A port identifier of a given kind (subject or service)\footnote{%
+    The kind is specified explicitly due to the fact that the sets of subject-ID and service-ID are orthogonal.
+    In other words, the numeric value of a port-ID may refer to different data types if they are of different kinds.
+} shall only be used with one major version of one data type in a given UAVCAN network.
+
+The mapping from port-ID to its data type may be non-injective.
+In other words, a data type may be simultaneously used with more than one port-ID.
 
 The following constraints apply to fixed port-ID assignments:
 \begin{align*}
@@ -247,21 +255,6 @@ The following constraints apply to fixed port-ID assignments:
 where $t_{a.b}$ denotes a data type $t$ version $a.b$ ($a$ major, $b$ minor);
 $P(t)$ denotes the fixed port-ID (whose existence is optional) of data type $t$;
 $M$ is the set of message types, and $S$ is the set of service types.
-
-\subsubsection{Non-fixed port identifier assignment recommendations}
-
-For non-fixed port identifiers
-it is recommended to ensure that any port identifier of a given kind (subject or service)
-is only used with one major version of one data type.
-
-Sharing a port identifier of a given kind with different major versions of the same data type or different data types
-is not recommended even if such different types are bit-compatible and semantically compatible
-because it may complicate network maintenance and analysis; additionally, it may confuse automated
-network analysis software.
-
-The kind is specified above explicitly due to the fact that the sets of subject-ID and service-ID are orthogonal.
-In other words,
-the numeric value of a port-ID may refer to different data types if they are of different kinds.
 
 \subsubsection{Data type version selection}
 
