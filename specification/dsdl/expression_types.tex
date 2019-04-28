@@ -122,10 +122,12 @@ where the value of the constant is to be equal the code point of the symbol.
     Concatenation. \\
 
     \texttt{\textbf{!=}} & $(\texttt{string}, \texttt{string}) \rightarrow \texttt{bool}$ &
-    Inequality of normalized Unicode representations. \\
+    Inequality of Unicode NFC normalized forms.
+    NFC stands for \emph{Normalization Form Canonical Composition} --
+    one of standard Unicode normalization forms where characters are recomposed by canonical equivalence. \\
 
     \texttt{\textbf{==}} & $(\texttt{string}, \texttt{string}) \rightarrow \texttt{bool}$ &
-    Equality of normalized Unicode representations. \\
+    Equality of Unicode NFC normalized forms. \\
 
 \end{UAVCANSimpleTable}
 
@@ -142,8 +144,8 @@ The DSDL name of the set type is ``\verb|set|''.
 
 A set can be constructed from a set literal, in which case such set must contain at least one element.
 
-The attributes defined for set instances are listed in the table \ref{table:dsdl_set_attributes},
-where $E$ represents the set element type.
+The attributes and operators defined on set instances are listed in the tables~\ref{table:dsdl_set_attributes}
+and~\ref{table:dsdl_set_operators}, where $E$ represents the set element type.
 
 \begin{UAVCANSimpleTable}{Attributes defined on instances of sets}{|l l X X|}
     Name & Type & Constraints & Description
@@ -170,7 +172,8 @@ where $E$ represents the set element type.
     Elementwise $(E, E) \rightarrow R$.\\
 }
 
-\begin{UAVCANSimpleTable}{Operators defined on instances of sets}{|l l l X|}
+\begin{UAVCANSimpleTable}{Operators defined on instances of sets}{|l l l X|}%
+    \label{table:dsdl_set_operators}%
     Op & Type & Constraints & Description \\
 
     \texttt{\textbf{==}} & $(\texttt{set}_\texttt{<E>}, \texttt{set}_\texttt{<E>}) \rightarrow \texttt{bool}$ & &

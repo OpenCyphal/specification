@@ -4,14 +4,14 @@
 
 An overview of related concepts is provided in chapter \ref{sec:basic_concepts}.
 
-\subsubsection{Node ID}
+\subsubsection{Node-ID}
 
-Valid values of node ID range from 0 to 127, inclusive.
+Valid values of node-ID range from 0 up to a transport-specific upper boundary which is guaranteed to be above 127.
 
-The node ID values 126 and 127 are reserved for diagnostic and debugging tools;
-these node ID values should not be used in fielded systems.
+Two uppermost node-ID values are reserved for diagnostic and debugging tools;
+these node-ID values should not be used in fielded systems.
 
-\subsubsection{Port ID}
+\subsubsection{Port-ID}
 
 This rule is mandatory for all applications.
 
@@ -28,7 +28,7 @@ The ranges are summarized in the table \ref{table:application_port_id_distributi
 Unused gaps are reserved for future expansion of adjacent ranges.
 
 \begin{UAVCANSimpleTable}{Port identifier distribution}{|l l X|}\label{table:application_port_id_distribution}
-    Subject ID          & Service ID        & Purpose \\
+    Subject-ID          & Service-ID        & Purpose \\
     $[0, 24575]$        & $[0, 127]$        & Unregulated identifiers (both fixed and non-fixed). \\
     $[28672, 29695]$    & $[256, 319]$      & Non-standard regulated identifiers (i.e., vendor-specific). \\
     $[31744, 32767]$    & $[384, 511]$      & Standard regulated identifiers. \\

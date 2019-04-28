@@ -27,7 +27,8 @@ before the systems utilizing them are fielded.
 DSDL definitions can be used to automatically generate serialization (and deserialization) source code
 for any data type in a target programming language.
 A tool that is capable of generating serialization code based on a DSDL definition is called a \emph{DSDL compiler}.
-More generically, a software tool designed for working with DSDL definitions is called a \emph{DSDL processor}.
+More generically, a software tool designed for working with DSDL definitions is called a
+\emph{DSDL processing tool}.
 
 \subsection{Data types and namespaces}
 
@@ -72,9 +73,17 @@ The name structure is illustrated on the figure \ref{fig:dsdl_data_type_name_str
     \caption{Data type name structure.\label{fig:dsdl_data_type_name_structure}}
 \end{figure}
 
-Data type names are case-sensitive.
-However, data type names that differ only in letter case are not permitted\footnote{%
+A set of full namespace names and a set of full data type names must not intersect\footnote{%
+    For example, a namespace ``\texttt{vendor.example}'' and a data type ``\texttt{vendor.example.1.0}''
+    are mutually exclusive.
+    Note the data type name shown in this example violates the naming conventions
+    which are reviewed in a separate section.
+}.
+
+Data type names and namespace names are case-sensitive.
+However, names that differ only in letter case are not permitted\footnote{%
 Because that may cause problems with case-insensitive file systems.}.
+In other words, a pair of names which differ only in letter case is considered to constitute a name collision.
 
 A name component consists of alphanumeric ASCII characters (which are: \verb|A-Z|, \verb|a-z|, and \verb|0-9|)
 and underscore (``\verb|_|'', ASCII code 95).
@@ -105,12 +114,12 @@ provided that each version is defined at most once.
 Version number sequences can be non-contiguous,
 meaning that it is allowed to skip version numbers or remove existing definitions that are neither oldest nor newest.
 
-A data type definition may have an optional fixed port ID\footnote{Chapter \ref{sec:basic_concepts}.} value specified.
+A data type definition may have an optional fixed port-ID\footnote{Chapter \ref{sec:basic_concepts}.} value specified.
 
 The name of a data type definition file is constructed from the following entities
 joined via the ASCII dot character ``\verb|.|'' (ASCII code 46), in the specified order:
 \begin{itemize}
-    \item Fixed port ID in decimal notation, unless a fixed port ID is not provided for this definition.
+    \item Fixed port-ID in decimal notation, unless a fixed port-ID is not provided for this definition.
     \item Short name of the data type (mandatory, always non-empty).
     \item Major version number in decimal notation (mandatory).
     \item Minor version number in decimal notation (mandatory).
@@ -120,7 +129,7 @@ joined via the ASCII dot character ``\verb|.|'' (ASCII code 46), in the specifie
 \begin{figure}[H]
     $$
     \overbrace{%
-        \underbrace{\texttt{\huge{432}}}_{\substack{\text{fixed} \\ \text{port ID}}}%
+        \underbrace{\texttt{\huge{432}}}_{\substack{\text{fixed} \\ \text{port-ID}}}%
         \texttt{\huge{.}}%
     }^{\text{optional}}%
     \overbrace{%
@@ -142,45 +151,45 @@ One directory cannot define more than one level of
 nesting\footnote{For example, ``\texttt{foo.bar}'' is not a valid directory name.
 The valid representation would be ``\texttt{bar}'' nested in ``\texttt{foo}''.}.
 
-An example DSDL directory structure is shown on the figure \ref{fig:dsdl_definition_file_name_structure}.
+\begin{remark}
+    \begin{figure}[H]
+        \begin{tabu}{|l|X|} \hline
+            \rowfont{\bfseries}
+            Directory tree & Entry description \\\hline
 
-\begin{figure}[H]
-    \begin{tabu}{|l|X|} \hline
-        \rowfont{\bfseries}
-        Directory tree & Entry description \\\hline
+            \texttt{vendor\_x/} &
+            Root namespace \texttt{vendor\_x}. \\\cline{2-2}
 
-        \texttt{vendor\_x/} &
-        Root namespace \texttt{vendor\_x}. \\\cline{2-2}
+            \texttt{\qquad{}foo/} &
+            Nested namespace (also sub-root) \texttt{vendor\_x.foo}. \\\cline{2-2}
 
-        \texttt{\qquad{}foo/} &
-        Nested namespace (also sub-root) \texttt{vendor\_x.foo}. \\\cline{2-2}
+            \texttt{\qquad{}\qquad{}100.Run.1.0.uavcan} &
+            Data type definition v1.0 with fixed service-ID 100. \\\cline{2-2}
 
-        \texttt{\qquad{}\qquad{}100.Run.1.0.uavcan} &
-        Data type definition v1.0 with fixed service ID 100. \\\cline{2-2}
+            \texttt{\qquad{}\qquad{}100.Status.1.0.uavcan} &
+            Data type definition v1.0 with fixed subject-ID 100. \\\cline{2-2}
 
-        \texttt{\qquad{}\qquad{}100.Status.1.0.uavcan} &
-        Data type definition v1.0 with fixed subject ID 100. \\\cline{2-2}
+            \texttt{\qquad{}\qquad{}ID.1.0.uavcan} &
+            Data type definition v1.0 without fixed port-ID. \\\cline{2-2}
 
-        \texttt{\qquad{}\qquad{}ID.1.0.uavcan} &
-        Data type definition v1.0 without fixed port ID. \\\cline{2-2}
+            \texttt{\qquad{}\qquad{}ID.1.1.uavcan} &
+            Data type definition v1.1 without fixed port-ID. \\\cline{2-2}
 
-        \texttt{\qquad{}\qquad{}ID.1.1.uavcan} &
-        Data type definition v1.1 without fixed port ID. \\\cline{2-2}
+            \texttt{\qquad{}\qquad{}bar\_42/} &
+            Nested namespace \texttt{vendor\_x.foo.bar\_42}. \\\cline{2-2}
 
-        \texttt{\qquad{}\qquad{}bar\_42/} &
-        Nested namespace \texttt{vendor\_x.foo.bar\_42}. \\\cline{2-2}
+            \texttt{\qquad{}\qquad{}\qquad{}101.List.1.0.uavcan} &
+            Data type definition v1.0 with fixed service-ID 101. \\\cline{2-2}
 
-        \texttt{\qquad{}\qquad{}\qquad{}101.List.1.0.uavcan} &
-        Data type definition v1.0 with fixed service ID 101. \\\cline{2-2}
+            \texttt{\qquad{}\qquad{}\qquad{}102.List.2.0.uavcan} &
+            Data type definition v2.0 with fixed service-ID 102. \\\cline{2-2}
 
-        \texttt{\qquad{}\qquad{}\qquad{}102.List.2.0.uavcan} &
-        Data type definition v2.0 with fixed service ID 102. \\\cline{2-2}
-
-        \texttt{\qquad{}\qquad{}\qquad{}ID.1.0.uavcan} &
-        Data type definition v1.0 without fixed port ID. \\\hline
-    \end{tabu}
-    \caption{DSDL directory structure example.}\label{fig:dsdl_directory_structure_example}
-\end{figure}
+            \texttt{\qquad{}\qquad{}\qquad{}ID.1.0.uavcan} &
+            Data type definition v1.0 without fixed port-ID. \\\hline
+        \end{tabu}
+        \caption{DSDL directory structure example.}\label{fig:dsdl_directory_structure_example}
+    \end{figure}
+\end{remark}
 
 \subsection{Elements of data type definition}
 
@@ -189,25 +198,23 @@ A data type definition file contains an exhaustive description of a particular v
 As explained above, one data type definition contains either one or two data schema definitions,
 for message types and service types, respectively.
 
-The term \emph{attribute} is used to refer to either a field (including padding fields) or a constant
-associated with a particular object or type.
-
-A data schema definition contains an ordered, possibly empty collection of \emph{fields} and/or
-unordered, possibly empty collection of \emph{constants}.
+A data schema definition contains an ordered, possibly empty collection of \emph{field attributes} and/or
+unordered, possibly empty collection of \emph{constant attributes}.
 A data schema may describe either a \emph{structure object} or a \emph{tagged union object}.
-The value of a structure object is a function of the values of all of its fields.
-A tagged union object is formed from at least two fields,
-but it is capable of holding exactly one field at any given time.
-The value of a tagged union object is a function of which field it is holding at the moment and the value of said field.
+The value of a structure object is a function of the values of all of its field attributes.
+A tagged union object is formed from at least two field attributes,
+but it is capable of holding exactly one field attribute value at any given time.
+The value of a tagged union object is a function of which field attribute value
+it is holding at the moment and the value of said field attribute.
 
-A field represents a named dynamically assigned value of a statically defined type
+A field attribute represents a named dynamically assigned value of a statically defined type
 that can be exchanged over the network as a member of its containing object.
-A padding field is a special kind of field which is used for data alignment purposes;
-such fields are not named.
+A padding field attribute is a special kind of field attribute which is used for data alignment purposes;
+such field attributes are not named.
 
-A constant represents a named statically defined value of a statically defined type.
+A constant attribute represents a named statically defined value of a statically defined type.
 Constants are never exchanged over the network, since they are assumed to be known to all involved nodes
-by virtue of them sharing the same static definition of the data type.
+by virtue of them sharing compatible definitions of the data type.
 
 Constant values are defined via \emph{DSDL expressions},
 which are evaluated at the time of DSDL definition processing.
@@ -229,5 +236,5 @@ provided that the type of the object is known.
 \label{sec:dsdl_bit_length_set}
 A serialized representation is a sequence of binary digits (bits);
 the number of bits in a serialized representation is called its \emph{bit length}.
-A \emph{bit length set} of a data schema refers to the set of bit length values of all possible
-serialized representations of objects implementing the schema.
+A \emph{bit length set} of a data type (or a data schema) refers to the set of bit length values of all possible
+serialized representations of objects that are instances of the data type (or that follow the data schema).

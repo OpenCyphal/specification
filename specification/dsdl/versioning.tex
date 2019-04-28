@@ -191,7 +191,7 @@ the version numbers of its first definition must be assigned ``1.0'' (major 1, m
 
 In order to ensure predictability and functional safety of applications that leverage UAVCAN,
 the standard requires that once a data type definition is released,
-its DSDL source text, name, version numbers, fixed port ID, and other properties cannot undergo any
+its DSDL source text, name, version numbers, fixed port-ID, and other properties cannot undergo any
 modifications whatsoever, with the following exceptions:
 \begin{itemize}
     \item Whitespace changes of the DSDL source text are allowed,
@@ -230,7 +230,7 @@ all other versions must also be of the message kind.
 
 \subsubsection{Fixed port identifier assignment constraints}
 
-The following constraints apply to fixed port ID assignments:
+The following constraints apply to fixed port-ID assignments:
 \begin{align*}
     \exists P(x_{a.b})                          &\rightarrow \exists P(x_{a.c})
     &\mid&\ b < c;\ x \in (M \cup S)
@@ -248,9 +248,9 @@ where $t_{a.b}$ denotes a data type $t$ version $a.b$ ($a$ major, $b$ minor);
 $P(t)$ denotes the fixed port-ID (whose existence is optional) of data type $t$;
 $M$ is the set of message types, and $S$ is the set of service types.
 
-\subsubsection{Runtime port identifier assignment recommendations}
+\subsubsection{Non-fixed port identifier assignment recommendations}
 
-For port identifiers assigned at runtime
+For non-fixed port identifiers
 it is recommended to ensure that any port identifier of a given kind (subject or service)
 is only used with one major version of one data type.
 
@@ -266,13 +266,13 @@ the numeric value of a port-ID may refer to different data types if they are of 
 \subsubsection{Data type version selection}
 
 DSDL compilers should compile every available data type version separately,
-allowing the application to choose from all available major and minor version combination.
+allowing the application to choose from all available major and minor version combinations.
 
 When emitting a transfer, the major version of the data type is chosen at the discretion of the application.
 The minor version should be the newest available one under the chosen major version.
 
 When receiving a transfer, the node deduces which major version of the data type to use
-from its port identifier (either fixed or runtime-assigned).
+from its port identifier (either fixed or non-fixed).
 The minor version should be the newest available one under the deduced major version\footnote{%
 Such liberal minor version selection policy poses no compatibility risks since all definitions under the same
 major version are compatible with each other.}.

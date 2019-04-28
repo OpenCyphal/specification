@@ -26,8 +26,6 @@ Primitive types are assumed to be known to DSDL processing tools a priori,
 and as such, they need not be defined by the user.
 Primitive types can be referred to directly by their name from any namespace.
 
-The following text defines DSDL name patterns using the POSIX Extended Regular Expression (ERE) notation.
-
 \subsubsection{Hierarchy}
 
 The hierarchy of primitive types is documented below.
@@ -61,11 +59,11 @@ The hierarchy of primitive types is documented below.
     \end{itemize}
 \end{itemize}
 
-\begin{UAVCANSimpleTable}{Properties of integer types}{|l X l|}
+\begin{UAVCANSimpleTable}{Properties of integer types}{|l X l|}%
+    \label{table:dsd_integer_properties}%
     Category &
     DSDL names &
-    Range, $X$ is bit length
-    \label{table:dsd_integer_properties} \\
+    Range, $X$ is bit length \\
 
     Signed integers &
     \texttt{int2}, \texttt{int3}, \texttt{int4} \ldots{} \texttt{int62}, \texttt{int63}, \texttt{int64} &
@@ -172,7 +170,7 @@ The array element type can be any type except:
     In other words, indirect nesting of arrays is permitted.}.
 \end{itemize}
 
-The number of elements in the array can be specified as a constant at the data type definition time,
+The number of elements in the array can be specified as a constant expression at the data type definition time,
 in which case the array is said to be a \emph{fixed-length array}.
 Alternatively, the number of elements can vary between zero and some static limit specified
 at the data type definition time,
@@ -181,7 +179,7 @@ Variable-length arrays with unbounded maximum number of elements are not allowed
 
 Arrays are defined by adding a pair of square brackets after the array element type specification,
 where the brackets contain the \emph{array capacity expression}.
-The array capacity expression must yield a positive integer upon its evaluation;
+The array capacity expression must yield a positive integer of type ``\verb|rational|'' upon its evaluation;
 any other value or type renders the current DSDL definition invalid.
 
 The array capacity expression can be prefixed with the following character sequences in order to define
@@ -189,6 +187,7 @@ a variable-length array:
 \begin{itemize}
     \item ``\verb|<|'' (ASCII code 60) --- indicates that the integer value yielded by the array capacity expression
     specifies the non-inclusive upper boundary of the number of elements.
+    In this case, the integer value yielded by the array capacity expression must be greater than one.
 
     \item ``\verb|<=|'' (ASCII code 60 followed by 61) --- same as above, but the upper boundary is inclusive.
 \end{itemize}
@@ -260,6 +259,23 @@ the referring definition is malformed\footnote{%
 This tainting behavior is designed to prevent unexpected breakage of
 type hierarchies when one of the deprecated dependencies reaches its end of life.}.
 
+When a data type is referred to from within an expression context,
+it constitutes a literal of type ``\verb|metaserializable|'' (section \ref{sec:dsdl_metaserializable}).
+If the referred data type is of the message kind,
+its attributes are accessible in the referring expression through application of the
+attribute reference operator ``\verb|.|''.
+The available attributes and their semantics are documented in the section \ref{sec:dsdl_local_attributes}.
+
+\begin{remark}
+    \begin{minted}{python}
+        uint64 MY_CONSTANT = vendor.MessageType.1.0.OTHER_CONSTANT
+        # The following is valid if the referring definition and the referred definition
+        # are located inside the root namespace "vendor":
+        uint64 MY_CONSTANT = MessageType.1.0.OTHER_CONSTANT
+        @print MessageType.1.0
+    \end{minted}
+\end{remark}
+
 \subsubsection{Unions}\label{sec:dsdl_composite_tagged_unions}
 
 Any data schema definition can be supplied with a special directive (section \ref{sec:dsdl_directives})
@@ -270,16 +286,3 @@ A tagged union shall not contain padding field attributes.
 
 The value of a tagged union object is a function of the field attribute which value it is currently holding
 and the value of the field attribute itself.
-
-\subsubsection{Expressions}
-
-In the case of composite definitions of the message kind,
-constant attributes of the message type are accessible through application of the
-attribute reference operator ``\verb|.|'' to the corresponding instance of the serializable metatype.
-
-\begin{remark}
-    \begin{minted}{python}
-        uint64 MY_CONSTANT = vendor.MessageType.1.0.OTHER_CONSTANT
-    \end{minted}
-\end{remark}
-

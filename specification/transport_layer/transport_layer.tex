@@ -34,7 +34,7 @@ All other nodes remain unaffected by such transmission and take no part in the a
 \subsubsection{Message and service transfers}
 
 A \emph{message transfer} is a broadcast transfer that contains a serialized message and its
-metadata\footnote{Such as the subject ID and the source node ID.}.
+metadata\footnote{Such as the subject-ID and the source node-ID.}.
 
 A \emph{service transfer} is a unicast transfer that contains either a service request or a service response
 with related metadata.
@@ -63,12 +63,12 @@ The properties listed in the table \ref{table:common_transfer_properties} are co
 \begin{UAVCANSimpleTable}{Common transfer properties}{|l X|}\label{table:common_transfer_properties}
     Property        & Description \\
     Payload         & The serialized object. \\
-    Port ID         & A numerical identifier that indicates how the data should be processed.
-                      This is the subject ID for message transfers and service ID for service transfers. \\
-    Source node ID  & The node ID of the transmitting node (excepting anonymous message transfers). \\
+    Port-ID         & A numerical identifier that indicates how the data should be processed.
+                      This is the subject-ID for message transfers and service-ID for service transfers. \\
+    Source node-ID  & The node-ID of the transmitting node (excepting anonymous message transfers). \\
     Priority        & A non-negative integer value that defines the transfer urgency.
                       Higher priority transfers can preempt lower priority transfers. \\
-    Transfer ID     & A small overflowing integer that increments with every transfer
+    Transfer-ID     & A small overflowing integer that increments with every transfer
                       of this data type from a given node. \\
 \end{UAVCANSimpleTable}
 
@@ -80,21 +80,21 @@ A published message is carried by a single message transfer that contains the se
 A published message does not contain any additional fields besides those listed in the table
 \ref{table:common_transfer_properties}.
 
-In order to publish a message, the publishing node must have a node ID that is unique within the network.
+In order to publish a message, the publishing node must have a node-ID that is unique within the network.
 An exception applies to \emph{anonymous message publications}.
 
 \subsubsection{Anonymous message publication}\label{sec:transport_anonymous_message_publication}
 
-An anonymous message transfer is a transfer that can be sent from a node that does not have a node ID.
+An anonymous message transfer is a transfer that can be sent from a node that does not have a node-ID.
 This kind of message transfer is especially useful for facilitation of \emph{plug-and-play nodes}
 (a high-level concept that is reviewed in detail in chapter \ref{sec:application_layer}).
 
-A node that does not have a node ID is said to be in \emph{passive mode}.
+A node that does not have a node-ID is said to be in \emph{passive mode}.
 Passive nodes are unable to initiate regular data exchanges,
 but they can listen to the transfers exchanged over the bus,
 and they can emit anonymous message transfers.
 
-An anonymous message has the same properties as a regular message, except for the source node ID.
+An anonymous message has the same properties as a regular message, except for the source node-ID.
 
 An anonymous transfer can only be a single-frame transfer. Multi-frame anonymous message transfers are not allowed.
 This restriction must be kept in mind when designing message data types
@@ -121,23 +121,23 @@ A service request transfer is sent from the invoking node -- \emph{client node} 
 that provides the service -- \emph{server node}.
 Upon handling the request, the server node responds to the client node with a service response transfer.
 The client will match the response with the corresponding request by comparing the following values:
-server node ID, service ID, and the transfer ID.
+server node-ID, service-ID, and the transfer-ID.
 
 The tables \ref{table:service_request_transfer_properties} and \ref{table:service_response_transfer_properties}
 describe the properties of service request and service response transfers, respectively.
 
-Both the client and the server must have node ID values that are unique within the network;
+Both the client and the server must have node-ID values that are unique within the network;
 service invocation is not available to passive nodes.
 The client and the server must be two distinct nodes.
 
 \begin{UAVCANSimpleTable}{Service request transfer properties}{|l X|}\label{table:service_request_transfer_properties}
     Property                        & Description \\
     Payload                         & The serialized service request object. \\
-    Service ID                      & See the table \ref{table:common_transfer_properties}. \\
-    Source node ID                  & The node ID of the client (the invoking node). \\
-    Destination node ID             & The node ID of the server (the invoked node). \\
+    Service-ID                      & See the table \ref{table:common_transfer_properties}. \\
+    Source node-ID                  & The node-ID of the client (the invoking node). \\
+    Destination node-ID             & The node-ID of the server (the invoked node). \\
     Priority                        & See the table \ref{table:common_transfer_properties}. \\
-    Transfer ID                     & An integer value that:
+    Transfer-ID                     & An integer value that:
         \begin{enumerate}
             \item allows the server to distinguish the request from other requests from the same client;
             \item allows the client to match the response with its request.
@@ -147,11 +147,11 @@ The client and the server must be two distinct nodes.
 \begin{UAVCANSimpleTable}{Service response transfer properties}{|l X|}\label{table:service_response_transfer_properties}
     Property                        & Description \\
     Payload                         & The serialized service response object. \\
-    Service ID                      & Same value as in the request transfer. \\
-    Source node ID                  & The node ID of the server (the invoked node). \\
-    Destination node ID             & The node ID of the client (the invoking node). \\
+    Service-ID                      & Same value as in the request transfer. \\
+    Source node-ID                  & The node-ID of the server (the invoked node). \\
+    Destination node-ID             & The node-ID of the client (the invoking node). \\
     Priority                        & Same value as in the request transfer. \\
-    Transfer ID                     & Same value as in the request transfer. \\
+    Transfer-ID                     & Same value as in the request transfer. \\
 \end{UAVCANSimpleTable}
 
 \subsubsection{Service timing requirements}
@@ -230,24 +230,24 @@ delaying their transmission until there are no more higher priority transfers to
 Transfer emission and reception processes rely on the concept of \emph{transfer descriptor}.
 
 A transfer descriptor is a set of properties that identify a particular set of transfers that originate
-from the same source node, share the same port ID, same kind (message or service), and are addressed to the same
+from the same source node, share the same port-ID, same kind (message or service), and are addressed to the same
 destination node (the latter applies only to unicast transfers).
 
 The properties that constitute a transfer descriptor are listed below:
 
 \begin{itemize}
     \item Transfer kind (message or service).
-    \item Port ID (subject ID for message transfers, service ID for service transfers).
-    \item Source node ID.
-    \item Destination node ID (only for service transfers).
+    \item Port-ID (subject-ID for message transfers, service-ID for service transfers).
+    \item Source node-ID.
+    \item Destination node-ID (only for service transfers).
 \end{itemize}
 
 For convenience, two derived definitions are introduced.
 Their objective is to simplify the description of transfer reception and emission logic that appears later in this
 specification.
 \begin{description}
-    \item[Emitted transfer descriptor] -- a transfer descriptor where the source node ID equals the local node's ID.
-    \item[Received transfer descriptor] -- a transfer descriptor where the destination node ID equals
+    \item[Emitted transfer descriptor] -- a transfer descriptor where the source node-ID equals the local node's ID.
+    \item[Received transfer descriptor] -- a transfer descriptor where the destination node-ID equals
     the local node's ID (for service transfers) or is not defined (for message transfers).
 \end{description}
 
@@ -259,14 +259,14 @@ hence, its contribution to the worst case data processing load should be careful
 
 \begin{remark}
     From the above definition of transfer descriptor it is easy to derive that for any
-    message subject ID or any service subject ID the maximum number of transfer descriptors
+    message subject-ID or any service subject-ID the maximum number of transfer descriptors
     that can be observed by the local node will never exceed the number of nodes on the bus minus
     one\footnote{The local node cannot exchange data with itself, hence minus one.}.
     If the number of nodes on the bus cannot be known in advance, it can be considered to equal 128,
     which is the maximum node capacity of a UAVCAN bus.
 
     The total number of distinct transfer descriptors that can be observed by a node on any valid UAVCAN bus
-    is a product of the number of distinct port ID values utilized by the node and the number of other nodes on the bus.
+    is a product of the number of distinct port-ID values utilized by the node and the number of other nodes on the bus.
 
     The transport emission and reception logic defined later in this specification relies on data structures
     indexed by transfer descriptor values.
@@ -276,39 +276,39 @@ hence, its contribution to the worst case data processing load should be careful
 
 \section{Transfer emission}
 
-\subsection{Transfer ID computation}\label{sec:transfer_id}
+\subsection{Transfer-ID computation}\label{sec:transfer_id}
 
-The \emph{transfer ID} is a small unsigned integer value in the range from 0 to 31, inclusive,
+The \emph{transfer-ID} is a small unsigned integer value in the range from 0 to 31, inclusive,
 that is provided for every transfer.
-This value is crucial for many aspects of UAVCAN communication\footnote{One might be tempted to use the transfer ID
+This value is crucial for many aspects of UAVCAN communication\footnote{One might be tempted to use the transfer-ID
 value for temporal synchronization of parallel message streams originating from the same node,
-where messages bearing the same transfer ID value are supposed to correspond to the same moment of time.
+where messages bearing the same transfer-ID value are supposed to correspond to the same moment of time.
 Such use is strongly discouraged because it is impossible to detect if one node is more than
 32 messages behind another.
 If temporal synchronization is necessary, explicit time stamping should be used instead.};
 specifically:
 \begin{description}
-    \item[Message sequence monitoring] - the continuously increasing transfer ID allows receiving nodes to
+    \item[Message sequence monitoring] - the continuously increasing transfer-ID allows receiving nodes to
     detect lost messages and detect when a message stream from any remote node is interrupted.
 
-    \item[Service response matching] - when a server responds to a request, it uses the same transfer ID for the
+    \item[Service response matching] - when a server responds to a request, it uses the same transfer-ID for the
     response as in the request,
     allowing any node to emit concurrent requests to the same server while being able to
     match each response with the corresponding request.
 
     \item[Transport frame deduplication] - for single-frame transfers,
-    the transfer ID allows receiving nodes to work around the transport
+    the transfer-ID allows receiving nodes to work around the transport
     frame duplication problem\footnote{This is a well-known issue that can be observed with certain
     transports such as CAN bus -- a frame that appears valid to the receiver may under certain
     (rare) conditions appear invalid to the transmitter, triggering the latter to retransmit the frame,
     in which case it will be duplicated on the side of the receiver.
-    Sequence counting mechanisms such as the transfer ID or the toggle bit (both of which are used in UAVCAN)
+    Sequence counting mechanisms such as the transfer-ID or the toggle bit (both of which are used in UAVCAN)
     allow applications to circumvent this problem.} (multi-frame transfers combat the frame duplication
     problem using the toggle bit, which is introduced later).
 
     \item[Multi-frame transfer reassembly] - more info is provided in section \ref{sec:transfer_reception}.
 
-    \item[Automatic management of redundant interfaces] - the transfer ID parameter allows the UAVCAN protocol
+    \item[Automatic management of redundant interfaces] - the transfer-ID parameter allows the UAVCAN protocol
     stack to perform automatic switchover to a back-up interface shall the primary interface fail.
     The switchover logic can be completely transparent to the application, joining several independent
     redundant physical transports into a highly reliable single virtual communication channel.
@@ -319,21 +319,21 @@ For service response transfers this value must be directly copied from the corre
 
 Every node that is interested in emitting transfers must maintain a mapping
 (or a similar functionally equivalent static structure\footnote{For example, simple static variables.})
-from emitted transfer descriptors (section \ref{sec:transfer_descriptor}) to transfer ID counters.
-This mapping is referred to as the \emph{emitted transfer ID map}.
+from emitted transfer descriptors (section \ref{sec:transfer_descriptor}) to transfer-ID counters.
+This mapping is referred to as the \emph{emitted transfer-ID map}.
 
-Whenever a node needs to emit a transfer, it will query its transfer ID map for the appropriate transfer descriptor.
-If the map does not contain such entry, a new entry will be created with the transfer ID counter initialized to zero.
-The node will use the current value of the transfer ID from the map for the transfer,
+Whenever a node needs to emit a transfer, it will query its transfer-ID map for the appropriate transfer descriptor.
+If the map does not contain such entry, a new entry will be created with the transfer-ID counter initialized to zero.
+The node will use the current value of the transfer-ID from the map for the transfer,
 and then the value stored in the map will be incremented by one.
-When the stored transfer ID exceeds its maximum value, it will roll over to zero.
+When the stored transfer-ID exceeds its maximum value, it will roll over to zero.
 
 It is expected that some nodes will need to emit certain transfers aperiodically or on an ad-hoc basis,
-thereby creating unused entries in the emitted transfer ID map.
+thereby creating unused entries in the emitted transfer-ID map.
 If such aperiodic or ad-hoc transfers are of interest,
 the worst case number of unused entries can be determined statically as a function of the number of
 port identifiers used and the number of addressed nodes on the bus (the latter applies to services only).
-Nodes are not allowed to remove any entries from the transfer ID map as long as they are running.
+Nodes are not allowed to remove any entries from the transfer-ID map as long as they are running.
 
 \subsection{Single frame transfers}
 
@@ -474,7 +474,7 @@ int main()
 
 The toggle bit is a property defined at the transport frame level.
 Its purpose is to detect and avoid transport frame duplication errors in multi-frame
-transfers\footnote{In single-frame transfers, transport frame deduplication is based on the transfer ID counter.}.
+transfers\footnote{In single-frame transfers, transport frame deduplication is based on the transfer-ID counter.}.
 
 The toggle bit of the first transport frame of a multi-frame transfer must be set to one.
 The toggle bits of the following transport frames of the transfer must alternate,
@@ -515,10 +515,10 @@ See section \ref{sec:phy_non_uniform_transport_redundancy}.
 
 \section{Transfer reception}\label{sec:transfer_reception}
 
-\subsection{Transfer ID comparison}\label{sec:transfer_id_forward_distance}
+\subsection{Transfer-ID comparison}\label{sec:transfer_id_forward_distance}
 
-The following explanation relies on the concept of the \emph{transfer ID forward distance}.
-Transfer ID forward distance $F$ is a function of two transfer ID values,
+The following explanation relies on the concept of the \emph{transfer-ID forward distance}.
+Transfer-ID forward distance $F$ is a function of two transfer-ID values,
 $A$ and $B$, that defines the number of increment operations that need to be applied to
 $A$ so that $A^\prime{} = B$, assuming modulo 32 arithmetic\footnote{%
     For example:
@@ -529,13 +529,13 @@ $A$ so that $A^\prime{} = B$, assuming modulo 32 arithmetic\footnote{%
     $A=31, B=0, F\rightarrow1$.
 }:
 $$A + F = B \quad (\bmod{}\ 32)$$
-The \emph{half range} of transfer ID is 16.
+The \emph{half range} of transfer-ID is 16.
 
-The following code sample provides an example implementation of the transfer ID comparison algorithm in C++.
+The following code sample provides an example implementation of the transfer-ID comparison algorithm in C++.
 
 \begin{minipage}{0.9\textwidth}  % Mini page is needed to prevent page breaks within the snippet
 \begin{minted}{cpp}
-// UAVCAN transfer ID forward distance computation algorithm implemented in C++.
+// UAVCAN transfer-ID forward distance computation algorithm implemented in C++.
 // License: CC0, no copyright reserved.
 
 #include <cstdint>
@@ -599,7 +599,7 @@ and section \ref{sec:transfer_reception_state_update_non_redundant} for non-redu
 It is expected that some transfers will be aperiodic or ad-hoc,
 which implies that the receiver map may over time accumulate receiver states that are no longer used.
 Therefore, nodes are allowed, but not required, to remove any receiver state from the receiver map
-as soon as the state reaches the \emph{transfer ID timeout condition}\footnote{Such behavior is
+as soon as the state reaches the \emph{transfer-ID timeout condition}\footnote{Such behavior is
 not recommended for hard real-time applications, where deterministic static look-up tables
 should be preferred instead.},
 as defined in section \ref{sec:transfer_id_timeout_condition}.
@@ -611,7 +611,7 @@ require any periodic background maintenance activities.
 \begin{UAVCANSimpleTable}{Transfer reception state variables}{|l X|}
     State               & Description \label{table:transfer_receiver_state_variables} \\
     Transfer payload    & Useful payload byte sequence; extended upon reception of new matching transport frames. \\
-    Transfer ID         & The transfer ID value of the next expected transport frame. Section \ref{sec:transfer_id}. \\
+    Transfer-ID         & The transfer-ID value of the next expected transport frame. Section \ref{sec:transfer_id}. \\
     Next toggle bit     & Expected value of the toggle bit in the next transport frame.
                           Section \ref{sec:toggle_bit}. \\
     Transfer timestamp  & The local monotonic timestamp sampled when the first frame of the transfer arrived.
@@ -629,9 +629,9 @@ Upon reset, the receiver state will meet the following conditions:
 
 \begin{itemize}
     \item The transfer payload buffer is empty.
-    \item The transfer ID state matches the actual transfer ID value from the newly received transfer,
+    \item The transfer-ID state matches the actual transfer-ID value from the newly received transfer,
     unless this is a non-first frame of a multi-frame transfer.
-    In the latter case, the transfer ID state will match the received transfer ID value incremented by one.
+    In the latter case, the transfer-ID state will match the received transfer-ID value incremented by one.
     \item The toggle bit is set to its initial state (section \ref{sec:toggle_bit}).
     \item The transfer timestamp matches the reception timestamp from the transport frame.
     \item The interface index matches the index of the interface that the new frame was received from
@@ -643,25 +643,25 @@ A receiver state must be reset when any of the following conditions are met:
 \begin{itemize}
     \item A new receiver state instance is created.
 
-    \item A transfer ID timeout condition is reached (section \ref{sec:transfer_id_timeout_condition}).
+    \item A transfer-ID timeout condition is reached (section \ref{sec:transfer_id_timeout_condition}).
 
     \item A first frame of a transfer (either a multi-frame or a single-frame; in the latter case, the same frame
     would also be the last frame of the transfer) is received from the same interface as the previous frame
     (does not apply to non-redundantly interfaced nodes),
-    and the transfer ID forward distance (section \ref{sec:transfer_id_forward_distance}) from the received
-    transfer ID to the stored transfer ID is greater than one.
+    and the transfer-ID forward distance (section \ref{sec:transfer_id_forward_distance}) from the received
+    transfer-ID to the stored transfer-ID is greater than one.
 
     \item Only for redundantly interfaced nodes: A first frame of a transfer is received,
     an interface switchover condition is reached (section \ref{sec:transfer_interface_switchover_condition}),
-    and the transfer ID forward distance from the stored transfer ID to the received transfer ID is
-    less than the transfer ID half range (section \ref{sec:transfer_id_forward_distance}).
+    and the transfer-ID forward distance from the stored transfer-ID to the received transfer-ID is
+    less than the transfer-ID half range (section \ref{sec:transfer_id_forward_distance}).
 \end{itemize}
 
-\subsubsection{Transfer ID timeout condition}\label{sec:transfer_id_timeout_condition}
+\subsubsection{Transfer-ID timeout condition}\label{sec:transfer_id_timeout_condition}
 
-A state is said to have reached the transfer ID timeout condition
+A state is said to have reached the transfer-ID timeout condition
 if the last matching transfer was seen more than 2 (two) seconds ago.
-When this condition is reached, the receiver must accept the next transfer disregarding its transfer ID value.
+When this condition is reached, the receiver must accept the next transfer disregarding its transfer-ID value.
 
 Nodes are allowed to use different timeout values, if that is believed to benefit the application.
 If a different timeout value is used, it must be explicitly documented.
@@ -669,7 +669,7 @@ If a different timeout value is used, it must be explicitly documented.
 Low timeout values increase the risk of undetected transfer duplication when such transfers are significantly
 delayed due to bus congestion, which is possible with very low-priority transfers when the bus utilization is high.
 
-High timeout values increase the risk of an undetected transfer loss when a remote node suffers an emitted transfer ID
+High timeout values increase the risk of an undetected transfer loss when a remote node suffers an emitted transfer-ID
 map state loss (e.g., due to the whole node being restarted).
 However, the effects of such a transfer loss caused by a loss of state on a remote node
 are always constrained to the first transfer only.
@@ -683,7 +683,7 @@ the previous transfer was received from.
 The condition is reached when the last matching transfer was successfully received more than
 $T_\text{switch}$ seconds ago. The value of $T_\text{switch}$ should not exceed the reception transfer
 ID timeout, as defined in section \ref{sec:transfer_id_timeout_condition},
-because if $T_\text{switch}$ were to exceed the transfer ID timeout, an interface switchover would be
+because if $T_\text{switch}$ were to exceed the transfer-ID timeout, an interface switchover would be
 performed by the normal receiver state reset procedure, rendering $T_\text{switch}$ useless.
 
 The actual value of $T_\text{switch}$ can be either a constant chosen by the designer according
@@ -691,12 +691,12 @@ to the application requirements (e.g., the maximum recovery time in the event of
 or the protocol stack can estimate this value automatically by analyzing the transfer intervals.
 
 Nodes are required to let the first interface time out before using the next one because the
-transfer ID field is expected to wrap around frequently (every 32 transfers).
+transfer-ID field is expected to wrap around frequently (every 32 transfers).
 Different interfaces are expected to exhibit different latencies even in a properly functioning system,
 especially if the system contains both redundantly-interfaced and non-redundantly-interfaced nodes.
 If the latency of a backup interface relative to the primary interface exceeds 32 transfer intervals,
 and receiving nodes were to be allowed to switch between interfaces freely disregarding the timeout,
-the receiving node would skip the whole period of transfer IDs (32 transfers will be lost).
+the receiving node would skip the whole period of transfer-IDs (32 transfers will be lost).
 The problem would primarily affect low-priority transfers where large latencies are more likely.
 
 \subsection{State update in a redundant interface configuration}
@@ -762,7 +762,7 @@ function receiveFrame(frame)
 
     if (frame.transfer_id != current_transfer_id)
     {
-        return;  // Unexpected transfer ID, ignore
+        return;  // Unexpected transfer-ID, ignore
     }
 
     if (first_frame)
@@ -835,7 +835,7 @@ function receiveFrame(frame)
 
     if (frame.transfer_id != current_transfer_id)
     {
-        return;  // Unexpected transfer ID, ignore
+        return;  // Unexpected transfer-ID, ignore
     }
 
     if (first_frame)
