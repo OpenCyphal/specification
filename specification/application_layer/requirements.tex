@@ -1,0 +1,37 @@
+\section{Application-level requirements}\label{sec:application_level_requirements}
+
+This section describes a set of high-level rules that must be obeyed by all UAVCAN implementations.
+
+\subsection{Port identifier distribution}
+
+An overview of related concepts is provided in chapter \ref{sec:basic_concepts}.
+
+The subject and service identifier values are segregated into three ranges:
+unregulated port identifiers that can be freely chosen by users and integrators (both fixed and non-fixed);
+regulated fixed identifiers for non-standard data type definitions
+that are assigned by the UAVCAN maintainers for publicly released data types;
+and regulated identifiers of the standard data types that are an integral part of the UAVCAN specification.
+
+More information on the subject of data type regulation is provided in section
+\ref{sec:basic_concepts_data_type_regulation}.
+
+The ranges are summarized in the table \ref{table:application_port_id_distribution}.
+Unused gaps are reserved for future expansion of adjacent ranges.
+
+\begin{UAVCANSimpleTable}{Port identifier distribution}{|l l X|}\label{table:application_port_id_distribution}
+    Subject-ID          & Service-ID        & Purpose \\
+    $[0, 24575]$        & $[0, 127]$        & Unregulated identifiers (both fixed and non-fixed). \\
+    $[28672, 29695]$    & $[256, 319]$      & Non-standard fixed regulated identifiers (i.e., vendor-specific). \\
+    $[31744, 32767]$    & $[384, 511]$      & Standard fixed regulated identifiers. \\
+\end{UAVCANSimpleTable}
+
+\subsection{Standard namespace}
+
+An overview of related concepts is provided in chapter \ref{sec:dsdl}.
+
+This specification defines a set of standard regulated DSDL data types located under
+the root namespace named ``\verb"uavcan"'' (section~\ref{sec:list_of_standard_data_types}).
+
+Vendor-specific, user-specific, or any other data types not defined by this specification
+must not be defined inside the standard root namespace\footnote{Custom data type definitions shall be located
+inside vendor-specific or user-specific namespaces instead.}.

@@ -1,38 +1,19 @@
 \section{Application-level conventions}\label{sec:application_level_conventions}
 
-\subsection{Identifier distribution}
+This section describes a set of high-level conventions designed to enhance compatibility
+of applications leveraging UAVCAN.
+The conventions described here are not mandatory to follow;
+however, every deviation should be justified and adequately documented.
+
+\subsection{Node identifier distribution}
 
 An overview of related concepts is provided in chapter \ref{sec:basic_concepts}.
 
-\subsubsection{Node-ID}
-
-Valid values of node-ID range from 0 up to a transport-specific upper boundary which is guaranteed to be above 127.
+Valid values of node-ID range from 0 up to a transport-specific upper boundary
+which is guaranteed to be above 127 for any transport.
 
 Two uppermost node-ID values are reserved for diagnostic and debugging tools;
 these node-ID values should not be used in fielded systems.
-
-\subsubsection{Port-ID}
-
-This rule is mandatory for all applications.
-
-The subject and service identifier values are segregated into three ranges:
-unregulated port identifiers that can be freely chosen by users and integrators (both fixed and non-fixed);
-regulated fixed identifiers for non-standard data type definitions
-that are assigned by the UAVCAN maintainers for publicly released data types;
-and regulated identifiers of the standard data types that are an integral part of the UAVCAN specification.
-
-More information on the subject of data type regulation is provided in section
-\ref{sec:basic_concepts_data_type_regulation}.
-
-The ranges are summarized in the table \ref{table:application_port_id_distribution}.
-Unused gaps are reserved for future expansion of adjacent ranges.
-
-\begin{UAVCANSimpleTable}{Port identifier distribution}{|l l X|}\label{table:application_port_id_distribution}
-    Subject-ID          & Service-ID        & Purpose \\
-    $[0, 24575]$        & $[0, 127]$        & Unregulated identifiers (both fixed and non-fixed). \\
-    $[28672, 29695]$    & $[256, 319]$      & Non-standard regulated identifiers (i.e., vendor-specific). \\
-    $[31744, 32767]$    & $[384, 511]$      & Standard regulated identifiers. \\
-\end{UAVCANSimpleTable}
 
 \subsection{Coordinate frames}
 
