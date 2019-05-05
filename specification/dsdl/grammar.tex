@@ -211,14 +211,15 @@ from the corresponding literal.
 \subsection{Reserved identifiers}\label{sec:dsdl_reserved_identifiers}
 
 DSDL identifiers and data type name components that match any of the
-patterns specified in the table \ref{table:dsdl_reserved_word_patterns}
+case-insensitive patterns specified in the table \ref{table:dsdl_reserved_word_patterns}
 cannot be used to name new entities.
 The semantics of such identifiers is predefined by the DSDL specification,
 and as such, they cannot be used for other purposes.
 Some of the reserved identifiers do not have any functions associated with them
 in this version of the DSDL specification, but this may change in the future.
 
-\begin{UAVCANSimpleTable}{Reserved identifier patterns (POSIX ERE notation, ASCII character set)}{|l l X|}%
+\begin{UAVCANSimpleTable}{Reserved identifier patterns (POSIX ERE notation, ASCII character set, case-insensitive)}%
+    {|l l X|}%
     \label{table:dsdl_reserved_word_patterns}%
     POSIX ERE ASCII pattern                            & Example            & Special meaning \\
     \texttt{truncated}                                 &                    & Cast mode specifier \\
