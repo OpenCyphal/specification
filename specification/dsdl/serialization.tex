@@ -113,6 +113,13 @@ introduced in newer versions of the data type (section \ref{sec:dsdl_versioning}
 
 \subsection{Primitive types}
 
+\subsubsection{General principles}
+
+Implementations where native data formats are incompatible with those adopted by UAVCAN must perform
+implicit conversions between the native formats and the corresponding UAVCAN formats during
+serialization and deserialization.
+Implementations shall strive to avoid or minimize information loss and/or distortion caused by such conversions.
+
 Serialized representations of instances of the primitive type category that are longer than one byte (8 bits)
 are constructed as follows.
 First, only the least significant bytes that contain the used bits of the value are preserved;
@@ -180,6 +187,11 @@ The serialized representation of floating point types follows the IEEE 754 serie
     \item \verb|float32| --- IEEE 754 binary32;
     \item \verb|float64| --- IEEE 754 binary64.
 \end{itemize}
+
+Implementations that model real numbers using any method other than IEEE 754 must be able to model
+positive infinity, negative infinity, signaling NaN\footnote{Per the IEEE 754 standard, NaN stands for
+``not-a-number'' -- a set of special bit patterns that represent lack of a meaningful value.},
+and quiet NaN.
 
 \subsection{Array types}
 

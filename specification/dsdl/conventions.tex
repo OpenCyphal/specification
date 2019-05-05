@@ -49,9 +49,8 @@ provided that the field attributes are not swapped.
 
 Floating-point-typed field attributes may be assigned the value of not-a-number (NaN) per IEEE 754
 to indicate that the value is not specified;
-however, this pattern is discouraged because some nodes may not support IEEE 754 NaN values internally,
-the value would still have to be transferred over the bus even if not populated,
-and special case values undermine type safety.
+however, this pattern is discouraged because the value would still have to be transferred over the bus
+even if not populated, and special case values undermine type safety.
 
 \begin{remark}[breakable]
     Array-based optional field:
