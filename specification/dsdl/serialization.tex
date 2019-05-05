@@ -109,6 +109,23 @@ introduced in newer versions of the data type (section \ref{sec:dsdl_versioning}
     $101_2$,
     $110_2$,
     $111_2$.
+
+    Shall the padding field be replaced with a non-void-typed field in a future version of the data type,
+    nodes utilizing the newer definition may be able to retain compatibility with nodes using older types,
+    since the specification guarantees that padding fields are always initialized with zeros:
+
+    \begin{minted}{python}
+        # Version 1.1
+        float64 a
+        void64
+    \end{minted}
+
+    \begin{minted}{python}
+        # Version 1.2
+        float64 a
+        float32 b  # Messages v1.1 will be interpreted such that b = 0.0
+        void32
+    \end{minted}
 \end{remark}
 
 \subsection{Primitive types}
