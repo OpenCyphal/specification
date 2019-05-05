@@ -48,7 +48,7 @@ The hierarchy of primitive types is documented below.
             \item \textbf{Unsigned integer types.} These are used to represent non-negative values.
             The corresponding DSDL data type name pattern is ``\verb|uint[1-9]\d*|'',
             where the trailing integer represents the length of the
-            serialized representation of the value, in bits, ranging from 2 to 64, inclusive.
+            serialized representation of the value, in bits, ranging from 1 to 64, inclusive.
         \end{itemize}
 
         \item \textbf{Floating point types} are used to approximately represent real values.
@@ -70,7 +70,7 @@ The hierarchy of primitive types is documented below.
     $\left[-\frac{2^{X}}{2},\frac{2^{X}}{2}-1\right]$ \\
 
     Unsigned integers &
-    \texttt{uint2}, \texttt{uint3}, \texttt{uint4} \ldots{} \texttt{uint62}, \texttt{uint63}, \texttt{uint64} &
+    \texttt{uint1}, \texttt{uint2}, \texttt{uint3} \ldots{} \texttt{uint62}, \texttt{uint63}, \texttt{uint64} &
     $\left[0,2^{X}-1\right]$ \\
 \end{UAVCANSimpleTable}
 

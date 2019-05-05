@@ -231,8 +231,7 @@ in the serialized representation of the implicit length field%
     Seeing as $n \leq c$ always holds, bit sequences where the implicit length field contains values
     greater than $c$ do not belong to the set of serialized representations of the array.
 }
-as described in section \ref{sec:dsdl_serialized_unsigned_integer}
-(including the case where the bit length of the implicit length field is one bit).
+as described in section \ref{sec:dsdl_serialized_unsigned_integer}.
 
 The rest of the serialized representation is constructed as if the variable-length array was
 a fixed-length array of $n$ elements.
@@ -321,8 +320,7 @@ in the serialized representation of the implicit union tag%
     bit sequences where the implicit union tag field contains values
     that are greater than or equal $n$ do not belong to the set of serialized representations of the tagged union.
 }
-as described in section \ref{sec:dsdl_serialized_unsigned_integer}
-(including the case where the bit length of the implicit length field is one bit).
+as described in section \ref{sec:dsdl_serialized_unsigned_integer}.
 
 The serialized representation of the implicit union tag is immediately followed by
 the serialized representation of the currently selected field attribute value.
