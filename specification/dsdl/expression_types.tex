@@ -30,23 +30,9 @@ The DSDL name of the rational number type is ``\verb|rational|''.
 Rational numbers are assumed to be stored in a normalized form, where the denominator is positive
 and the greatest common divisor of the numerator and the denominator is one.
 
-A rational number is implicitly convertible into an integer if its denominator equals one.
-Usage of any other rational number in a context that expects an integer is not allowed.
-
-Any rational number is implicitly convertible into an IEEE 754 floating point representation,
-unless it exceeds the finite range of the target floating point representation.
-The associated loss of information inherent to IEEE 754 representations is assumed to be acceptable.
-Conversion from a rational number into an IEEE 754 floating point representation
-is not allowed if the source number exceeds the finite range of the target floating point representation.
+A rational number can be used in a context where an integer value is expected only if its denominator equals one.
 
 Implicit conversions between boolean-valued entities and rational numbers are not allowed.
-
-\begin{remark}
-    A real literal \verb|1234.5678| is represented internally as
-    $\frac{6172839}{5000}$, which can be used to initialize a \verb|float16| value,
-    resulting in $1235.0$.
-    The resulting loss of precision ($1235 - 1234.5678 = 0.4322$) is considered acceptable.
-\end{remark}
 
 \begin{UAVCANSimpleTable}{Operators defined on instances of rational numbers}{|l l X X|}
     Op & Type & Constraints & Description

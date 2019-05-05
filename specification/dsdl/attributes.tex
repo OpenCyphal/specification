@@ -69,13 +69,27 @@ as specified in the table \ref{table:dsdl_constant_init_pattern}.
     \textbf{Floating point} &
     Not allowed. &
     Allowed if the source value does not exceed the finite range of the constant type.
-    The final value must be the nearest representable value of the target floating point type. &
+    The final value is computed as the quotient of the numerator and the denominator
+    with implementation-defined accuracy. &
     Not allowed. \label{table:dsdl_constant_init_pattern}\\
 
 \end{UAVCANSimpleTable}
 
 Due to the value of a constant attribute being defined at the data type definition time,
 the cast mode of primitive-typed constants has no observable effect.
+
+\begin{remark}
+    A real literal \verb|1234.5678| is represented internally as
+    $\frac{6172839}{5000}$, which can be used to initialize a \verb|float16| value,
+    resulting in $1235.0$.
+
+    The specification states that the value of a floating-point constant should be computed
+    with an implementation-defined accuracy. UAVCAN avoids strict accuracy requirements in order to
+    ensure compatibility with implementations that rely on non-standard floating point formats.
+    Such laxity in the specification is considered acceptable since the uncertainty is always
+    confined to a single division expression per constant; all preceding computations, if any,
+    are always performed by the DSDL compiler using exact rational arithmetic.
+\end{remark}
 
 \subsection{Local attributes}\label{sec:dsdl_local_attributes}
 
