@@ -1,7 +1,7 @@
 \chapter{Application layer}\label{sec:application_layer}
 
 Previous chapters of this specification define a set of basic concepts that are the foundation of the protocol:
-they allow one to define data structures and exchange them over the bus in a robust and deterministic manner.
+they allow one to define data types and exchange data objects over the bus in a robust and deterministic manner.
 This chapter is focused on higher-level concepts: rules, conventions, and standard functions that are to be
 respected by applications utilizing UAVCAN to maximize cross-vendor compatibility, avoid ambiguities, and
 prevent some common design pitfalls.
@@ -10,14 +10,18 @@ The rules, conventions, and standard functions defined in this chapter are desig
 ground for any sensible aerospace or robotic system.
 UAVCAN does not attempt to favor any particular domain or kind of systems among targeted applications.
 
-Unless stated otherwise, all of the high-level functions described in this chapter are optional,
-meaning that they do not necessarily have to be supported or implemented for an application or system to be
-UAVCAN-compliant.
-Excepting a very few mandatory functions and rules, users of UAVCAN are allowed to pick only those
-that are needed and suitable for their applications.
+\begin{itemize}
+    \item Section \ref{sec:application_level_requirements} contains a set of mandatory rules that must be
+    followed by all UAVCAN implementations.
 
-If a designer choses to deviate from the rules and conventions presented in this chapter,
-every such deviation should be explicitly documented.
+    \item Section \ref{sec:application_level_conventions} contains a set of conventions and recommendations that
+    are not mandatory to follow. Every deviation, however, should be justified and well-documented.
 
+    \item Section \ref{sec:application_level_functions} contains a full list of high-level functions defined on
+    top of UAVCAN. Formal specification of such functions is provided in the DSDL data type definition files that
+    those functions are based upon (see chapter \ref{sec:list_of_standard_data_types}).
+\end{itemize}
+
+\clearpage\input{application_layer/requirements.tex}
 \clearpage\input{application_layer/conventions.tex}
 \clearpage\input{application_layer/functions.tex}

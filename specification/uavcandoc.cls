@@ -68,6 +68,12 @@ framesep=2mm,
 baselinestretch=1,
 autogobble
 }
+% The Pygments library is just too smart.
+% We don't want it to highlight errors in our listings because our listings are obviously perfect.
+% https://github.com/gpoore/minted/issues/69
+\AtBeginEnvironment{minted}{\renewcommand{\fcolorbox}[4][]{#4}}
+\preto\inputminted{\renewcommand{\fcolorbox}[4][]{#4}}
+
 \renewcommand{\theFancyVerbLine}{\scriptsize \texttt \oldstylenums{\arabic{FancyVerbLine}}}
 
 % List styling

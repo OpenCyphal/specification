@@ -6,7 +6,7 @@ before_script:
   - apt-get install -y python3 python3-pip
   - apt-get install -y git
   - apt-get install -y ghostscript
-  - pip3 install pydsdl
+  - pip3 install -r requirements.txt
 
 job:
   image: ubuntu:16.04

@@ -9,7 +9,8 @@
 A UAVCAN network is a decentralized peer network, where each peer (node) has a unique
 numeric identifier\footnote{Here and elsewhere in this specification, \emph{ID} and \emph{identifier} are used
 interchangeably unless specifically indicated otherwise.}
---- \emph{node ID} --- ranging from 0 to 127, inclusively.
+--- \emph{node-ID} --- ranging from 0 up to a transport-specific upper boundary which is guaranteed to be
+not less than 127.
 Nodes of a UAVCAN network can communicate using the following communication methods:
 
 \begin{description}
@@ -26,7 +27,7 @@ migration path if backward-incompatible changes are introduced.
 Some data types are standard and defined by the protocol specification (of which only a small
 subset are required); others may be specific to a particular application or vendor.
 
-\subsubsection{Subjects and services}
+\subsubsection{Subjects and services}\label{sec:basic_subjects_and_services}
 
 Message exchanges between nodes are grouped into \emph{subjects} by the semantic meaning of the message.
 Message exchanges belonging to the same subject use same message data type down to the major version
@@ -39,28 +40,44 @@ Requests and their corresponding responses that belong to the same service use s
 the major version (minor versions are allowed to differ; as a consequence, the minor data type version number
 of a service response may differ from that of its corresponding request) and pertain to the same function.
 
-Each message subject is identified by a unique natural number -- a \emph{subject ID};
-likewise, each service is identified by a unique \emph{service ID}.
-An umbrella term \emph{port ID} is used to refer either to a subject ID or to a service ID
+Each message subject is identified by a unique natural number -- a \emph{subject-ID};
+likewise, each service is identified by a unique \emph{service-ID}.
+An umbrella term \emph{port-ID} is used to refer either to a subject-ID or to a service-ID
 (port identifiers have no direct manifestation in the construction of the protocol,
 but they are convenient for discussion).
+The sets of subject-ID and service-ID are orthogonal.
+
+Port identifiers are assigned to various functions, processes, or data streams within the network
+at the system definition time.
+Generally, a port identifier can be selected arbitrarily by a system integrator
+by changing relevant configuration parameters of connected nodes,
+in which case such port identifiers are called \emph{non-fixed port identifiers}.
+It is also possible to permanently associate any data type definition with a particular port identifier
+at a data type definition time,
+in which case such port identifiers are called \emph{fixed port identifiers};
+their usage is governed by rules and regulations described in later sections.
+
+A port-ID used in a given UAVCAN network shall not be shared between functions, processes, or data streams
+that have different semantic meaning.
+
+A port-ID used in a given UAVCAN network shall not be used with different data type definitions unless they
+share the same full name and the same major version number\footnote{More on data type versioning in section
+\ref{sec:dsdl_versioning}.}.
+
+A data type of a given major version can be used simultaneously with
+an arbitrary number of non-fixed different port identifiers,
+but not more than one fixed port identifier.
 
 \subsection{Data types}
 
 \subsubsection{Data type definitions}
 
-Message and service data types\footnote{Data types are the core concept of UAVCAN.}
+Message and service data types
 are defined using the \emph{data structure description language} (DSDL) (chapter \ref{sec:dsdl}).
-A DSDL definition specifies the name, major version, minor version, the data structure,
-and an optional predefined port ID of the data type.
-Message data types always contain exactly one data structure, whereas
-service data types contain two data structures: one for request, and the other for response.
-
-If a port identifier is specified in a data type definition, such identifier is said to be a
-\emph{fixed port identifier}
-(by inheritance, the same naming principle applies to \emph{fixed subject ID} and \emph{fixed service ID}).
-A data type can be used with an arbitrary number of different port identifiers assigned on a per-application basis,
-but not more than one fixed port identifier.
+A DSDL definition specifies the name, major version, minor version, the data schemas,
+and an optional fixed port-ID of the data type among other less important properties.
+Message data types always define exactly one data schema, whereas
+service data types contain two independent schema definitions: one for request, and the other for response.
 
 \subsubsection{Regulation}\label{sec:basic_concepts_data_type_regulation}
 
@@ -87,7 +104,7 @@ All standard data type definitions are regulated.
 
 Fixed port identifiers can be used only with regulated data type definitions or with private definitions.
 Fixed port identifiers must not be used with public unregulated data types,
-since that is likely to cause unresolvable port identifier collisions\footnote{
+since that is likely to cause unresolvable port identifier collisions\footnote{%
     Any system that relies on data type definitions with fixed port identifiers provided by
     an external party (i.e., data types and the system in question are designed by different parties)
     runs the risk of encountering port identifier conflicts that cannot be resolved without resorting to help
@@ -97,7 +114,7 @@ since that is likely to cause unresolvable port identifier collisions\footnote{
     or to the public at large it is important that the data type \emph{not} include a fixed port-identifier.
 }.
 This restriction shall be followed at all times by all compliant implementations and
-systems\footnote{
+systems\footnote{%
     In general, private unregulated fixed port identifiers are collision-prone by their nature, so they should
     be avoided unless there are very strong reasons for their usage and the authors fully understand the risks.
 }.
@@ -107,7 +124,7 @@ systems\footnote{
     \bfseries{Public}
     &
     Standard and contributed (e.g., vendor-specific) definitions.\newline
-    Fixed port identifiers are allowed; they are called \emph{``regulated port ID''}.
+    Fixed port identifiers are allowed; they are called \emph{``regulated port-ID''}.
     &
     Definitions distributed separately from the UAVCAN specification.\newline
     Fixed port identifiers are \emph{not allowed}.
@@ -118,19 +135,31 @@ systems\footnote{
     Nonexistent category.
     &
     Definitions that are not available to anyone except their authors.\newline
-    Fixed port identifiers are permitted (although not recommended) as long as the definition is only used by
-    its authors; they are called \emph{``unregulated fixed port ID''}.
+    Fixed port identifiers are permitted (although not recommended);
+    they are called \emph{``unregulated fixed port-ID''}.
     \\
 \end{UAVCANSimpleTable}
 
 DSDL processing tools shall prohibit unregulated fixed port identifiers by default,
 unless they are explicitly configured otherwise.
 
-Each of the two sets of valid port identifiers (which are subject identifiers and port identifiers) are
-segregated into three categories: application-specific (i.e., non-fixed or unregulated) identifiers,
-regulated non-standard port identifiers, and standard port identifiers.
-Fixed unregulated port identifiers can be allocated in the same range where application-specific identifiers are.
-The ranges are documented in chapter \ref{sec:application_layer}.
+Each of the two sets of valid port identifiers (which are subject identifiers and service identifiers) are
+segregated into three categories (the ranges are documented in chapter \ref{sec:application_layer}):
+
+\begin{itemize}
+    \item Application-specific port identifiers.
+    These can be assigned by changing relevant configuration parameters of the connected nodes
+    (in which case they are called \emph{non-fixed} or runtime-assigned),
+    or at the data type definition time (in which case they are called \emph{fixed unregulated},
+    and they generally should be avoided due to the risks of collisions as explained earlier).
+
+    \item Regulated non-standard fixed port identifiers.
+    These are assigned by the specification maintainers for non-standard contributed
+    vendor-specific public data types.
+
+    \item Standard fixed port identifiers. These are assigned by the specification maintainers
+    for standard regulated public data types.
+\end{itemize}
 
 Data type authors that want to release regulated data type definitions or contribute to the standard data
 type set should contact the UAVCAN maintainers for coordination.
@@ -152,13 +181,17 @@ Alternatively, a DSDL description can be used to construct appropriate serializa
 DSDL ensures that the worst case memory footprint and computational complexity per data type
 are constant and easily predictable.
 
-Serialized message and service data structures are exchanged by means of the transport
+Serialized message and service objects\footnote{%
+    Here and elsewhere, an \emph{object} means a value that is an instance of a well-defined type.
+}
+are exchanged by means of the transport
 layer (chapter \ref{sec:transport_layer}), which implements automatic decomposition of
 long transfers into several transport frames\footnote{Here and
 elsewhere, a \emph{transport frame} means a block of data that can be atomically exchanged
 over the transport layer network, e.g., a CAN frame.} and reassembly from these transport frames
-back into a single atomic data block, allowing nodes to exchange data structures of
-arbitrary size.
+back into a single atomic data block, allowing nodes to exchange serialized objects of
+arbitrary size (DSDL guarantees, however, that the minimum and maximum size of the serialized representation
+of any object of any data type is always known statically).
 
 \subsection{High-level functions}
 
@@ -191,7 +224,7 @@ For more information see chapter \ref{sec:application_layer}.
 
 \section{Message publication}
 
-Message publication refers to the transmission of a serialized data structure over the network to other nodes.
+Message publication refers to the transmission of a serialized message object over the network to other nodes.
 This is the primary data exchange mechanism used in UAVCAN;
 it is functionally similar to raw data exchange with minimal overhead,
 additional communication integrity guarantees, and automatic decomposition and reassembly of long payloads
@@ -203,21 +236,21 @@ Information contained in a published message is summarized in the table \ref{tab
 
 \begin{UAVCANSimpleTable}{Published message properties}{|l X|}\label{table:published_message_info}
     Property        & Description \\
-    Payload         & The serialized message data structure. \\
-    Subject ID      & Numerical identifier that indicates how the information should be interpreted. \\
-    Source node ID  & The node ID of the transmitting node (excepting anonymous messages). \\
-    Transfer ID     & A small overflowing integer that increments with every transfer
+    Payload         & The serialized message object. \\
+    Subject-ID      & Numerical identifier that indicates how the information should be interpreted. \\
+    Source node-ID  & The node-ID of the transmitting node (excepting anonymous messages). \\
+    Transfer-ID     & A small overflowing integer that increments with every transfer
                       of this message type from a given node. Used for message sequence monitoring,
                       multi-frame transfer reassembly, and elimination of transport frame duplication errors
-                      for single-frame transfers. Additionally, Transfer ID is crucial for automatic
-                      management of redundant transport interfaces. The properties of this field are explained in
+                      for single-frame transfers. Additionally, Transfer-ID is crucial for automatic
+                      management of redundant transport interfaces. Its properties are explained in
                       detail in the chapter \ref{sec:transport_layer}. \\
 \end{UAVCANSimpleTable}
 
 \subsection{Anonymous message publication}
 
-Nodes that don't have a unique node ID can publish only \emph{anonymous messages}.
-An anonymous message is different from a regular message in that it doesn't contain a source node ID,
+Nodes that don't have a unique node-ID can publish only \emph{anonymous messages}.
+An anonymous message is different from a regular message in that it doesn't contain a source node-ID,
 and that it can't be decomposed across several transport frames.
 
 UAVCAN nodes will not have an identifier initially until they are assigned one,
@@ -251,19 +284,19 @@ table \ref{table:service_req_resp_info}.
 
 \begin{UAVCANSimpleTable}{Service request/response properties}{|l X|}\label{table:service_req_resp_info}
     Property        & Description \\
-    Payload         & The serialized request/response data structure. \\
-    Service ID      & Numerical identifier that indicates how the service should be handled. \\
-    Client node ID  & Source node ID during request transfer, destination node ID during response transfer. \\
-    Server node ID  & Destination node ID during request transfer, source node ID during response transfer. \\
-    Transfer ID     & A small overflowing integer that increments with every call
+    Payload         & The serialized request/response object. \\
+    Service-ID      & Numerical identifier that indicates how the service should be handled. \\
+    Client node-ID  & Source node-ID during request transfer, destination node-ID during response transfer. \\
+    Server node-ID  & Destination node-ID during request transfer, source node-ID during response transfer. \\
+    Transfer-ID     & A small overflowing integer that increments with every call
                       of this service type from a given node. Used for request/response matching,
                       multi-frame transfer reassembly, and elimination of transport frame duplication errors
-                      for single-frame transfers. Additionally, Transfer ID is crucial for automatic
-                      management of redundant transport interfaces. The properties of this field are explained in
+                      for single-frame transfers. Additionally, Transfer-ID is crucial for automatic
+                      management of redundant transport interfaces. Its properties are explained in
                       detail in the chapter \ref{sec:transport_layer}. \\
 \end{UAVCANSimpleTable}
 
 Both the request and the response contain same values for all listed fields except payload,
 where the content is application-defined.
 Clients match responses with corresponding requests using the following fields:
-service ID, client node ID, server node ID, and transfer ID.
+service-ID, client node-ID, server node-ID, and transfer-ID.

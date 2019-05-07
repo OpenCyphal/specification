@@ -24,7 +24,19 @@ All such code is distributed under the same license as this specification, unles
 print('Hello world!')
 \end{minted}
 
-It is assumed that a byte always contains eight bits.
+A byte is a group of eight (8) bits.
+
+Textual patterns are specified using the standard
+POSIX Extended Regular Expression (ERE) syntax;
+the character set is ASCII and patterns are case sensitive, unless explicitly specified otherwise.
+
+Type parametrization expressions use subscript notation,
+where the parameter is specified in the subscript enclosed in angle brackets:
+$\texttt{type}_\texttt{<parameter>}$.
+
+Numbers are represented in base-10 by default.
+If a different base is used, it is specified after the number in the subscript:
+$\text{BADC0FFEE}_{16} = 50159747054$, $10101_2$.
 
 \section{Design principles}
 
@@ -77,15 +89,17 @@ It is assumed that a byte always contains eight bits.
 
 \section{Capabilities}
 
-UAVCAN-based networks can accommodate up to 128 nodes on the same logical bus.
+The maximum number of nodes per logical network is dependent on the transport protocol in use,
+but it is guaranteed to be not less than 128.
 
-UAVCAN supports an unlimited number of data types, which can be defined by the specification (such definitions
-are called ``standard data types'') or by others for private use or for public release
-(in which case they are said to be ``application-specific'' or ``vendor-specific'').
+UAVCAN supports an unlimited number of composite data types,
+which can be defined by the specification (such definitions are called ``standard data types'')
+or by others for private use or for public release
+(in which case they are said to be ``application-specific'' or ``vendor-specific''; these terms are equivalent).
 There can be up to 256 major versions of a data type, and up to 256 minor versions per major version.
 More information is provided in chapter \ref{sec:dsdl}.
 
-UAVCAN supports 65536 message subject identifiers for publish/subscribe exchanges,
+UAVCAN supports 32768 message subject identifiers for publish/subscribe exchanges,
 512 service identifiers for remote procedure call exchanges,
 and at least 8 anonymous message subject identifiers for certain special features such as plug-and-play support.
 A small subset of these identifiers is reserved for the core standard and for publicly released vendor-specific types.
@@ -101,23 +115,25 @@ Non-redundant, doubly-redundant and triply-redundant transports are supported.
 More information on the physical layer and standardized physical connectivity options
 is provided in chapter \ref{sec:physical_layer}.
 
-\section{Maintenance of the standard data type set}
+\section{Public regulated data types}
 
-The UAVCAN maintainers are charged with advancing the standard data type set based on input from adopters.
-This feedback is gathered via the official discussion
-forum\footnote{Please refer to \href{http://uavcan.org}{uavcan.org}.}
-which is open to the general public.
+This section talks about general management policies.
+The related technical aspects are covered in chapters~\ref{sec:basic_concepts} and~\ref{sec:dsdl}.
 
-The set of standard data type definitions\footnote{The \emph{data structure description language} (DSDL) and
-related concepts are described in section \ref{sec:dsdl}.} is an integral part of the specification;
-however, there is only a small set of required data types needed to implement the protocol.
+The UAVCAN maintainers are charged with maintaining and advancing the set of
+public regulated data types based on the input from adopters.
+This feedback is gathered via the online discussion and collaboration websites
+which are open to the general public and available through \href{http://uavcan.org}{uavcan.org}.
+
+The set of standard data types is a subset of public regulated data types and is an integral part of the specification;
+however, there is only a very small subset of required standard data types needed to implement the protocol.
 A larger set of optional data types are defined to create a standardized data exchange environment
 supporting the interoperability of COTS\footnote{Commercial off-the-shelf equipment.}
 equipment manufactured by different vendors.
 See chapter \ref{sec:application_layer} for more information.
 
 Within the same major version of the specification,
-the set of regulated data type definitions can be modified only in the following ways:
+the set of public regulated data type definitions can be modified only in the following ways:
 
 \begin{itemize}
     \item A new data type can be added, as long as it doesn't conflict with any of the existing data types.
@@ -128,7 +144,8 @@ the set of regulated data type definitions can be modified only in the following
     \item An existing data type or a particular major version of it can be declared deprecated.
     \begin{itemize}
         \item Once declared deprecated, the data type will be maintained for at least two more years.
-        After this period, its regulated port ID (if defined) may be reused for an incompatible data type definition.
+        After this period, its regulated fixed port-ID (if defined) may be reused for
+        an incompatible data type definition.
         The maintainers will be striving to postpone the reuse of regulated port identifiers as much as
         possible in order to minimize the possibility of unintended conflicts.
 
@@ -136,8 +153,7 @@ the set of regulated data type definitions can be modified only in the following
     \end{itemize}
 \end{itemize}
 
-A link to the repository containing the set of default DSDL definitions can be found on the official
-website\footnote{\href{http://uavcan.org}{uavcan.org}}.
+A link to the repository containing the set of default DSDL definitions can be found on the official website.
 
 \section{Referenced sources}
 
@@ -155,4 +171,7 @@ The UAVCAN specification contains references to the following sources:
     \item ``Implementing a Distributed High-Resolution Real-Time Clock using the CAN-Bus'', M. Gergeleit and H. Streich.
     \item ``In Search of an Understandable Consensus Algorithm (Extended Version)'', Diego Ongaro and John Ousterhout.
     \item \href{http://semver.org}{semver.org} - Semantic versioning specification.
+    \item IEEE Std 1003.1 --- IEEE Standard for Information Technology --
+    Portable Operating System Interface (POSIX) Base Specifications.
+    \item IETF RFC2119 --- Key words for use in RFCs to Indicate Requirement Levels.
 \end{itemize}

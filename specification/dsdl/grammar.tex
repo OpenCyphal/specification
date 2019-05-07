@@ -1,0 +1,254 @@
+\section{Grammar}\label{sec:dsdl_grammar}
+
+This section contains the formal definition of the DSDL grammar.
+Its notation is introduced beforehand.
+The meaning of each element of the grammar and their semantics will be explained in the following sections.
+
+\subsection{Notation}
+
+The notation used in the following definition is a variant of the extended Backus--Naur
+form\footnote{This notation is a subset of the notation defined in a Python parsing library titled Parsimonious.
+Parsimonious is an MIT-licensed software product authored by Erik Rose;
+its sources are available at \url{https://github.com/erikrose/parsimonious}.}.
+The rule definition patterns are specified in the table \ref{table:dsdl_grammar_definition_notation}.
+The text of the formal definition contains comments which begin with an octothorp and last until the end of the line.
+
+\begin{UAVCANSimpleTable}{Notation used in the formal grammar definition}{|l X|}
+    \label{table:dsdl_grammar_definition_notation}
+    Pattern & Description \\
+
+    \texttt{"korovan"} &
+    Denotes a terminal string of ASCII characters.
+    The string is case-sensitive. \\
+
+    \emph{(space)} &
+    Concatenation.
+    E.g., \texttt{korovan paukan excavator} matches a sequence where the specified tokens
+    appear in the defined order. \\
+
+    \texttt{korovan / paukan / excavator} &
+    Alternatives.
+    The leftmost matching alternative is accepted. \\
+
+    \texttt{korovan?} &
+    Optional greedy match. \\
+
+    \texttt{paukan*} &
+    Zero or more expressions, greedy match. \\
+
+    \texttt{excavator+} &
+    One or more expressions, greedy match. \\
+
+    \texttt{\textasciitilde{}r"regex-pattern"} &
+    An IEEE POSIX Extended Regular Expression pattern defined between the double quotes.
+    The expression operates on the ASCII character set and is always case-sensitive.
+    ASCII escape sequences ``\texttt{\textbackslash{}r}'', ``\texttt{\textbackslash{}n}'', and
+    ``\texttt{\textbackslash{}t}'' are used to denote ASCII carriage return (code 13),
+    line feed (code 10), and tabulation (code 9) characters, respectively. \\
+
+    \texttt{\textasciitilde{}r'regex-pattern'} &
+    As above, with single quotes instead of double quotes. \\
+
+    \texttt{(korovan paukan)} &
+    Parentheses are used for grouping. \\
+\end{UAVCANSimpleTable}
+
+\subsection{Definition}
+
+At the top level, a DSDL definition file is an ordered collection of statements;
+the order is determined by the relative placement of statements inside the DSDL source file:
+statements located closer the beginning of the file precede those that are located closer to the end of the file.
+
+From the top level down to the expression rule, the grammar is a valid regular grammar,
+meaning that it can be parsed using standard regular expressions.
+
+The grammar definition provided here assumes lexerless parsing;
+that is, it applies directly to the unprocessed source text of the definition.
+
+All characters used in the definition belong to the ASCII character set.
+
+\clearpage\inputminted[fontsize=\scriptsize]{python}{dsdl/grammar.parsimonious}
+
+\subsection{Expressions}
+
+Symbols representing operators belong to the ASCII (basic Latin) character set.
+
+Operators of the same precedence level are evaluated from left to right.
+
+The attribute reference operator is a special case: it is defined for an instance of any type
+on its left side and an attribute identifier on its right side.
+The concept of ``attribute identifier'' is not otherwise manifested in the type system.
+The attribute reference operator is not explicitly documented for any data type;
+instead, the documentation specifies the set of available attributes for instances of said type,
+if there are any.
+
+\begin{UAVCANSimpleTable}{Unary operators}{|l l X|}
+    Symbol                             & Precedence & Description \\
+    \texttt{\textbf{+}}                         & 3 & Unary plus \\
+    \texttt{\textbf{-}} (hyphen-minus)          & 3 & Unary minus \\
+    \texttt{\textbf{!}}                         & 8 & Logical not \\
+\end{UAVCANSimpleTable}
+
+\begin{UAVCANSimpleTable}{Binary operators}{|l l X|}
+    Symbol                                          & Precedence & Description \\
+    \texttt{\textbf{.}} (full stop)                          & 1 & Attribute reference
+                                                                   (parent object on the left side,
+                                                                   attribute identifier on the right side) \\
+
+    \texttt{\textbf{**}}                                     & 2 & Exponentiation
+                                                                   (base on the left side, power on the right side) \\
+
+    \texttt{\textbf{*}}                                      & 4 & Multiplication \\
+    \texttt{\textbf{/}}                                      & 4 & Division \\
+    \texttt{\textbf{\%}}                                     & 4 & Modulo \\
+
+    \texttt{\textbf{+}}                                      & 5 & Addition \\
+    \texttt{\textbf{-}} (hyphen-minus)                       & 5 & Subtraction \\
+
+    \texttt{\textbf{|}} (vertical line)                      & 6 & Bitwise or \\
+    \texttt{\textbf{\textasciicircum{}}} (circumflex accent) & 6 & Bitwise xor \\
+    \texttt{\textbf{\&}}                                     & 6 & Bitwise and \\
+
+    \texttt{\textbf{==}} (dual equals sign)                  & 7 & Equality \\
+    \texttt{\textbf{!=}}                                     & 7 & Inequality \\
+    \texttt{\textbf{<=}}                                     & 7 & Less or equal \\
+    \texttt{\textbf{>=}}                                     & 7 & Greater or equal \\
+    \texttt{\textbf{<}}                                      & 7 & Less \\
+    \texttt{\textbf{>}}                                      & 7 & Greater \\
+
+    \texttt{\textbf{||}} (dual vertical line)                & 9 & Logical or \\
+    \texttt{\textbf{\&\&}}                                   & 9 & Logical and \\
+\end{UAVCANSimpleTable}
+
+\subsection{Literals}
+
+Upon its evaluation, a literal yields an object of a particular type depending on the syntax of the literal,
+as specified in this section.
+
+\subsubsection{Boolean literals}
+
+A boolean literal is denoted by the keyword ``\verb|true|'' or ``\verb|false|''
+represented by an instance of primitive type ``\verb|bool|'' (section \ref{sec:dsdl_primitive_types})
+with an appropriate value.
+
+\subsubsection{Numeric literals}
+
+Integer and real literals are represented as instances of type ``\verb|rational|'' (section \ref{sec:dsdl_rational}).
+
+The digit separator character ``\verb|_|'' (underscore) does not affect the interpretation of numeric literals.
+
+The significand of a real literal is formed by the integer part, the optional decimal point,
+and the optional fraction part;
+either the integer part or the fraction part (not both) can be omitted.
+The exponent is optionally specified after the letter ``\verb|e|'' or ``\verb|E|'';
+it indicates the power of 10 by which the significand is to be scaled.
+Either the decimal point or the letter ``\verb|e|''/``\verb|E|'' with the following exponent
+(not both) can be omitted from a real literal.
+
+\begin{remark}
+    An integer literal \verb|0x123| is represented internally as $\frac{291}{1}$.
+
+    A real literal \verb|.3141592653589793e+1| is represented internally as
+    $\frac{3141592653589793}{1000000000000000}$.
+\end{remark}
+
+\subsubsection{String literals}
+
+String literals are represented as instances of type ``\verb|string|'' (section \ref{sec:dsdl_string}).
+
+A string literal is allowed to contain an arbitrary sequence of Unicode characters,
+excepting escape sequences defined in the table \ref{table:dsdl_string_literal_escape}
+which must follow one of the specified therein forms.
+An escape sequence begins with the ASCII backslash character ``\verb|\|''.
+
+\begin{UAVCANSimpleTable}{String literal escape sequences}{|l X|}
+    Sequence & Interpretation
+    \label{table:dsdl_string_literal_escape} \\
+
+    \texttt{\textbackslash{}\textbackslash{}}   & Backslash, ASCII code 92. Same as the escape character. \\
+    \texttt{\textbackslash{}r}                  & Carriage return, ASCII code 13.               \\
+    \texttt{\textbackslash{}n}                  & Line feed, ASCII code 10.                     \\
+    \texttt{\textbackslash{}t}                  & Horizontal tabulation, ASCII code 9.          \\
+
+    \texttt{\textbackslash{}\textquotesingle{}} &
+    Apostrophe (single quote), ASCII code 39. Regardless of the type of quotes around the literal. \\
+
+    \texttt{\textbackslash{}\textquotedbl{}}    &
+    Quotation mark (double quote), ASCII code 34. Regardless of the type of quotes around the literal. \\
+
+    \texttt{\textbackslash{}u????} &
+    Unicode symbol with the code point specified by a four-digit hexadecimal number.
+    The placeholder ``\texttt{?}'' represents a hexadecimal character \texttt{[0-9a-fA-F]}. \\
+
+    \texttt{\textbackslash{}U????????} &
+    Like above, the code point is specified by an eight-digit hexadecimal number. \\
+
+\end{UAVCANSimpleTable}
+
+\begin{remark}
+    \begin{minted}{python}
+        @assert "oh,\u0020hi\U0000000aMark" == 'oh, hi\nMark'
+    \end{minted}
+\end{remark}
+
+\subsubsection{Set literals}
+
+Set literals are represented as instances of type ``\verb|set|'' (section \ref{sec:dsdl_set})
+parametrized by the type of the contained elements which is determined automatically.
+
+A set literal declaration must specify at least one element,
+which is used to determine the element type of the set.
+
+The elements of a set literal are defined as DSDL expressions which are evaluated before a set is constructed
+from the corresponding literal.
+
+\begin{remark}
+    \begin{minted}{python}
+        @assert {"cells", 'interlinked'} == {"inter" + "linked", 'cells'}
+    \end{minted}
+\end{remark}
+
+\subsection{Reserved identifiers}\label{sec:dsdl_reserved_identifiers}
+
+DSDL identifiers and data type name components that match any of the
+case-insensitive patterns specified in the table \ref{table:dsdl_reserved_word_patterns}
+cannot be used to name new entities.
+The semantics of such identifiers is predefined by the DSDL specification,
+and as such, they cannot be used for other purposes.
+Some of the reserved identifiers do not have any functions associated with them
+in this version of the DSDL specification, but this may change in the future.
+
+\begin{UAVCANSimpleTable}{Reserved identifier patterns (POSIX ERE notation, ASCII character set, case-insensitive)}%
+    {|l l X|}%
+    \label{table:dsdl_reserved_word_patterns}%
+    POSIX ERE ASCII pattern                            & Example            & Special meaning \\
+    \texttt{truncated}                                 &                    & Cast mode specifier \\
+    \texttt{saturated}                                 &                    & Cast mode specifier \\
+    \texttt{true}                                      &                    & Boolean literal \\
+    \texttt{false}                                     &                    & Boolean literal \\
+    \texttt{bool}                                      &                    & Primitive type category \\
+    \texttt{u?int\textbackslash{}d*}                   & \texttt{uint8}     & Primitive type category \\
+    \texttt{float\textbackslash{}d*}                   & \texttt{float}     & Primitive type category \\
+    \texttt{u?q\textbackslash{}d+\_\textbackslash{}d+} & \texttt{q16\_8}    & Primitive type category (future) \\
+    \texttt{void\textbackslash{}d*}                    & \texttt{void}      & Void type category \\
+    \texttt{optional}                                  &                    & Reserved for future use \\
+    \texttt{aligned}                                   &                    & Reserved for future use \\
+    \texttt{const}                                     &                    & Reserved for future use \\
+    \texttt{struct}                                    &                    & Reserved for future use \\
+    \texttt{super}                                     &                    & Reserved for future use \\
+    \texttt{template}                                  &                    & Reserved for future use \\
+    \texttt{enum}                                      &                    & Reserved for future use \\
+    \texttt{self}                                      &                    & Reserved for future use \\
+    \texttt{and}                                       &                    & Reserved for future use \\
+    \texttt{or}                                        &                    & Reserved for future use \\
+    \texttt{not}                                       &                    & Reserved for future use \\
+    \texttt{auto}                                      &                    & Reserved for future use \\
+    \texttt{type}                                      &                    & Reserved for future use \\
+    \texttt{con}                                       &                    & Compatibility with Microsoft Windows \\
+    \texttt{prn}                                       &                    & Compatibility with Microsoft Windows \\
+    \texttt{aux}                                       &                    & Compatibility with Microsoft Windows \\
+    \texttt{nul}                                       &                    & Compatibility with Microsoft Windows \\
+    \texttt{com\textbackslash{}d?}                     & \texttt{com1}      & Compatibility with Microsoft Windows \\
+    \texttt{lpt\textbackslash{}d?}                     & \texttt{lpt}       & Compatibility with Microsoft Windows \\
+    \texttt{\_.*\_}                                    & \texttt{\_offset\_}& Special-purpose intrinsic entities \\
+\end{UAVCANSimpleTable}
