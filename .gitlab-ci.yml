@@ -9,7 +9,7 @@ before_script:
   - apt-get install -y git
   - apt-get install -y ghostscript
 
-  - apt-get install -y python3.6
+  - apt-get install -y python3.6 python3-pip
   - update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 10
   - python3.6 -m pip install -r requirements.txt
 
