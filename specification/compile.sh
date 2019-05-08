@@ -2,25 +2,16 @@
 
 SRC=UAVCAN_Specification
 
-#rm -rf out &> /dev/null
-mkdir out &> /dev/null
-cp -fP *.bib out/ &> /dev/null
+function once()
+{
+    pdflatex -interaction=nonstopmode -file-line-error --halt-on-error --shell-escape $@
+}
 
-rm out/$SRC.pdf
-rm out/$SRC.log
+./clean.sh || exit 1
 
-pdflatex --halt-on-error --shell-escape $SRC.tex
-#cd out
-#bibtex $SRC
-#cd ..
-pdflatex --halt-on-error --shell-escape $SRC.tex
-pdflatex --halt-on-error --shell-escape $SRC.tex
+once $SRC.tex || exit 1
+#bibtex $SRC  || exit 1
+once $SRC.tex || exit 1
+once $SRC.tex || exit 1
 
-mv $SRC.pdf out/$SRC.pdf
-mv $SRC.log out/$SRC.log
-
-rm $SRC.aux
-rm $SRC.lof
-rm $SRC.lot
-rm $SRC.out
-rm $SRC.toc
+echo 'Success.'
