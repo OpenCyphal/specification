@@ -18,7 +18,7 @@ and the following Python packages:
 - `pygments` (for Debian-based systems, use APT package `python-pygments`)
 - [`pydsdl`](https://github.com/UAVCAN/pydsdl)
 
-When done, `cd specification` and run `compile.sh`.
+When done, run `./compile.sh`.
 
 ## Editing
 

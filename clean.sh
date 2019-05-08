@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd specification
+
 rm -f *.aux
 rm -f *.lof
 rm -f *.lot

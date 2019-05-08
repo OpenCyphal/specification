@@ -9,6 +9,7 @@ function once()
 
 ./clean.sh || exit 1
 
+cd specification
 once $SRC.tex || exit 1
 #bibtex $SRC  || exit 1
 once $SRC.tex || exit 1
