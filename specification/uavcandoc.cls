@@ -40,9 +40,12 @@
 %
 % Minor definitions.
 %
-\definecolor{colorhyperlink}{RGB}{0,0,200}
-\definecolor{colorlogo}{RGB}{0,124,195}
-\definecolor{colorlogolight}{RGB}{220, 242, 255}
+% UAVCAN color palette: #1700b3 (logo color), #0003ee, #00dac6, #007e87, #b00036
+% Also available at https://color.adobe.com/UAVCAN-color-theme-12106273/ (by Scott Dixon)
+\definecolor{colorlogo}{HTML}{1700B3}           % from the palette
+\definecolor{colorhyperlink}{HTML}{0003EE}      % from the palette
+\definecolor{colorremarkbg}{HTML}{E6F2FF}
+\definecolor{colorremarkframe}{HTML}{6669FF}    % lightened 0003ee
 
 \renewcommand{\dateseparator}{-}
 
@@ -125,8 +128,8 @@ autogobble
         right=1mm,
         top=1mm,
         bottom=1mm,
-        colback=colorlogolight,
-        colframe=colorlogo,
+        colback=colorremarkbg,
+        colframe=colorremarkframe,
         boxrule=0.5pt,
         toprule at break=0pt,
         bottomrule at break=0pt,
@@ -174,7 +177,7 @@ autogobble
 \leftskip=17mm
 \headsep=8mm
 \footskip=12mm
-\geometry{margin=20mm,top=20mm,bottom=20mm}
+\geometry{margin=18mm,top=20mm,bottom=20mm}
 
 % Removes the left margin for the next paragraph
 \newcommand{\NoLeftSkip}{\parindent=-\leftskip}

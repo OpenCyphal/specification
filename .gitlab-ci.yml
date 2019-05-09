@@ -1,18 +1,22 @@
 before_script:
   - apt-get update
-  - PATH=$HOME/texlive/bin/x86_64-linux:$PATH
+  - apt-get install -y software-properties-common   # Provides add-apt-repository
+  - add-apt-repository ppa:deadsnakes/ppa           # Provides python3.6
+  - apt-get update
+
   - apt-get install -y texlive-full
   - apt-get install -y python-pygments
-  - apt-get install -y python3 python3-pip
   - apt-get install -y git
   - apt-get install -y ghostscript
-  - pip3 install -r requirements.txt
+
+  - apt-get install -y python3.6 python3-pip
+  - update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 10
+  - python3.6 -m pip install -r requirements.txt
 
 job:
   image: ubuntu:16.04
   script:
     - git submodule update --init --recursive
-    - cd specification
     - ./compile.sh
   artifacts:
     paths:
