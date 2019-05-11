@@ -18,7 +18,7 @@ is to be reflected via the mandatory heartbeat message described in section \ref
 
 \subsection{Node heartbeat}\label{sec:application_node_heartbeat}
 
-Every UAVCAN node must report its status and presence by publishing messages of type
+Every UAVCAN node must report its status and presence by periodically publishing messages of type
 \DSDLReference{uavcan.node.Heartbeat} at a fixed rate specified in the message definition.
 
 This is the only high-level protocol function that UAVCAN nodes are required to support.
@@ -93,13 +93,13 @@ and related data such as the number of leap seconds.
 Redundant time synchronization masters are supported for the benefit of high-reliability applications.
 
 \begin{remark}
-      Time synchronization with explicit sensor feed timestamping should be preferred over inferior alternatives
-      such as sensor lag reporting that are sometimes found in simpler systems because such alternatives
-      are difficult to scale and they do not account for the delays introduced by communication interfaces.
+    Time synchronization with explicit sensor feed timestamping should be preferred over inferior alternatives
+    such as sensor lag reporting that are sometimes found in simpler systems because such alternatives
+    are difficult to scale and they do not account for the delays introduced by communication interfaces.
 
-      It is the duty of every node that publishes timestamped data to account for its own internal delays;
-      for example, if a data latency of a local sensor is known,
-      it needs to be accounted for in the reported timestamp value.
+    It is the duty of every node that publishes timestamped data to account for its own internal delays;
+    for example, if a data latency of a local sensor is known,
+    it needs to be accounted for in the reported timestamp value.
 \end{remark}
 
 \DSDL{uavcan.time.* --index-only}
@@ -303,13 +303,15 @@ without dependency on application-specific means of communication%
 
 The set of supported Internet/LAN protocols may be extended in future revisions of the specification.
 
-Some of the major applications for this feature are as follows:
-
-\begin{enumerate}
-    \item Direct telemetry transmission from UAVCAN nodes.
-    \item Implementation of remote API for on-board equipment (e.g., web interface).
-    \item Reception of real-time correction data streams (e.g., RTCM RC-104) for precise positioning applications.
-    \item Automatic upgrades directly from the vendor's Internet resources.
-\end{enumerate}
+\begin{remark}
+    Some of the major applications for this feature are as follows:
+    \begin{enumerate}
+        \item Direct telemetry transmission from UAVCAN nodes to a remote data collection server.
+        \item Implementation of remote API for on-board equipment (e.g., web interface).
+        \item Reception of real-time correction data streams (e.g., RTCM RC-104)
+              for precise positioning applications.
+        \item Automatic upgrades directly from the vendor's Internet resources.
+    \end{enumerate}
+\end{remark}
 
 \DSDL{uavcan.internet.* --index-only}

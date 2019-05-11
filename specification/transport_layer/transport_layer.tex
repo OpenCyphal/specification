@@ -262,8 +262,8 @@ hence, its contribution to the worst case data processing load should be careful
     message subject-ID or any service subject-ID the maximum number of transfer descriptors
     that can be observed by the local node will never exceed the number of nodes on the bus minus
     one\footnote{The local node cannot exchange data with itself, hence minus one.}.
-    If the number of nodes on the bus cannot be known in advance, it can be considered to equal 128,
-    which is the maximum node capacity of a UAVCAN bus.
+    If the number of nodes on the bus cannot be known in advance, it can be considered to equal the maximum
+    number of nodes permitted by the used transport layer\footnote{E.g., 128 nodes for the CAN bus transport.}.
 
     The total number of distinct transfer descriptors that can be observed by a node on any valid UAVCAN bus
     is a product of the number of distinct port-ID values utilized by the node and the number of other nodes on the bus.
