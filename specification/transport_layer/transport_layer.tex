@@ -672,7 +672,7 @@ delayed due to bus congestion, which is possible with very low-priority transfer
 High timeout values increase the risk of an undetected transfer loss when a remote node suffers an emitted transfer-ID
 map state loss (e.g., due to the whole node being restarted).
 However, the effects of such a transfer loss caused by a loss of state on a remote node
-are always constrained to the first transfer only.
+are always confined to the first transfer only.
 
 \subsubsection{Interface switchover condition}\label{sec:transfer_interface_switchover_condition}
 
@@ -742,7 +742,7 @@ function receiveFrame(frame)
         iface_index := frame.iface_index;
         current_transfer_id := frame.transfer_id;
         payload.clear();
-        toggle := 0;
+        toggle := frame.toggle;
         if (!first_frame)
         {
             current_transfer_id.increment();
@@ -820,7 +820,7 @@ function receiveFrame(frame)
         initialized := 1;
         current_transfer_id := frame.transfer_id;
         payload.clear();
-        toggle := 0;
+        toggle := frame.toggle;
         if (!first_frame)
         {
             current_transfer_id.increment();
