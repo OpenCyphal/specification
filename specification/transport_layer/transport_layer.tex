@@ -704,6 +704,8 @@ The problem would primarily affect low-priority transfers where large latencies 
 
 The following pseudocode demonstrates the transfer reception process
 for a configuration with redundant transport interfaces.
+Implementations are allowed to implement the reception logic differently as long as the resulting
+behavior is equivalent.
 
 \clearpage
 \begin{minted}{cpp}
@@ -725,7 +727,7 @@ function receiveFrame(frame)
     // Resolving the state flags:
     tid_timed_out := (frame.timestamp - this_transfer_timestamp) > tid_timeout;
     same_iface := frame.iface_index == iface_index;
-    first_frame := frame.start_of_transfer;
+    start_of_transfer := frame.start_of_transfer;
     non_wrapped_tid := computeForwardDistance(current_transfer_id, frame.transfer_id) < tid_half_range;
     not_previous_tid := computeForwardDistance(frame.transfer_id, current_transfer_id) > 1;
     iface_switch_allowed := (frame.timestamp - this_transfer_timestamp) > iface_switch_delay;
@@ -733,8 +735,8 @@ function receiveFrame(frame)
     need_restart :=
         (!initialized) or
         (tid_timed_out) or
-        (same_iface and first_frame and not_previous_tid) or
-        (iface_switch_allowed and first_frame and non_wrapped_tid);
+        (same_iface and start_of_transfer and not_previous_tid) or
+        (iface_switch_allowed and start_of_transfer and non_wrapped_tid);
 
     if (need_restart)
     {
@@ -743,7 +745,7 @@ function receiveFrame(frame)
         current_transfer_id := frame.transfer_id;
         payload.clear();
         toggle := frame.toggle;
-        if (!first_frame)
+        if (!start_of_transfer)
         {
             current_transfer_id.increment();
             return;         // Ignore this frame, since the start of the transfer has already been missed
@@ -765,7 +767,7 @@ function receiveFrame(frame)
         return;  // Unexpected transfer-ID, ignore
     }
 
-    if (first_frame)
+    if (start_of_transfer)
     {
         this_transfer_timestamp := frame.timestamp;
     }
@@ -773,12 +775,12 @@ function receiveFrame(frame)
     toggle := !toggle;
     payload.append(frame.data);
 
-    if (frame.last_frame)
+    if (frame.end_of_transfer)
     {
         // CRC validation for multi-frame transfers is intentionally omitted for brevity
         processTransfer(payload, ...);
         current_transfer_id.increment();
-        toggle := 0;
+        toggle := 1;
         payload.clear();
     }
 }
@@ -791,6 +793,8 @@ function receiveFrame(frame)
 The following pseudocode demonstrates the transfer reception process for a configuration
 with a non-redundant transport interface.
 This is a specialization of the more general algorithm defined for redundant transport.
+Implementations are allowed to implement the reception logic differently as long as the resulting
+behavior is equivalent.
 
 \begin{minted}{cpp}
 // Constants:
@@ -807,13 +811,13 @@ function receiveFrame(frame)
 {
     // Resolving the state flags:
     tid_timed_out := (frame.timestamp - this_transfer_timestamp) > tid_timeout;
-    first_frame := frame.start_of_transfer;
+    start_of_transfer := frame.start_of_transfer;
     not_previous_tid := computeForwardDistance(frame.transfer_id, current_transfer_id) > 1;
     // Using the state flags from above, deciding whether we need to reset:
     need_restart :=
         (!initialized) or
         (tid_timed_out) or
-        (first_frame and not_previous_tid);
+        (start_of_transfer and not_previous_tid);
 
     if (need_restart)
     {
@@ -821,7 +825,7 @@ function receiveFrame(frame)
         current_transfer_id := frame.transfer_id;
         payload.clear();
         toggle := frame.toggle;
-        if (!first_frame)
+        if (!start_of_transfer)
         {
             current_transfer_id.increment();
             return; // Ignore this frame, since the start of the transfer has already been missed
@@ -838,7 +842,7 @@ function receiveFrame(frame)
         return;  // Unexpected transfer-ID, ignore
     }
 
-    if (first_frame)
+    if (start_of_transfer)
     {
         this_transfer_timestamp := frame.timestamp;
     }
@@ -846,12 +850,12 @@ function receiveFrame(frame)
     toggle := !toggle;
     payload.append(frame.data);
 
-    if (frame.last_frame)
+    if (frame.end_of_transfer)
     {
         // CRC validation for multi-frame transfers is intentionally omitted for brevity
         processTransfer(payload, ...);
         current_transfer_id.increment();
-        toggle := 0;
+        toggle := 1;
         payload.clear();
     }
 }
