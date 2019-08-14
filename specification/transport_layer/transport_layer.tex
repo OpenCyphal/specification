@@ -263,7 +263,7 @@ hence, its contribution to the worst case data processing load should be careful
     that can be observed by the local node will never exceed the number of nodes on the bus minus
     one\footnote{The local node cannot exchange data with itself, hence minus one.}.
     If the number of nodes on the bus cannot be known in advance, it can be considered to equal 128,
-    which is the maximum node capacity of a UAVCAN bus.
+    the maximum node capacity of a UAVCAN bus.
 
     The total number of distinct transfer descriptors that can be observed by a node on any valid UAVCAN bus
     is a product of the number of distinct port-ID values utilized by the node and the number of other nodes on the bus.
@@ -282,7 +282,7 @@ The \emph{transfer-ID} is a small unsigned integer value in the range from 0 to 
 that is provided for every transfer.
 This value is crucial for many aspects of UAVCAN communication\footnote{One might be tempted to use the transfer-ID
 value for temporal synchronization of parallel message streams originating from the same node,
-where messages bearing the same transfer-ID value are supposed to correspond to the same moment of time.
+where messages bearing the same transfer-ID value are supposed to correspond to the same moment in time.
 Such use is strongly discouraged because it is impossible to detect if one node is more than
 32 messages behind another.
 If temporal synchronization is necessary, explicit time stamping should be used instead.};
@@ -676,8 +676,8 @@ are always constrained to the first transfer only.
 
 \subsubsection{Interface switchover condition}\label{sec:transfer_interface_switchover_condition}
 
-This condition is only applicable for configurations with redundant transport interfaces.
-It means that the node is allowed to receive the next transfer from an interface that is not the same
+This condition is only applicable for configurations with redundant transport interfaces, which means 
+the node is allowed to receive the next transfer from an interface that is not the same
 the previous transfer was received from.
 
 The condition is reached when the last matching transfer was successfully received more than
