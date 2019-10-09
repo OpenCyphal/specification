@@ -3,16 +3,16 @@
 \subsection{General principles}
 
 In accordance with the UAVCAN architecture, DSDL allows users to define data types of two kinds:
-message types and service types.
-Message types are used to exchange data over publish-subscribe one-to-many message links identified by subject-ID,
-and service types are used to perform request-response one-to-one exchanges (like RPC) identified by service-ID.
+message and service.
+\emph{Message types} are used to exchange data over publish-subscribe one-to-many message links identified by subject-ID,
+and \emph{service types} are used to perform request-response one-to-one exchanges (like RPC) identified by service-ID.
 A message data type defines one data schema of the message object,
-and a service data type contains two independent data schema definitions:
-one of them applies to the request object (transferred from client to server),
+and a service data type contains two independent data schema definitions.
+One of them applies to the request object (transferred from client to server),
 and the other applies to the response object (transferred from the server back to the client).
 
 Following the deterministic nature of UAVCAN, the size of a serialized representation of any
-message or service object is bounded within statically known limits.
+message or service object is bound within statically known limits.
 Variable-size entities always have a fixed size limit defined by the data type designer.
 
 DSDL definitions are strongly statically typed.
@@ -73,27 +73,23 @@ The name structure is illustrated on the figure \ref{fig:dsdl_data_type_name_str
     \caption{Data type name structure.\label{fig:dsdl_data_type_name_structure}}
 \end{figure}
 
-A set of full namespace names and a set of full data type names must not intersect\footnote{%
+The following rules apply to naming: 
+
+\begin{itemize}
+    \item A set of full namespace names and a set of full data type names must not intersect\footnote{%
     For example, a namespace ``\texttt{vendor.example}'' and a data type ``\texttt{vendor.example.1.0}''
     are mutually exclusive.
     Note the data type name shown in this example violates the naming conventions
     which are reviewed in a separate section.
 }.
-
-Data type names and namespace names are case-sensitive.
-However, names that differ only in letter case are not permitted\footnote{%
-Because that may cause problems with case-insensitive file systems.}.
-In other words, a pair of names which differ only in letter case is considered to constitute a name collision.
-
-A name component consists of alphanumeric ASCII characters (which are: \verb|A-Z|, \verb|a-z|, and \verb|0-9|)
-and underscore (``\verb|_|'', ASCII code 95).
-An empty string is not a valid name component.
-The first character of a name component must not be a digit.
-A name component must not match any of the reserved word patterns,
-which are listed in the table \ref{table:dsdl_reserved_word_patterns}.
-
-The length of a full data type name must not exceed 50
-characters\footnote{This includes the name component separators.}.
+    \item Data type names and namespace names are case-sensitive. Names that differ only in letter case are not permitted because that may cause name collisions within case-insensitive file systems.
+    \item A name component consists of alphanumeric ASCII characters (\verb|A-Z|, \verb|a-z|, and \verb|0-9|) and underscores (``\verb|_|'', ASCII code 95).
+    \item The first character of a name must not be numerical.
+    \item An empty string is not a valid name.
+    \item File name extension ``\verb|uavcan|'' (mandatory).
+    \item A name component must not match any of the reserved word patterns listed in table \ref{table:dsdl_reserved_word_patterns}.
+    \item The length of a full data type name must not exceed 50 characters, including the name component separators.
+\end{itemize}
 
 Every data type definition is assigned a major and minor version number pair.
 In order to uniquely identify a data type definition, its version numbers must be specified.
@@ -105,21 +101,21 @@ A data type version where both major and minor components are zero is not allowe
 
 \subsection{File hierarchy}
 
-DSDL data type definitions are contained in UTF-8 encoded text files with a file name extension \verb|.uavcan|.
+DSDL data type definitions are contained in UTF-8 encoded text files with \verb|.uavcan| file extensions.
 
 One file defines exactly one version of a data type,
 meaning that each combination of major and minor version numbers must be unique per data type name.
-There may be an arbitrary number of versions of the same data type defined alongside each other,
-provided that each version is defined at most once.
-Version number sequences can be non-contiguous,
-meaning that it is allowed to skip version numbers or remove existing definitions that are neither oldest nor newest.
+There may be any number of versions of the same data type defined alongside each other,
+provided that each version is defined once at most.
+Version numbers can be non-contiguous,
+meaning that it is allowed to skip version numbers or remove existing definitions as long as they are neither the oldest nor newest versions.
 
 A data type definition may have an optional fixed port-ID\footnote{Chapter \ref{sec:basic_concepts}.} value specified.
 
 The name of a data type definition file is constructed from the following entities
 joined via the ASCII dot character ``\verb|.|'' (ASCII code 46), in the specified order:
 \begin{itemize}
-    \item Fixed port-ID in decimal notation, unless a fixed port-ID is not provided for this definition.
+    \item Fixed port-ID in decimal notation (optional).
     \item Short name of the data type (mandatory, always non-empty).
     \item Major version number in decimal notation (mandatory).
     \item Minor version number in decimal notation (mandatory).
@@ -193,10 +189,9 @@ The valid representation would be ``\texttt{bar}'' nested in ``\texttt{foo}''.}.
 
 \subsection{Elements of data type definition}
 
-A data type definition file contains an exhaustive description of a particular version of the said data type in the
+A data type definition file contains an exhaustive description of a particular version of the data type in the
 \emph{data structure description language} (DSDL).
-As explained above, one data type definition contains either one or two data schema definitions,
-for message types and service types, respectively.
+As explained above, one data type definition contains one schema definition for message types or two schema definitions for service types.
 
 A data schema definition contains an ordered, possibly empty collection of \emph{field attributes} and/or
 unordered, possibly empty collection of \emph{constant attributes}.
@@ -204,8 +199,8 @@ A data schema may describe either a \emph{structure object} or a \emph{tagged un
 The value of a structure object is a function of the values of all of its field attributes.
 A tagged union object is formed from at least two field attributes,
 but it is capable of holding exactly one field attribute value at any given time.
-The value of a tagged union object is a function of which field attribute value
-it is holding at the moment and the value of said field attribute.
+The value of a tagged union object is a function of the field attribute values
+it is presently holding and the value of these field attributes.
 
 A field attribute represents a named dynamically assigned value of a statically defined type
 that can be exchanged over the network as a member of its containing object.
@@ -213,7 +208,7 @@ A padding field attribute is a special kind of field attribute which is used for
 such field attributes are not named.
 
 A constant attribute represents a named statically defined value of a statically defined type.
-Constants are never exchanged over the network, since they are assumed to be known to all involved nodes
+Constants are never exchanged over the network, since they are assumed to all involve nodes
 by virtue of them sharing compatible definitions of the data type.
 
 Constant values are defined via \emph{DSDL expressions},
@@ -231,7 +226,7 @@ which are statically validated by DSDL processing tools).
 
 Every object that can be exchanged between UAVCAN nodes has a well-defined \emph{serialized representation}.
 The value and meaning of an object can be unambiguously recovered from its serialized representation,
-provided that the type of the object is known.
+provided that the object type is known.
 
 \label{sec:dsdl_bit_length_set}
 A serialized representation is a sequence of binary digits (bits);
