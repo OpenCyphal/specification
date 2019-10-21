@@ -1,6 +1,6 @@
 \section{Attributes}\label{sec:dsdl_attributes}
 
-An \emph{attribute} is a named (excepting padding fields) entity associated with a particular object or type.
+An \emph{attribute} is a named entity (excepting padding fields) associated with a particular object or type.
 
 \subsection{Composite type attributes}
 
@@ -10,7 +10,7 @@ a composite type attribute that does not have a value assigned at the definition
 \emph{field attribute}.
 
 The name of a composite type attribute must be unique within its data schema definition
-and it shall not match any of the reserved name patterns specified in the table
+and shall not match any of the reserved name patterns specified in table
 \ref{table:dsdl_reserved_word_patterns}.
 This requirement does not apply to padding fields.
 
@@ -18,13 +18,12 @@ This requirement does not apply to padding fields.
 
 A field attribute represents a named dynamically assigned value of a statically defined type
 that can be exchanged over the network as a member of its containing object.
-The data type of a field attribute must be of the serializable type category
-(section \ref{sec:dsdl_serializable_types}),
-excepting the void type category, which is not allowed.
+The data type of a field attribute must be one of the serializable type categories
+(section \ref{sec:dsdl_serializable_types})
+other than void type.
 
-Exception applies to the special kind of field attributes --- \emph{padding fields}.
-The type of a padding field attribute must be of the void category.
-A padding field attribute may not have a name.
+An exception applies to a special kind of field attribute --- a \emph{padding field}.
+Padding fields must use the void type serializable category. Padding field attributes may not have names.
 
 \begin{remark}
     Example:
@@ -95,14 +94,14 @@ the cast mode of primitive-typed constants has no observable effect.
 
 Local attributes are available at the DSDL definition processing time.
 
-As defined in the section \ref{sec:dsdl_grammar},
-a DSDL definition is an ordered collection of statements;
+As defined in section \ref{sec:dsdl_grammar},
+a DSDL definition is an ordered collection of statements and
 a statement may contain DSDL expressions.
 An expression contained in a statement number $E$ may refer to a
 composite type attribute introduced in a statement number $A$ by its name,
 where $A < E$ and both statements belong to the same data schema definition.
 The representation of the referred attribute in the context of the referring DSDL expression
-is specified in the table \ref{table:dsdl_local_attribute_representation}.
+is specified in table \ref{table:dsdl_local_attribute_representation}.
 
 \begin{UAVCANSimpleTable}{Local attribute representation}{|l X X|}\label{table:dsdl_local_attribute_representation}%
     Attribute category & Value type & Value \\
@@ -141,7 +140,7 @@ as specified in this section.
 \subsubsection{Offset attribute}
 
 The offset attribute is referred to by its identifier ``\verb|_offset_|''.
-Its value is of type $\texttt{set}_\texttt{<rational>}$.
+Its value is of type $\texttt{set}_\texttt{ <rational>}$.
 
 In the following text, the term \emph{referring statement} denotes a statement
 containing an expression which refers to the offset attribute.
