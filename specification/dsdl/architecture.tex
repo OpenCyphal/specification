@@ -6,13 +6,13 @@ In accordance with the UAVCAN architecture, DSDL allows users to define data typ
 message and service.
 \emph{Message types} are used to exchange data over publish-subscribe one-to-many message links identified by subject-ID,
 and \emph{service types} are used to perform request-response one-to-one exchanges (like RPC) identified by service-ID.
-A message data type defines one data schema of the message object,
-and a service data type contains two independent data schema definitions.
-One of them applies to the request object (transferred from client to server),
+A message data type defines one data schema of the message object.
+A service data type contains two independent data schema definitions:
+one of them applies to the request object (transferred from client to server),
 and the other applies to the response object (transferred from the server back to the client).
 
 Following the deterministic nature of UAVCAN, the size of a serialized representation of any
-message or service object is bound within statically known limits.
+message or service object is constrained within statically known limits.
 Variable-size entities always have a fixed size limit defined by the data type designer.
 
 DSDL definitions are strongly statically typed.
@@ -199,8 +199,8 @@ A data schema may describe either a \emph{structure object} or a \emph{tagged un
 The value of a structure object is a function of the values of all of its field attributes.
 A tagged union object is formed from at least two field attributes,
 but it is capable of holding exactly one field attribute value at any given time.
-The value of a tagged union object is a function of the field attribute values
-it is presently holding and the value of these field attributes.
+The value of a tagged union object is a function of which field attribute value
+it is holding at the moment and the value of said field attribute.
 
 A field attribute represents a named dynamically assigned value of a statically defined type
 that can be exchanged over the network as a member of its containing object.
@@ -208,7 +208,7 @@ A padding field attribute is a special kind of field attribute which is used for
 such field attributes are not named.
 
 A constant attribute represents a named statically defined value of a statically defined type.
-Constants are never exchanged over the network, since they are assumed to all involve nodes
+Constants are never exchanged over the network, since they are assumed to be known to all involved nodes
 by virtue of them sharing compatible definitions of the data type.
 
 Constant values are defined via \emph{DSDL expressions},
