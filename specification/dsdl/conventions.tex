@@ -3,16 +3,16 @@
 This section is dedicated to conventions and recommendations
 intended to help data type designers maintain a consistent style across the ecosystem
 and avoid some common pitfalls.
-All of the conventions and recommendations provided in this section are optional (not mandatory to follow).
+All of the conventions and recommendations provided in this section are optional.
 
 \subsection{Naming recommendations}
 
-The DSDL naming recommendations follow those that are widely accepted in the general software development industry.
+DSDL naming recommendations follow those that are widely accepted in the general software development industry.
 
 \begin{itemize}
-    \item Namespaces and field attributes should be named in the \verb|snake_case|.
-    \item Constant attribute should be named in the \verb|SCREAMING_SNAKE_CASE|.
-    \item Data types (excluding their namespaces) should be named in the \verb|PascalCase|.
+    \item Namespaces and field attributes should use \verb|snake_case|.
+    \item Constant attribute should use \verb|SCREAMING_SNAKE_CASE|.
+    \item Data types (excluding their namespaces) should use \verb|PascalCase|.
     \item Names of message types should form a declarative phrase or a noun. For example,
     \verb|BatteryStatus| or \verb|OutgoingPacket|.
     \item Names of service types should form an imperative phrase or a verb. For example,
@@ -30,7 +30,7 @@ data type definition.
 Every attribute of the data type definition, and especially every field attribute of it,
 should have an associated comment explaining the purpose of the attribute, its semantics, usage patterns,
 assumptions, constraints, and any other pertinent information.
-Exception applies to attributes supplied with sufficiently descriptive and unambiguous names.
+Exceptions apply to attributes supplied with sufficiently descriptive and unambiguous names.
 
 Trailing comments (i.e., comments that are located on the same line with a statement)
 should be separated from the preceding text with at least two spaces.
@@ -47,12 +47,12 @@ prefixed with padding bits as necessary to retain byte alignment.
 
 Alternatively, such one-element variable-length arrays can be replaced with two-field unions,
 where the first field is empty and the second field contains the desired optional value.
-The described layout is bit-compatible and semantically compatible with the one-element array described above,
+The described layout is bit and semantically compatible with the one-element array described above,
 provided that the field attributes are not swapped.
 
 Floating-point-typed field attributes may be assigned the value of not-a-number (NaN) per IEEE 754
-to indicate that the value is not specified;
-however, this pattern is discouraged because the value would still have to be transferred over the bus
+to indicate that the value is not specified.
+However, this pattern is discouraged because the value would still have to be transferred over the bus
 even if not populated, and special case values undermine type safety.
 
 \begin{remark}[breakable]
