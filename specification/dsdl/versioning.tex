@@ -12,7 +12,7 @@ data type definitions while ensuring backward compatibility and functional safet
 
 A data type or schema $A$ is bit-compatible with a data type or schema $B$ if and only if
 the set of serialized representations\footnote{The serialization rules are reviewed
-in detail in the section \ref{sec:dsdl_data_serialization}.}
+in detail in section \ref{sec:dsdl_data_serialization}.}
 of $A$ is a superset of the set of serialized representations of $B$.
 
 $A$ and $B$ are said to be \emph{mutually bit-compatible} if
@@ -82,11 +82,11 @@ Conversely, any data type or schema that is not variable-length is \emph{fixed-l
 
     Even though the above definitions are bit-compatible, one cannot be substituted with the other.
     The problem of functional equivalency is addressed by the concept of semantic compatibility,
-    explored in the section \ref{sec:dsdl_semantic_compatibility}.
+    explored in section \ref{sec:dsdl_semantic_compatibility}.
 
     Complicated scenarios are possible when a bit belonging to a primitive-typed field attribute
     is handed over to a constrained field such as an implicit array length field or an implicit union tag field.
-    Some interesting examples are shown in the table \ref{table:dsdl_many_compat},
+    Some interesting examples are shown in table \ref{table:dsdl_many_compat},
     together with a set of serialized representation patterns.
     Remember that the bits belonging to void-typed field attributes are ignored during deserialization.
 
@@ -148,8 +148,8 @@ The property of semantic compatibility is commutative.
     \end{minted}
 
     Therefore, the definitions can be used interchangeably.
-    It should be noted here that due to different set of field and constant attributes,
-    the source code auto-generated from the provided definitions may be not drop-in replaceable,
+    It should be noted here that due to different sets of field and constant attributes,
+    the source code auto-generated from the provided definitions may not be drop-in replaceable,
     requiring changes in the application;
     however, source-code-level application compatibility is orthogonal to data type compatibility.
 \end{remark}
@@ -180,7 +180,7 @@ or for the commencement of usage of the data type definition in a production sys
 
 In order to ensure a deterministic application behavior and ensure a robust migration path
 as data type definitions evolve, UAVCAN requires that all data type definitions that share the same
-full name and the same major version number must be semantically compatible with each other
+full name and the same major version number must be semantically
 and mutually bit-compatible with each other.
 
 The versioning rules do not extend to scenarios where the name of a data type is changed,
@@ -214,7 +214,7 @@ number before the new definition is introduced.
 Otherwise, the major version number shall be incremented by one and the minor version shall be set to zero.
 
 An exception to the above rules applies when the major version number is zero.
-Data type definitions bearing the major version number of zero are not subjected to any compatibility requirements.
+Data type definitions bearing the major version number of zero are not subject to any compatibility requirements.
 Released data type definitions with the major version number of zero are permitted to change in arbitrary
 ways without any regard for compatibility.
 It is recommended, however, to follow the principles of immutability, releasing every subsequent definition
