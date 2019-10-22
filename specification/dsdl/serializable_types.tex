@@ -3,7 +3,7 @@
 Values of the serializable type category can be exchanged between nodes over the UAVCAN network.
 This is opposed to the expression types (section \ref{sec:dsdl_expression_types}),
 instances of which can only exist while DSDL definitions are being evaluated.
-The data serialization rules are defined in the section \ref{sec:dsdl_data_serialization}.
+The data serialization rules are defined in section \ref{sec:dsdl_data_serialization}.
 
 \subsection{Void types}
 
@@ -28,24 +28,24 @@ Primitive types can be referred to directly by their name from any namespace.
 
 \subsubsection{Hierarchy}
 
-The hierarchy of primitive types is documented below.
+The hierarchy of primitive types is documented below:
 
 \begin{itemize}
-    \item \textbf{Boolean types.} A boolean-typed value represents a variable of the Boolean algebra.
+    \item \textbf{Boolean types} represent a variable of the Boolean algebra.
     A Boolean-typed value can have two values: true and false.
     The corresponding DSDL data type name is ``\verb|bool|''.
 
-    \item \textbf{Algebraic types.} Those are types for which conventional algebraic operators are defined.
+    \item \textbf{Algebraic types} are types for which conventional algebraic operators are defined.
     \begin{itemize}
         \item \textbf{Integer types} are used to represent signed and unsigned integer values.
         See table \ref{table:dsd_integer_properties}.
         \begin{itemize}
-            \item \textbf{Signed integer types.} These are used to represent values which can be negative.
+            \item \textbf{Signed integer types} are used to represent values which can be negative.
             The corresponding DSDL data type name pattern is ``\verb|int[1-9]\d*|'',
             where the trailing integer represents the length of the
             serialized representation of the value, in bits, ranging from 2 to 64, inclusive.
 
-            \item \textbf{Unsigned integer types.} These are used to represent non-negative values.
+            \item \textbf{Unsigned integer types} are used to represent non-negative values.
             The corresponding DSDL data type name pattern is ``\verb|uint[1-9]\d*|'',
             where the trailing integer represents the length of the
             serialized representation of the value, in bits, ranging from 1 to 64, inclusive.
@@ -264,7 +264,7 @@ it constitutes a literal of type ``\verb|metaserializable|'' (section \ref{sec:d
 If the referred data type is of the message kind,
 its attributes are accessible in the referring expression through application of the
 attribute reference operator ``\verb|.|''.
-The available attributes and their semantics are documented in the section \ref{sec:dsdl_local_attributes}.
+The available attributes and their semantics are documented in section \ref{sec:dsdl_local_attributes}.
 
 \begin{remark}
     \begin{minted}{python}
