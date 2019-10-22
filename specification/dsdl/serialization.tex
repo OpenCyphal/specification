@@ -10,7 +10,7 @@ The main design principle behind the serialized representations described in thi
 the maximization of compatibility with native representations used by currently existing and
 likely future computer microarchitectures.
 The goal is to ensure that the serialized representations defined by DSDL match internal data representations of
-modern computers, so that, ideally, a typical system will not have to perform any data conversion whatsoever while
+modern computers so that, ideally, a typical system will not have to perform any data conversion whatsoever while
 exchanging data over a UAVCAN network.
 
 \subsubsection{Bit and byte ordering}
@@ -58,11 +58,11 @@ such format is also known as little-endian.
 
 Excepting one edge case reviewed below,
 serialized representations of DSDL entities never include implicit data padding.
-Unaligned data may lead to suboptimal serialization and deserialization performance;
-therefore, the data type designer should manually align elements as necessary to prevent performance degradation.
+Unaligned data may lead to suboptimal serialization and deserialization performance.
+Therefore, the data type designer should manually align elements as necessary to prevent performance degradation.
 It is guaranteed, however, that unaligned data cannot result in unspecified or otherwise unexpected behavior
 of the data handling routines.
-The manual approach to data alignment allows the data type designer to trade-off serialization efficiency
+The manual approach to data alignment allows the data type designer to trade serialization efficiency
 over network bandwidth utilization and data transfer latency as necessary without compromising functional safety.
 
 The exceptional edge case mentioned above when implicit padding is introduced is as follows.
@@ -282,7 +282,7 @@ two data schema definitions: one for request object, one for response object.
 Unless explicitly specified otherwise, any reference to serialized representations of a service type
 implies either or both of its data schema definitions, depending on context.
 
-A serialized representation of an object of a composite type is an ordered set of serialized representations of
+A serialized representation of a composite type object is an ordered set of serialized representations of
 its field attribute values joined into a bit sequence.
 The ordering of the serialized representations of the field attribute values follows the order
 of field attribute declaration.
@@ -346,7 +346,7 @@ the serialized representation of the currently selected field attribute value.
     Consider the following example:
 
     \begin{minted}{python}
-        @union           # In this case, the implicit union tag is 2 bit wide
+        @union           # In this case, the implicit union tag is 2 bits wide
         uint16 FOO = 42  # A regular constant attribute
         uint16 a         # Field index 0
         uint8 b          # Field index 1
