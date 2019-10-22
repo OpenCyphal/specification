@@ -18,9 +18,9 @@ This requirement does not apply to padding fields.
 
 A field attribute represents a named dynamically assigned value of a statically defined type
 that can be exchanged over the network as a member of its containing object.
-The data type of a field attribute must be one of the serializable type categories
+The data type of a field attribute must be of the serializable type category
 (section \ref{sec:dsdl_serializable_types})
-other than void type.
+excepting the void type category, which is not allowed.
 
 An exception applies to a special kind of field attribute --- a \emph{padding field}.
 A padding field must be of a void type. Padding field attributes may not have names.
@@ -140,7 +140,7 @@ as specified in this section.
 \subsubsection{Offset attribute}
 
 The offset attribute is referred to by its identifier ``\verb|_offset_|''.
-Its value is of type $\texttt{set}_\texttt{ <rational>}$.
+Its value is of type $\texttt{set}_\texttt{<rational>}$.
 
 In the following text, the term \emph{referring statement} denotes a statement
 containing an expression which refers to the offset attribute.
