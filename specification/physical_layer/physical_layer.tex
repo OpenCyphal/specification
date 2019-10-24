@@ -22,7 +22,7 @@ physical layer implementation.
 
 Mission critical devices and non-mission critical devices often need to co-exist within the same UAVCAN network.
 Non-mission critical devices are likely to be equipped with a non-redundant transport interface,
-which can create the situation where multiple devices with different numbers of redundant interfaces
+which can create a situation where multiple devices with different numbers of redundant interfaces
 need to be connected to the same network.
 In that case, the following rules should be followed:
 
@@ -44,8 +44,8 @@ The figure \ref{fig:phy_non_uniform_transport_redundancy} shows a doubly redunda
 
 The standard UAVCAN physical layers support power distribution between nodes.
 Integration of the power distribution functionality with the communication interface
-obviates the need for a dedicated power distribution network,
-which can greatly simplify the system design and reduce the complexity and weight of the wiring harnesses.
+removes the need for a dedicated power distribution network,
+which greatly simplifies the system design and reduces the complexity and weight of the wiring harnesses.
 Additionally, redundant power supply topologies can be easily implemented on top of redundant communication interfaces.
 
 \subsubsection{Power sinking nodes}
@@ -57,7 +57,7 @@ so that a short-circuit or a similar failure of the node does not propagate to t
 
 If the node incorporates redundant bus interfaces,
 it should prevent direct current flow between power inputs from different interface connectors,
-so that if one bus suffers a power failure (e.g. a short circuit) it is not propagated to the other buses.
+so if one bus suffers a power failure (e.g. a short circuit) it is not propagated to the other buses.
 
 \begin{figure}[H]
     \centering
