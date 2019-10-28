@@ -215,9 +215,7 @@ is not defined for anonymous message transfers; see table \ref{table:common_tran
 is initialized with a pseudorandom \emph{pseudo-ID value},
 and defines special logic for handling CAN bus errors during transmission of anonymous frames.
 
-The source of the pseudorandom data used for the pseudo-ID must be likely to produce different values % Not sure what 'must be likely' means in this context'
-for different payloads\footnote{As explained in section \ref{sec:transport_anonymous_message_publication},
-anonymous message transfers are always single-frame transfers.}.
+The source of the pseudorandom data used for the pseudo-ID must aim to produce different values for different payloads.
 A possible way of initializing the source node pseudo-ID value is to apply the transfer CRC function
 (as defined in the section \ref{sec:transfer_crc})
 to the payload of the anonymous message, and then use the seven least significant bits of the result.
@@ -366,7 +364,7 @@ the last fragment was fully accommodated by the second-to-last CAN frame of the 
 In the latter case, the last CAN frame will contain only the metadata,
 as specified below in this section.
 
-Each CAN frame of a multi-frame transfer (except the last one)
+Each CAN frame of a multi-frame transfer except the last one
 should use the maximum CAN data length permitted by the transport.
 This is not a hard requirement;
 some systems that utilize CAN FD may opt for shorter CAN frames in order to reduce the worst case

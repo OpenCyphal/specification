@@ -86,10 +86,8 @@ published by M.~Gergeleit and H.~Streich%
 The detailed specification of the time synchronization algorithm is provided in the documentation
 for the message type \DSDLReference{uavcan.time.Synchronization}.
 
-An important service type \DSDLReference{uavcan.time.GetSynchronizationMasterInfo} 
-is designed to provide nodes with information about the currently used time system
-and related data such as the number of leap seconds.
-% Would be better restated in active voice "\DSDLReference{uavcan.time.GetSynchronizationMasterInfo} is an important service type designed to provide nodes with information about the currently used time system and related data such as the number of leap seconds."
+\DSDLReference{uavcan.time.GetSynchronizationMasterInfo} provides nodes with information about
+the currently used time system and related data like the number of leap seconds added.
 
 Redundant time synchronization masters are supported for the benefit of high-reliability applications.
 
@@ -109,8 +107,7 @@ Redundant time synchronization masters are supported for the benefit of high-rel
 
 The namespaces \DSDLReference{uavcan.si} and \DSDLReference{uavcan.primitive}
 included in the standard data type set are designed to provide a generic and flexible
-method of real-time data exchange; however, these namespaces are not bandwidth-efficient
-or low-latency.
+method of real-time data exchange. However, these are not bandwidth-efficient.
 
 Generally, applications where the bus bandwidth and latency are important should minimize their reliance
 on these generic data types and favor more specialized types instead that are custom-designed for their
