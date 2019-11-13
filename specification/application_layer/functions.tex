@@ -7,7 +7,7 @@ except for the node heartbeat feature (section \ref{sec:application_node_heartbe
 which is mandatory for all UAVCAN nodes.
 
 The detailed specifications for each function are provided in the DSDL comments of the data type definitions
-they are built upon, whereas this section serves as a high-level overview or an index.
+they are built upon, whereas this section serves as a high-level overview and index.
 
 \subsection{Node initialization}
 
@@ -86,9 +86,8 @@ published by M.~Gergeleit and H.~Streich%
 The detailed specification of the time synchronization algorithm is provided in the documentation
 for the message type \DSDLReference{uavcan.time.Synchronization}.
 
-An important service type \DSDLReference{uavcan.time.GetSynchronizationMasterInfo}
-is designed to provide nodes with information about the currently used time system
-and related data such as the number of leap seconds.
+\DSDLReference{uavcan.time.GetSynchronizationMasterInfo} provides nodes with information about
+the currently used time system and related data like the number of leap seconds added.
 
 Redundant time synchronization masters are supported for the benefit of high-reliability applications.
 
@@ -98,7 +97,7 @@ Redundant time synchronization masters are supported for the benefit of high-rel
     are difficult to scale and they do not account for the delays introduced by communication interfaces.
 
     It is the duty of every node that publishes timestamped data to account for its own internal delays;
-    for example, if a data latency of a local sensor is known,
+    for example, if the data latency of a local sensor is known,
     it needs to be accounted for in the reported timestamp value.
 \end{remark}
 
@@ -107,8 +106,8 @@ Redundant time synchronization masters are supported for the benefit of high-rel
 \subsection{Primitive types and physical quantities}
 
 The namespaces \DSDLReference{uavcan.si} and \DSDLReference{uavcan.primitive}
-included in the standard data type set are designed to provide a very generic and flexible,
-albeit neither bandwidth-efficient nor low-latency, method of real-time data exchange.
+included in the standard data type set are designed to provide a generic and flexible
+method of real-time data exchange. However, these are not bandwidth-efficient.
 
 Generally, applications where the bus bandwidth and latency are important should minimize their reliance
 on these generic data types and favor more specialized types instead that are custom-designed for their
@@ -116,16 +115,16 @@ particular use cases; e.g., vendor-specific types or application-specific types,
 designed in-house, published by third parties\footnote{As long as the license permits.}, or supplied by
 vendors of COTS equipment used in the application.
 
-Vendors of COTS equipment should always ensure that at least some minimal functionality is available
+Vendors of COTS equipment are recommended to ensure that some minimal functionality is available
 via these generic types without reliance on their vendor-specific types (if there are any).
-This is important for reusability, because it is expected that some of the systems where such COTS nodes are
-to be integrated into may not be able to easily support vendor-specific types.
+This is important for reusability, because some of the systems where such COTS nodes are
+to be integrated may not be able to easily support vendor-specific types.
 
 \subsubsection{SI namespace}
 
 The \verb|si| namespace is named after the International System of Units (SI).
 The namespace contains a collection of scalar and vector value types that describe most commonly used
-physical quantities in the SI system of units; for example, velocity, mass, energy, angle, time, and so on.
+physical quantities in SI; for example, velocity, mass, energy, angle, and time.
 The objective of these types is to permit construction of arbitrarily complex distributed control systems without
 reliance on any particular vendor-specific data types.
 
@@ -134,13 +133,13 @@ Each message type defined in the SI namespace contains a short overflowing times
 Every emitted message should be timestamped in order to allow subscribers to identify which of the messages
 relate to the same event or to the same instant.
 Messages that are emitted in bulk in relation to the same event or the same instant should contain
-exactly the same value of the timestamp,
-in order to simplify the task of timestamp matching for the subscribers.
+exactly the same value of the timestamp
+to simplify the task of timestamp matching for the subscribers.
 
 The exact strategy of matching related messages by timestamp employed by subscribers is entirely
 implementation-defined.
 The specification does not concern itself with this matter because it is expected that different applications
-will opt for different design trade-offs and different tactics to suit their constraints best.
+will opt for different design trade-offs and different tactics to suit their constraints.
 Such diversity is not harmful, because its effects are always confined to the local node and cannot affect
 operation of other nodes or their compatibility.
 
@@ -159,12 +158,12 @@ the latter are limited so that their serialized representation is never larger t
 The primitive types are designed to complement the SI namespace with an even simpler set of basic types
 that do not make any assumptions about the meaning of the data they describe.
 The primitive types provide a very high degree of flexibility, but due to their lack of semantic information,
-their usage carries the risk of creating suboptimal interfaces that are difficult to use, validate, and scale.
+their use carries the risk of creating suboptimal interfaces that are difficult to use, validate, and scale.
 
-Normally, the usage of primitive types should be limited to very basic vendor-neutral interfaces for COTS
+Normally, the use of primitive types should be limited to very basic vendor-neutral interfaces for COTS
 equipment and software, debug and diagnostic purposes, and whenever there is a need to exchange data the
-type of which cannot be determined statically (an example of the latter use case is the register protocol
-described in section \ref{sec:application_register_interface}).
+type of which cannot be determined statically.\footnote{An example of the latter use case is the register protocol
+described in section \ref{sec:application_register_interface}.}
 
 The table \ref{table:dsdl:uavcan.primitive} provides a high-level overview of the primitive namespace.
 Please follow the references for details.
@@ -176,7 +175,7 @@ Please follow the references for details.
 The set of standard data types contains a collection of services for manipulation of remote file systems
 (namespace \DSDLReference{uavcan.file}, see the table \ref{table:dsdl:uavcan.file}).
 All basic file system operations are supported, including file reading and writing,
-directory listing, metadata retrieval (size, modification time, etc.), moving, renaming, creation, and deletion.
+directory listing, metadata retrieval (size, modification time, etc.), moving, renaming, creating, and deleting.
 
 The set of supported operations may be extended in future versions of the protocol.
 
@@ -201,11 +200,11 @@ A simple software\footnote{Or firmware -- UAVCAN does not distinguish between th
 update protocol is defined on top of the remote file system interface (section \ref{sec:application_file_system})
 and the generic node commands (section \ref{sec:application_generic_node_commands}).
 
-The process of software update involves the following data types:
+The software update process involves the following data types:
 
 \begin{itemize}
     \item \DSDLReference{uavcan.node.ExecuteCommand} -- used to initiate the software update process.
-    \item \DSDLReference{uavcan.file.Read} -- used to transfer the software image file (or multiple files)
+    \item \DSDLReference{uavcan.file.Read} -- used to transfer the software image file(s)
           from the file server to the updated node.
 \end{itemize}
 
@@ -234,7 +233,7 @@ Named registers are designed to serve the following purposes:
           such as calibration coefficients or unique identifiers.
 
     \item[Special functions] --- Non-persistent named registers can be used to trigger specific behaviors or
-          commence predefined operations when written.
+          start predefined operations when written.
 
     \item[Advanced debugging] --- Registers following a specific naming pattern can be used to provide direct read
           and write access to the local node's application software to facilitate in-depth debugging and monitoring.

@@ -3,7 +3,7 @@
 This section describes a set of high-level conventions designed to enhance compatibility
 of applications leveraging UAVCAN.
 The conventions described here are not mandatory to follow;
-however, every deviation should be justified and adequately documented.
+however, every deviation should be justified and documented.
 
 \subsection{Node identifier distribution}
 
@@ -12,7 +12,7 @@ An overview of related concepts is provided in chapter \ref{sec:basic_concepts}.
 Valid values of node-ID range from 0 up to a transport-specific upper boundary
 which is guaranteed to be above 127 for any transport.
 
-Two uppermost node-ID values are reserved for diagnostic and debugging tools;
+The two uppermost node-ID values are reserved for diagnostic and debugging tools;
 these node-ID values should not be used in fielded systems.
 
 \subsection{Coordinate frames}
@@ -25,8 +25,8 @@ It is recognized, however, that some applications may find the advised conventio
 in which case deviations are permitted.
 Any such deviations must be explicitly documented.
 
-All coordinate systems defined in this section are right handed.
-If application-specific coordinate systems are introduced, they should be right handed as well.
+All coordinate systems defined in this section are right-handed.
+If application-specific coordinate systems are introduced, they should be right-handed as well.
 
 \begin{figure}[hbt]
     \centering
@@ -37,7 +37,7 @@ If application-specific coordinate systems are introduced, they should be right 
     % https://pixabay.com/en/airplane-plane-aircraft-propeller-40374/
     % The final image is drawn by me. The source Inkscape SVG file is located in the same directory.
     \includegraphics[width=0.45\textwidth]{application_layer/aircraft_principal_axes}
-    North-East-Down (NED) frame and body frame conventions. All systems are right handed.
+    North-East-Down (NED) frame and body frame conventions. All systems are right-handed.
     \caption{
         Coordinate frame conventions.
         \label{fig:application_coordinate_frame_conventions}
@@ -46,7 +46,7 @@ If application-specific coordinate systems are introduced, they should be right 
 
 \subsubsection{World frame}
 
-For world fixed frames, the \emph{North-East-Down} (NED) right handed notation should be preferred.
+For world fixed frames, the \emph{North-East-Down} (NED) right-handed notation is preferred.
 \begin{samepage}
 \begin{description}
     \item[X] --- northward;
@@ -57,7 +57,7 @@ For world fixed frames, the \emph{North-East-Down} (NED) right handed notation s
 
 \subsubsection{Body frame}
 
-In relation to a body, the convention is as defined below, right handed.
+In relation to a body, the convention is as defined below, right-handed.
 This convention is widely used in aeronautic applications.
 \begin{samepage}
 \begin{description}
@@ -69,7 +69,7 @@ This convention is widely used in aeronautic applications.
 
 \subsubsection{Optical frame}
 
-In the case of cameras, the right handed convention specified below should be preferred.
+In the case of cameras, the right-handed convention specified below is preferred.
 It is widely used in various applications involving computer vision systems.
 \begin{samepage}
 \begin{description}
@@ -86,7 +86,7 @@ All applications should represent rotations using quaternions with the elements 
 }: W, X, Y, Z.
 Other forms of rotation representation should be avoided.
 
-Angular velocities should be represented using the right handed fixed axis (extrinsic) convention:
+Angular velocities should be represented using the right-handed, fixed-axis (extrinsic) convention:
 X (roll), Y (pitch), Z (yaw).
 
 \begin{remark}
@@ -94,13 +94,13 @@ X (roll), Y (pitch), Z (yaw).
     computation complexity, and explicitness:
     \begin{itemize}
         \item Euler angles are not self-contained, requiring applications to agree on a particular
-        convention beforehand; such convention would be difficult to establish considering different
+        convention beforehand; a convention would be difficult to establish considering different
         demands of various use cases.
 
         \item Euler angles and fixed axis rotations typically cannot be used for computations directly
-        due to angular interpolation issues and singularities; thus, in order to make use of such
+        due to angular interpolation issues and singularities; thus, to make use of such
         representations, one often has to convert them to a different form (e.g., quaternion);
-        such conversions are relatively computationally heavy.
+        such conversions are computationally heavy.
 
         \item Rotation matrices are highly redundant.
     \end{itemize}
