@@ -33,26 +33,30 @@ for message transfers and service transfers, respectively.
             \multicolumn{4}{c|}{Service, not message} &
             \multicolumn{5}{c|}{Anonymous message} &
             \multicolumn{12}{c|}{\multirow{2}{*}{Subject-ID}} &
-            \multicolumn{8}{c|}{Protocol version}
-            \\\cline{2-4} \cline{7-10} \cline{23-29}
+            \multicolumn{1}{c|}{\multirow{2}{*}{R}} &
+            \multicolumn{7}{c|}{\multirow{2}{*}{Source node-ID}}
+            \\\cline{2-4} \cline{7-10}
 
             &
             \multicolumn{3}{c|}{Priority}
             &
             &
             &
-            \multicolumn{16}{c|}{} &
-            \multicolumn{7}{c|}{Source node-ID} &
+            R &
+            \multicolumn{15}{c|}{} &
+            &
+            \multicolumn{7}{c|}{}
             \\
 
             \textbf{Values} &
             \multicolumn{3}{c|}{$[0, 7]$} &
             $0$ &
             $\mathbb{B}$ &
-            \multicolumn{4}{c}{} &
+            $0$ &
+            \multicolumn{3}{c}{} &
             \multicolumn{12}{c|}{$[0, 32767]$} &
-            \multicolumn{7}{c|}{$[0, 127]$} &
-            $1$
+            $0$ &
+            \multicolumn{7}{c|}{$[0, 127]$}
             \\\hline
 
             \textbf{CAN ID bit} &
@@ -72,28 +76,29 @@ for message transfers and service transfers, respectively.
             \multirow{2}{*}{\textbf{Service}} &
             \multicolumn{4}{c|}{Service, not message} &
             \multicolumn{5}{c|}{Request, not response} &
-            \multicolumn{5}{c|}{} &
+            \multicolumn{6}{c|}{} &
             \multicolumn{7}{c|}{\multirow{2}{*}{Destination node-ID}} &
-            \multicolumn{8}{c|}{Protocol version}
-            \\\cline{2-4} \cline{7-10} \cline{23-29}
+            \multicolumn{7}{c|}{\multirow{2}{*}{Source node-ID}}
+            \\\cline{2-4} \cline{7-10}
 
             &
             \multicolumn{3}{c|}{Priority} &
-            \cellcolor{red} &
             &
+            &
+            R &
             \multicolumn{9}{c|}{Service-ID} &
             \multicolumn{7}{c|}{} &
-            \multicolumn{7}{c|}{Source node-ID} &
+            \multicolumn{7}{c|}{}
             \\
 
             \textbf{Values} &
             \multicolumn{3}{c|}{$[0, 7]$} &
             $1$ &
             $\mathbb{B}$ &
+            $0$ &
             \multicolumn{9}{c|}{$[0, 511]$} &
             \multicolumn{7}{c|}{$[0, 127]$} &
-            \multicolumn{7}{c|}{$[0, 127]$} &
-            $1$
+            \multicolumn{7}{c|}{$[0, 127]$}
             \\\hline
 
             \textbf{CAN ID bit} &
@@ -120,16 +125,18 @@ for message transfers and service transfers, respectively.
     Anonymous message   & 1     & $\{0, 1\}$ (any)  & Zero for regular (non-anonymous) message transfers.
                                                       One for anonymous message transfers. \\
 
-    Subject-ID          & 16    & $[0, 32767]$       & Subject identifier of the current message.
+    Reserved bit 23     & 1     & $0$               & Ignore frame (or use according to a newer specification)
+                                                      if this field has a different value. \\
+
+    Subject-ID          & 15    & $[0, 32767]$ (any) & Subject identifier of the current message.
                                                        The most significant bit is always zero. \\
+
+    Reserved bit 7      & 1     & $0$               & Ignore frame (or use according to a newer specification)
+                                                      if this field has a different value. \\
 
     Source node-ID      & 7     & $[0, 127]$ (any)  & Node-ID of the origin.
                                                       For anonymous transfers, this field contains a pseudo-ID instead,
                                                       as described in section \ref{sec:can_source_node_pseudo_id}. \\
-
-    Protocol version    & 1     & $1$               & Protocol version, ignore frame
-                                                      (or use according to a newer specification)
-                                                      if this field is not 1. \\
 \end{UAVCANSimpleTable}
 
 \begin{UAVCANSimpleTable}{CAN ID fields for service transfers}{|l l l X|}
@@ -142,6 +149,9 @@ for message transfers and service transfers, respectively.
 
     Request not response& 1     & $\{0, 1\}$ (any)  & 1 for service request, 0 for service response. \\
 
+    Reserved bit 23     & 1     & $0$               & Ignore frame (or use according to a newer specification)
+                                                      if this field has a different value. \\
+
     Service-ID          & 9     & $[0, 511]$ (any)  & Service-ID of the encoded service object
                                                       (request or response). \\
 
@@ -150,10 +160,6 @@ for message transfers and service transfers, respectively.
 
     Source node-ID      & 7     & $[0, 127]$ (any)  & Node-ID of the origin
                                                       (i.e., client for requests, server for responses). \\
-
-    Protocol version    & 1     & $1$               & Protocol version, ignore frame
-                                                      (or use according to a newer specification)
-                                                      if this field is not 1. \\
 \end{UAVCANSimpleTable}
 
 \subsubsection{Transfer priority}
