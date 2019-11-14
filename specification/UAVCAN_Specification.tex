@@ -53,27 +53,29 @@
 
 \section*{Overview}
 
-UAVCAN is an open lightweight protocol designed for reliable communication in aerospace and robotic applications via
-robust vehicle bus networks.
+UAVCAN is an open lightweight protocol designed for reliable intravehicular communication
+in aerospace and robotic applications over robust transports.
+It is created to address the challenge of deterministic on-board data exchange
+between systems and components of advanced intelligent vehicles.
+
+The name UAVCAN stands for \emph{Uncomplicated Application-level Vehicular Communication And Networking}.
 
 Features:
 
 \begin{itemize}
     \item Democratic network -- no bus master, no single point of failure.
-    \item Publish/subscribe and request/response (RPC\footnote{Remote procedure call.}) exchange semantics.
+    \item Publish/subscribe and request/response (RPC\footnote{Remote procedure call.}) communication semantics.
     \item Efficient exchange of large data structures with automatic decomposition and reassembly.
     \item Lightweight, deterministic, easy to implement, and easy to validate.
     \item Suitable for deeply embedded, resource constrained, hard real-time systems.
     \item Supports dual and triply modular redundant transports.
     \item Supports high-precision network-wide time synchronization.
+    \item Provides rich data type and interface abstractions -- an interface description language is a core part of
+    the technology which allows deeply embedded sub-systems to interface with higher-level systems directly and
+    in a maintainable manner while enabling simulation and functional testing.
     \item The specification and high quality reference implementations in popular programming languages are free,
-    open source, and available for commercial use (MIT license).
+    open source, and available for commercial use under the permissive MIT license.
 \end{itemize}
-
-\section*{Support and feedback}
-
-Information, documentation, and discussions related to UAVCAN are available via the official website at
-\href{http://uavcan.org}{uavcan.org}.
 
 \BeginRightColumn
 
@@ -84,10 +86,11 @@ No licensing or approval of any kind is necessary for its implementation, distri
 
 % The following statement looks a bit archaic, but it is the recommended form according to
 % https://creativecommons.org/choose/results-one?license_code=by&amp;jurisdiction=&amp;version=4.0&amp;lang=en
-\hspace*{\fill}\includegraphics[height=2\baselineskip]{cc-by}\hspace*{\fill}\\
 This work is licensed under the Creative Commons Attribution 4.0 International License.
 To view a copy of this license, visit \url{http://creativecommons.org/licenses/by/4.0/}
 or send a letter to Creative Commons, PO Box 1866, Mountain View, CA 94042, USA.
+
+\hspace*{\fill}\includegraphics[height=2\baselineskip]{cc-by}\hspace*{\fill}
 
 \section*{Disclaimer of warranty}
 
@@ -103,7 +106,7 @@ shall any author of this Specification be liable for damages,
 including any direct, indirect, special, incidental, or consequential damages of any character arising
 from, out of, or in connection with the Specification or the implementation, deployment,
 or other use of the Specification (including but not limited to damages for loss of goodwill,
-work stoppage, equipment failure or malfunction, injuries to persons,
+work stoppage, equipment failure or malfunction, injuries to persons, death,
 or any and all other commercial damages or losses),
 even if such author has been made aware of the possibility of such damages.
 

@@ -7,7 +7,7 @@ CAN FD should be considered the primary transport protocol.
 
 UAVCAN utilizes only extended CAN frames with 29-bit identifiers.
 UAVCAN can share the same bus with other protocols based on standard (non-extended) CAN frames with 11-bit identifiers.
-However, future revisions of UAVCAN may utilize 11-bit identifiers as well so backward compatibility 
+However, future revisions of UAVCAN may utilize 11-bit identifiers as well so backward compatibility
 with other protocols is not guaranteed.
 
 \subsection{CAN ID structure}
@@ -365,7 +365,7 @@ In the latter case, the last CAN frame will contain only the metadata,
 as specified below in this section.
 
 Each CAN frame of a multi-frame transfer except the last one
-should use the maximum CAN data length permitted by the transport.
+is recommended to use the maximum CAN data length permitted by the transport.
 This is not a hard requirement;
 some systems that utilize CAN FD may opt for shorter CAN frames in order to reduce the worst case
 preemption latency, as explained in section \ref{sec:transport_multi_frame_transfers}.
