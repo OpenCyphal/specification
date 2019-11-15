@@ -616,6 +616,25 @@ Additionally, excessive payload data may contain padding bytes if required by th
     \caption{Transfer payload truncation.\label{fig:transport_payload_truncation}}
 \end{figure}
 
+\begin{remark}
+    Let node A publish an object of the following type over the subject X:
+
+    \begin{minted}{python}
+        float32 parameter
+        float32 variance
+    \end{minted}
+
+    Let node B subscribe to the subject X expecting an object of the following type:
+
+    \begin{minted}{python}
+        float32 parameter
+    \end{minted}
+
+    The payload truncation requirement guarantees that the two nodes will be able to interoperate despite
+    relying on incompatible data type definitions.
+    Under this example, the duty of ensuring the semantic compatibility lies on the system integrator.
+\end{remark}
+
 Implementations shall not enforce the minimum payload size on received transfers.
 In other words, implementations shall not discard a transfer even if it is determined that it contains less payload
 data than expected.
