@@ -13,6 +13,11 @@ The goal is to ensure that the serialized representations defined by DSDL match 
 modern computers, so that, ideally, a typical system will not have to perform any data conversion whatsoever while
 exchanging data over a UAVCAN network.
 
+The implicit truncation and implicit zero extension rules introduced in this section are designed to
+facilitate structural subtyping and to enable extensibility of data types while retaining backward compatibility.
+This is a conscious trade-off between runtime type checking and long-term stability guarantees.
+This model assumes that data type compatibility is to be enforced not at runtime, but beforehand.
+
 \subsubsection{Bit and byte ordering}
 
 The smallest atomic data entity is a bit.
@@ -77,12 +82,80 @@ In other words, padding bits may only be added before a fully constructed serial
 handed over for transmission over the UAVCAN network
 (or any other destination which does not support bit-level data granularity).
 
-Additionally, the transport layer may introduce extra padding at the end of the serialized representation,
-as described in relevant sections of chapter \ref{sec:transport_layer};
-however, such padding behavior falls outside of the scope of the DSDL specification
-as it belongs to the domain of network transports rather than data presentation.
+\subsubsection{Implicit truncation of excessive data}
 
-When a serialized representation is deconstructed, the value of the trailing padding bits must be ignored.
+When a serialized representation is deserialized, implementations shall silently\footnote{%
+    I.e., without registering an error of any kind.
+} ignore any excessive (unused) data remaining upon deserialization, irrespective of its amount.
+
+One of the consequences of the above requirement is that the transport layer will be able to introduce
+additional padding at the end of the serialized representation to satisfy its data size granularity constraints.
+The specifics of such padding behavior fall outside of the scope of the DSDL specification
+as they belong to the domain of network transports rather than data presentation.
+
+Another consequence is that a serialized representation constructed from an instance of type $B$ can be
+deserialized into an instance of type $A$ as long as $B$ is a structural subtype of $A$.
+The topic of data type compatibility is explored in section \ref{sec:dsdl_versioning}.
+
+\begin{remark}
+    Let $X$ be an instance of data type $B$, which is defined as follows:
+
+    \begin{minted}{python}
+        float32 parameter
+        float32 variance
+    \end{minted}
+
+    Let $A$ be a structural supertype of $B$, being defined as follows:
+
+    \begin{minted}{python}
+        float32 parameter
+    \end{minted}
+
+    Then the serialized representation of $X$ can be deserialized into an instance of $A$.
+
+    The implicit truncation rule is introduced to permit extension of data types by introducing additional fields
+    without breaking backward compatibility with existing deployments,
+    and to permit introduction of more specific derived types while retaining compatibility with their base types.
+    The topic of data type compatibility is explored in detail in section \ref{sec:dsdl_versioning}.
+\end{remark}
+
+\subsubsection{Implicit zero extension of missing data and trailing zero bits}
+
+For the purposes of deserialization routines,
+the serialized representation of any instance of any data type shall be considered to contain an implicit
+sequence of trailing zero (0) bits of infinite length.
+
+Consequently, trailing zero bits can be truncated upon construction of a serialized representation
+for purposes of data compression, if such behavior is found to be beneficial for the application.
+
+The extreme case of the described behavior is the equality between a serialized representation
+consisting of an empty list of bits and a serialized representation consisting of a positive number of zero bits.
+
+\begin{remark}
+    This example assumes that the reader is familiar with the variable-length array serialization rules,
+    explained later in this section.
+
+    Let the data type $A$ be defined as follows:
+
+    \begin{minted}{python}
+        uint8 scalar
+    \end{minted}
+
+    Let $X$ be an instance of $A$, where the value of \verb|scalar| is 4.
+    Let the data type $B$ be defined as follows:
+
+    \begin{minted}{python}
+        uint8[<256] array
+    \end{minted}
+
+    Then the serialized representation of $X$ can be deserialized into an instance of $B$ where the field
+    \verb|array| contains a sequence of four zeros: $0, 0, 0, 0$.
+
+    The implicit truncation rule is introduced to permit extension of data types by introducing additional fields
+    without breaking backward compatibility with existing deployments,
+    and to enable trivial data compression by truncating trailing zeros from serialized representations.
+    The topic of data type compatibility is explored in detail in section \ref{sec:dsdl_versioning}.
+\end{remark}
 
 \subsection{Void types}\label{sec:dsdl_serialized_void}
 
@@ -282,7 +355,7 @@ two data schema definitions: one for request object, one for response object.
 Unless explicitly specified otherwise, any reference to serialized representations of a service type
 implies either or both of its data schema definitions, depending on context.
 
-A serialized representation of an object of a composite type is an ordered set of serialized representations of
+A serialized representation of an object of a composite type is a sequence of serialized representations of
 its field attribute values joined into a bit sequence.
 The ordering of the serialized representations of the field attribute values follows the order
 of field attribute declaration.
