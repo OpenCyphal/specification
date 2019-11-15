@@ -575,6 +575,53 @@ int main()
 \end{minted}
 \end{minipage}
 
+\subsection{Payload truncation}
+
+The deterministic nature of UAVCAN in general and DSDL in particular allows implementations to statically determine the
+maximum amount of memory that is required to contain a data object of a particular type.
+Consequently, an implementation that is interested in receiving data objects of a particular type\footnote{%
+    Messages, service requests, or service responses.
+}
+can statically determine the maximum length of the transfer payload.
+
+Implementations shall be able to handle incoming transfers containing a larger amount of payload data than expected.
+In the event of such extra payload being received, a compliant implementation shall silently\footnote{%
+    Such occurrence is not indicative of a problem so it shall not be reported as such.
+}
+discard the excessive (unexpected) data at the end of the received payload.
+The transfer CRC, if applicable, shall be validated regardless of the presence of the extra payload in the transfer.
+
+The requirement to silently discard the excessive payload data at the end of the transfer is motivated by
+the necessity to allow extensibility of data type definitions, as described in chapter \ref{sec:dsdl}.
+Additionally, excessive payload data may contain padding bytes if required by the particular transport layer.
+
+\begin{figure}[H]
+    $$
+    \raisebox{1em}{\footnotesize{\text{first byte}}}
+    \overbrace{%
+        \underbrace{\huge{%
+            \blacksquare\blacksquare\blacksquare\blacksquare\blacksquare\blacksquare%
+            \blacksquare\blacksquare\blacksquare\blacksquare\blacksquare\blacksquare%
+        }}_{\substack{\text{Expected, accepted} \\ \text{transfer payload}}}%
+        \underbrace{\huge{%
+            \boxtimes\boxtimes\boxtimes\boxtimes\boxtimes\boxtimes\boxtimes\boxtimes%
+        }}_{\substack{\text{Excessive, discarded} \\ \text{transfer payload}}}%
+    }^{\substack{%
+        \text{Transfer CRC is validated} \\
+        \text{for the entire transfer payload} \\
+        \text{before the truncation}}
+    }
+    \raisebox{1em}{\footnotesize{\text{last byte}}}
+    $$
+    \caption{Transfer payload truncation.\label{fig:transport_payload_truncation}}
+\end{figure}
+
+Implementations shall not enforce the minimum payload size on received transfers.
+In other words, implementations shall not discard a transfer even if it is determined that it contains less payload
+data than expected.
+Serialization validity constraints are to be enforced by the object deserialization routines
+instead of the transport layer.
+
 \subsection{State variables}
 
 \subsubsection{Main principles}
