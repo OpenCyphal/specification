@@ -15,6 +15,8 @@ the set of serialized representations\footnote{The serialization rules are revie
 in detail in the section \ref{sec:dsdl_data_serialization}.}
 of $A$ is a superset of the set of serialized representations of $B$.
 
+Consequently, a type is bit-compatible with its structural supertype.
+
 $A$ and $B$ are said to be \emph{mutually bit-compatible} if
 their sets of serialized representations are equal.
 
@@ -130,6 +132,9 @@ if an application that correctly uses $A$ exhibits a functionally equivalent beh
 that correctly uses $B$.
 The property of semantic compatibility is commutative.
 
+Due to the implicit truncation and implicit zero-extension rules,
+semantic compatibility is orthogonal to bit-compatibility.
+
 \begin{remark}[breakable]
     Despite using different binary layouts, the following two definitions are semantically compatible
     and also bit-compatible:
@@ -155,6 +160,8 @@ The property of semantic compatibility is commutative.
 \end{remark}
 
 \subsubsection{Variabilities}
+
+Compatibility of a set of data types is a function of their structural properties only.
 
 Whether a set of data types are bit-compatible and/or semantically compatible with each other
 is determined by their DSDL definitions and is invariant to their name, version, and/or the fixed port-ID.
@@ -254,7 +261,10 @@ all other versions must also be of the message kind.
 A port identifier of a given kind (subject or service)\footnote{%
     The kind is specified explicitly due to the fact that the sets of subject-ID and service-ID are orthogonal.
     In other words, the numeric value of a port-ID may refer to different data types if they are of different kinds.
-} shall only be used with one major version of one data type in a given UAVCAN network.
+} shall only be used with semantically compatible data types in a given UAVCAN network.
+Semantic compatibility shall be enforced before runtime, either by the integrator or by the architect of the system.
+Implementers may take advantage of the implicit truncation and implicit zero extension rules to facilitate
+semantic compatibility of data types even if they are not bit-compatible.
 
 The mapping from port-ID to its data type may be non-injective.
 In other words, a data type may be simultaneously used with more than one port-ID.
