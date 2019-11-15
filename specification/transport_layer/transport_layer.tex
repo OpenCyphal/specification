@@ -602,10 +602,10 @@ Additionally, excessive payload data may contain padding bytes if required by th
         \underbrace{\huge{%
             \blacksquare\blacksquare\blacksquare\blacksquare\blacksquare\blacksquare%
             \blacksquare\blacksquare\blacksquare\blacksquare\blacksquare\blacksquare%
-        }}_{\substack{\text{Expected, accepted} \\ \text{transfer payload}}}%
+        }}_{\substack{\text{Expected, accepted} \\ \text{payload}}}%
         \underbrace{\huge{%
             \boxtimes\boxtimes\boxtimes\boxtimes\boxtimes\boxtimes\boxtimes\boxtimes%
-        }}_{\substack{\text{Excessive, discarded} \\ \text{transfer payload}}}%
+        }}_{\substack{\text{Excessive, discarded} \\ \text{payload}}}%
     }^{\substack{%
         \text{Transfer CRC is validated} \\
         \text{for the entire transfer payload} \\
@@ -617,14 +617,14 @@ Additionally, excessive payload data may contain padding bytes if required by th
 \end{figure}
 
 \begin{remark}
-    Let node A publish an object of the following type over the subject X:
+    Let node $A$ publish an object of the following type over the subject $X$:
 
     \begin{minted}{python}
         float32 parameter
         float32 variance
     \end{minted}
 
-    Let node B subscribe to the subject X expecting an object of the following type:
+    Let node $B$ subscribe to the subject $X$ expecting an object of the following type:
 
     \begin{minted}{python}
         float32 parameter
