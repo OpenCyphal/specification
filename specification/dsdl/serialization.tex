@@ -125,11 +125,13 @@ For the purposes of deserialization routines,
 the serialized representation of any instance of any data type shall be considered to contain an implicit
 sequence of trailing zero (0) bits of infinite length.
 
-Consequently, trailing zero bits can be truncated upon construction of a serialized representation
-for purposes of data compression, if such behavior is found to be beneficial for the application.
-
-The extreme case of the described behavior is the equality between a serialized representation
-consisting of an empty list of bits and a serialized representation consisting of a positive number of zero bits.
+Despite this rule, implementations are not allowed to intentionally truncate trailing zeros
+upon construction of a serialized representation of an object\footnote{%
+    Intentional truncation is prohibited because in a future revision of the specification the implicit zero
+    extension rule may be removed.
+    If intentional truncation were allowed, removal of the implicit zero extension rule would have
+    broken backward compatibility.
+}.
 
 \begin{remark}
     This example assumes that the reader is familiar with the variable-length array serialization rules,
@@ -152,8 +154,7 @@ consisting of an empty list of bits and a serialized representation consisting o
     \verb|array| contains a sequence of four zeros: $0, 0, 0, 0$.
 
     The implicit truncation rule is introduced to permit extension of data types by introducing additional fields
-    without breaking backward compatibility with existing deployments,
-    and to enable trivial data compression by truncating trailing zeros from serialized representations.
+    without breaking backward compatibility with existing deployments.
     The topic of data type compatibility is explored in detail in section \ref{sec:dsdl_versioning}.
 \end{remark}
 
