@@ -159,10 +159,12 @@ as described in section \ref{sec:toggle_bit}.
                                                       (request or response). \\
 
     Destination node-ID & 7     & $[0, 127]$ (any)  & Node-ID of the destination
-                                                      (i.e., server for requests, client for responses). \\
+                                                      (i.e., server for requests, client for responses).
+                                                      Shall not equal the source node-ID. \\
 
     Source node-ID      & 7     & $[0, 127]$ (any)  & Node-ID of the origin
-                                                      (i.e., client for requests, server for responses). \\
+                                                      (i.e., client for requests, server for responses).
+                                                      Shall not equal the destination node-ID. \\
 \end{UAVCANSimpleTable}
 
 \subsubsection{Transfer priority}
