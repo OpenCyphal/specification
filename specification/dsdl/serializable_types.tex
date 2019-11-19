@@ -286,3 +286,41 @@ A tagged union shall not contain padding field attributes.
 
 The value of a tagged union object is a function of the field attribute which value it is currently holding
 and the value of the field attribute itself.
+
+\subsubsection{Type polymorphism}
+
+Type polymorphism is supported in DSDL through structural subtyping.
+The following definition relies on the concept of \emph{field attribute},
+which is introduced in section \ref{sec:dsdl_attributes}.
+
+Let $B$ and $D$ be DSDL message types whose data schemas define $b$ and $d$ field attributes, respectively.
+Let each field attribute be assigned a sequential index according to its position in the DSDL definition
+(see section \ref{sec:dsdl_grammar} on statement ordering).
+
+$D$ is a \emph{structural subtype} of $B$ if, and only if,
+$b \leq d$, $B$ is not $D$, neither $B$ nor $D$ define a tagged union, and
+for each field attribute of $B$ at index $i$ there is an equal field attribute in $D$ at index $i$.
+
+If $D$ is a structural subtype of $B$, then $B$ is a structural supertype of $D$.
+
+\begin{remark}
+    Subtyping example. First type:
+
+    \begin{minted}{python}
+        float64 a       # Index 0
+        int16[<=9] b    # Index 1
+    \end{minted}
+
+    The second type is a structural subtype of the first type:
+
+    \begin{minted}{python}
+        float64 a       # Index 0
+        int16[<=9] b    # Index 1
+        uint8 foo       # Index 2
+    \end{minted}
+
+    A message type that defines zero fields is a structural supertype of any other message type.
+    A message type may have an arbitrary number of supertypes as long as at most one of them is non-empty.
+
+    Polymorphic relations are not defined on service types and tagged unions.
+\end{remark}

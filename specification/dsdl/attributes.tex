@@ -26,6 +26,9 @@ Exception applies to the special kind of field attributes --- \emph{padding fiel
 The type of a padding field attribute must be of the void category.
 A padding field attribute may not have a name.
 
+A pair of field attributes is considered equal if, and only if, both field attributes are of the same type,
+and both share the same name or both are padding field attributes.
+
 \begin{remark}
     Example:
     \begin{minted}{python}
