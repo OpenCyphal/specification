@@ -320,7 +320,7 @@ If $D$ is a structural subtype of $B$, then $B$ is a structural supertype of $D$
     \end{minted}
 
     A message type that defines zero fields is a structural supertype of any other message type.
-    A message type may have an arbitrary number of supertypes as long as at most one of them is non-empty.
+    A message type may have an arbitrary number of supertypes as long as the field equality constraint is satisfied.
 
     Polymorphic relations are not defined on service types and tagged unions.
 \end{remark}
