@@ -1,10 +1,27 @@
 \chapter{Introduction}\label{sec:introduction}
 
-UAVCAN is a lightweight protocol designed to provide a highly reliable communication method for
-aerospace and robotic applications via robust vehicle bus networks.
-
 This is a non-normative chapter covering the basic concepts that govern development and maintenance of
 the specification.
+
+\section{Overview}
+
+UAVCAN is a lightweight protocol designed to provide a highly reliable communication method
+supporting publish-subscribe and remote procedure call semantics
+for aerospace and robotic applications via robust vehicle bus networks.
+It is created to address the challenge of deterministic on-board data exchange between systems and components
+of next-generation intelligent vehicles: manned and unmanned aircraft, spacecraft, robots, and cars.
+
+UAVCAN can be approximated as a highly deterministic decentralized object request broker
+with a specialized interface description language and a highly efficient data serialization format
+suitable for use in real-time safety-critical systems with optional modular redundancy.
+
+The name UAVCAN stands for \emph{Uncomplicated Application-level Vehicular Communication And Networking}.
+
+UAVCAN is a standard open to everyone, and it will always remain this way.
+No licensing or approval of any kind is necessary for its implementation, distribution, or use.
+
+The development and maintenance of the UAVCAN specification is governed through the public discussion forum,
+software repositories, and other resources available via the website at \href{http://uavcan.org}{uavcan.org}.
 
 \section{Document conventions}
 
@@ -79,8 +96,16 @@ $\text{BADC0FFEE}_{16} = 50159747054$, $10101_2$.
     It will be inexpensive to support in terms of computing power and engineering hours,
     and advanced features can be implemented incrementally as needed.
 
+    \item[Rich data type and interface abstractions] --- an interface description language will be a core part of
+    the technology which will allow deeply embedded sub-systems to interface with higher-level systems directly and
+    in a maintainable manner while enabling simulation and functional testing.
+
     \item[Support for various transport protocols] --- UAVCAN will be usable with different transports.
     The standard must be capable of accommodating other transport protocols in the future.
+
+    \item[API-agnostic standard] --- Unlike some other networking standards, UAVCAN will not attempt to describe
+    the application program interface (API). Any details that do not affect the behavior of an implementation
+    observable by other participants of the network will be outside of the scope of this specification.
 
     \item[Open specification and reference implementations] --- The UAVCAN specification will always be open and
     free to use for everyone; the reference implementations will be distributed under the terms of
@@ -99,9 +124,8 @@ or by others for private use or for public release
 There can be up to 256 major versions of a data type, and up to 256 minor versions per major version.
 More information is provided in chapter \ref{sec:dsdl}.
 
-UAVCAN supports 32768 message subject identifiers for publish/subscribe exchanges,
-512 service identifiers for remote procedure call exchanges,
-and at least 8 anonymous message subject identifiers for certain special features such as plug-and-play support.
+UAVCAN supports 32768 message subject identifiers for publish/subscribe exchanges and
+512 service identifiers for remote procedure call exchanges.
 A small subset of these identifiers is reserved for the core standard and for publicly released vendor-specific types.
 More information is provided in chapter \ref{sec:application_layer}.
 
@@ -114,6 +138,7 @@ The list of transport protocols supported by UAVCAN is provided in chapter \ref{
 Non-redundant, doubly-redundant and triply-redundant transports are supported.
 More information on the physical layer and standardized physical connectivity options
 is provided in chapter \ref{sec:physical_layer}.
+Additional transport and physical layers may be added in future revisions of the protocol.
 
 \section{Public regulated data types}
 
