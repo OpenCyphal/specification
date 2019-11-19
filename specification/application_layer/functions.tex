@@ -18,8 +18,9 @@ is to be reflected via the mandatory heartbeat message described in section \ref
 
 \subsection{Node heartbeat}\label{sec:application_node_heartbeat}
 
-Every UAVCAN node must report its status and presence by periodically publishing messages of type
-\DSDLReference{uavcan.node.Heartbeat} at a fixed rate specified in the message definition.
+Every non-anonymous UAVCAN node shall report its status and presence by periodically publishing messages of type
+\DSDLReference{uavcan.node.Heartbeat} at a fixed rate specified in the message definition using the fixed subject-ID.
+Anonymous nodes shall not publish to this subject.
 
 This is the only high-level protocol function that UAVCAN nodes are required to support.
 All other data types and application-level functions are optional.
