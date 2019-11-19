@@ -129,13 +129,20 @@ physical quantities in SI; for example, velocity, mass, energy, angle, and time.
 The objective of these types is to permit construction of arbitrarily complex distributed control systems without
 reliance on any particular vendor-specific data types.
 
-Each message type defined in the SI namespace contains a short overflowing timestamp field of type
-\DSDLReference{uavcan.time.SynchronizedAmbiguousTimestamp}.
+The namespace \DSDLReference{uavcan.si.unit} contains basic units that can be used as type-safe wrappers
+over \verb|float32| and other scalar and array types.
+
+The namespace \DSDLReference{uavcan.si.sample} contains time-stamped versions of the above,
+where the timestamp field is always located at the end in order to make the time-stamped types
+structural sub-types of the non-timestamped ones.
+The structural sub-typing enhances interoperability.
+
+Each message type defined in the namespace \verb|uavcan.si.sample| contains a timestamp field of type
+\DSDLReference{uavcan.time.SynchronizedTimestamp}.
 Every emitted message should be timestamped in order to allow subscribers to identify which of the messages
 relate to the same event or to the same instant.
 Messages that are emitted in bulk in relation to the same event or the same instant should contain
-exactly the same value of the timestamp
-to simplify the task of timestamp matching for the subscribers.
+exactly the same value of the timestamp to simplify the task of timestamp matching for the subscribers.
 
 The exact strategy of matching related messages by timestamp employed by subscribers is entirely
 implementation-defined.
@@ -144,10 +151,13 @@ will opt for different design trade-offs and different tactics to suit their con
 Such diversity is not harmful, because its effects are always confined to the local node and cannot affect
 operation of other nodes or their compatibility.
 
-The table \ref{table:dsdl:uavcan.si} provides a high-level overview of the SI namespace.
+The tables \ref{table:dsdl:uavcan.si.unit} and \ref{table:dsdl:uavcan.si.sample}
+provide a high-level overview of the SI namespace.
 Please follow the references for details.
 
-\DSDL{uavcan.si.* --index-only}
+\DSDL{uavcan.si.unit.* --index-only}
+
+\DSDL{uavcan.si.sample.* --index-only}
 
 \subsubsection{Primitive namespace}
 
