@@ -7,23 +7,37 @@ The sources of the UAVCAN specification and other related documents are containe
 When cloning this repository, don't forget to initialize the Git submodules:
 `git submodule update --init --recursive`.
 
-## Compiling
+## Style guide
+
+Follow the Zubax LaTeX guide: <https://kb.zubax.com/x/IYEh>.
+**Do not edit the document without the spell checker.**
+
+Critical definitions (behaviors, constraints, assumptions, etc.) shall be written in the main body of the document. Optional content (clarifications, examples, elaborations) is placed either into footnotes or into blue remark boxes
+which can be defined using `\begin{remark}...\end{remark}`.
+
+Never address the reader directly.
+Do not hesitate to use passive voice.
+For example, instead of "you can find the data type X here", say "the data type X can be found here".
+
+In order to refer to a DSDL definition, use the macro `\DSDLReference{}`.
+Refer to its existing usages for an example.
+
+## Tools
+
+### Compiling
 
 A GNU/Linux-based operating system is assumed.
 The described instructions may be valid for other operating systems but this is not guaranteed.
 
 In order to compile the document, install TexLive (Debian-based APT packages: `texlive-full lyx`)
-and the following Python packages:
-
-- `pygments` (for Debian-based systems, use APT package `python-pygments`)
-- [`pydsdl`](https://github.com/UAVCAN/pydsdl)
+and the Python packages listed in `requirements.txt`.
 
 When done, run `./compile.sh`.
 
-## Editing
+### IDE setup
 
 First, ensure that you can compile the document as described above.
-Do not proceeed further until that requirement is satisfied.
+Do not proceed further until that requirement is satisfied.
 
 Use Visual Studio Code with extensions `James-Yu.latex-workshop` and `ban.spellright` for editing.
 More info in the [Zubax Knowledge Base](https://kb.zubax.com/x/IYEh).
@@ -68,12 +82,4 @@ If you're using Visual Studio Code, the following settings for `James-Yu.latex-w
 }
 ```
 
-Add the following user dictionary file to squelch bogus spelling errors from Spellright:
-<https://gist.github.com/pavel-kirienko/bd3ecf47fbdb164baeb408af31100f7d>.
-**Do not edit the document without the spell checker.**
-
-## License
-
-All data contained herein is distributed under the terms of the
-[Creative Commons Attribution 4.0 International license (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/),
-unless explicitly stated otherwise.
+Use the dictionary file `.vscode/spellright.dict` to squelch bogus spelling errors from Spellright.
