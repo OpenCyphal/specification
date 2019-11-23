@@ -56,21 +56,80 @@ except limiting the amount of payload data.
 UAVCAN protocol implementations must always choose single-frame transfers if possible;
 multi-frame transfers can be used only if all of the requested payload cannot be allocated in one transport frame.
 
-\subsubsection{Common properties}
+\subsubsection{Transport layer model}
 
-The properties listed in the table \ref{table:common_transfer_properties} are common to all types of transfers.
+See the figure \ref{fig:transport_layer_model}.
 
-\begin{UAVCANSimpleTable}{Common transfer properties}{|l X|}\label{table:common_transfer_properties}
-    Property        & Description \\
-    Payload         & The serialized object. \\
-    Port-ID         & A numerical identifier that indicates how the data should be processed.
-                      This is the subject-ID for message transfers and service-ID for service transfers. \\
-    Source node-ID  & The node-ID of the transmitting node (excepting anonymous message transfers). \\
-    Priority        & A non-negative integer value that defines the transfer urgency.
-                      Higher priority transfers can preempt lower priority transfers. \\
-    Transfer-ID     & A small overflowing integer that increments with every transfer
-                      of this data type from a given node. \\
-\end{UAVCANSimpleTable}
+A \emph{specifier} is a collection of identifiers that together define a category of entities.
+Specifiers are auxiliary ephemeral constructs which are needed only for completeness of the model
+and for reasoning about the protocol.
+
+% Please do not remove the hard placement specifier [H], it is needed to keep elements ordered.
+\begin{figure}[H]
+    \centering
+    \resizebox{\textwidth}{!}{
+        \footnotesize
+        \begin{tabu}{|l l l|X[c,2] X[c] X[c]|l|}\hline\rowfont{\bfseries}
+            \multicolumn{3}{|c|}{Taxonomy} & Messages & \multicolumn{2}{|c|}{Services} & Description \\\hline
+
+            % TRANSFER PAYLOAD
+            \multicolumn{3}{|c|}{Transfer payload} &
+            \multicolumn{3}{c|}{\bfseries{} Serialized object} &
+            The serialized instance of a specific DSDL data type. \\\hline
+
+            % TRANSFER PRIORITY
+            \multicolumn{1}{|c}{\multirow{7}{*}{\rotatebox[origin=c]{90}{Transfer metadata}}} &
+            &
+            &
+            \multicolumn{3}{c|}{\bfseries{} Transfer priority} &
+            Defines the urgency (time sensitivity) of the transferred object.\\\cline{2-7}
+
+            % ROUTE SPECIFIER
+            \multicolumn{1}{|c|}{} &
+            \multicolumn{1}{c|}{\multirow{5}{*}{\rotatebox[origin=c]{90}{\shortstack{Session \\ specifier}}}} &
+            \multirow{2}{*}{\shortstack{Route \\ specifier}} &
+            \multicolumn{3}{c|}{\bfseries{} Source node-ID} &
+            Source node-ID is not defined for anonymous message transfers. \\\cline{5-6}
+
+            \multicolumn{1}{|c|}{} &
+            \multicolumn{1}{c|}{} &
+            &
+            \multicolumn{1}{c|}{} &
+            \multicolumn{2}{c|}{\bfseries{} Destination node-ID} &
+            Destination node-ID is not defined for message transfers.\\\cline{3-7}
+
+            % DATA SPECIFIER
+            \multicolumn{1}{|c|}{} &
+            \multicolumn{1}{c|}{} &
+            \multirow{3}{*}{\shortstack{Data \\ specifier}} &
+            \multicolumn{3}{c|}{\bfseries{} Transfer kind} &
+            Message (subject) or service transfer.\\\cline{4-6}
+
+            \multicolumn{1}{|c|}{} &
+            \multicolumn{1}{c|}{} &
+            &
+            \multicolumn{1}{c|}{\multirow{2}{*}{\bfseries{} Subject-ID}} &
+            \multicolumn{2}{c|}{\bfseries{} Service-ID} &
+            Port-ID specifies how the serialized object should be processed.\\\cline{5-6}
+
+            \multicolumn{1}{|c|}{} &
+            \multicolumn{1}{c|}{} &
+            &
+            \multicolumn{1}{c|}{} &
+            {\bfseries{} Request} &
+            {\bfseries{} Response} &
+            Request/response specifier applies to services only.\\\cline{2-7}
+
+            % TRANSFER ID
+            \multicolumn{1}{|c}{} &
+            &
+            &
+            \multicolumn{3}{c|}{\bfseries{} Transfer-ID} &
+            An integer that uniquely identifies a transfer within its category.\\\hline
+        \end{tabu}
+    }
+    \caption{UAVCAN transport layer model}\label{fig:transport_layer_model}
+\end{figure}
 
 \subsection{Message publication}
 
