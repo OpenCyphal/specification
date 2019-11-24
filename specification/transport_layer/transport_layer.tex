@@ -78,11 +78,18 @@ and for reasoning about the protocol.
             The serialized instance of a specific DSDL data type. \\\hline
 
             % TRANSFER PRIORITY
-            \multicolumn{1}{|c}{\multirow{7}{*}{\rotatebox[origin=c]{90}{Transfer metadata}}} &
+            \multicolumn{1}{|c|}{\multirow{7}{*}{\rotatebox[origin=c]{90}{Transfer metadata}}} &
             &
             &
             \multicolumn{3}{c|}{\bfseries{} Transfer priority} &
-            Defines the urgency (time sensitivity) of the transferred object.\\\cline{2-7}
+            Defines the urgency (time sensitivity) of the transferred object.\\\cline{4-7}
+
+            % TRANSFER ID
+            \multicolumn{1}{|c|}{} &
+            &
+            &
+            \multicolumn{3}{c|}{\bfseries{} Transfer-ID} &
+            An integer that uniquely identifies a transfer within its category.\\\cline{2-7}
 
             % ROUTE SPECIFIER
             \multicolumn{1}{|c|}{} &
@@ -118,14 +125,7 @@ and for reasoning about the protocol.
             \multicolumn{1}{c|}{} &
             {\bfseries{} Request} &
             {\bfseries{} Response} &
-            Request/response specifier applies to services only.\\\cline{2-7}
-
-            % TRANSFER ID
-            \multicolumn{1}{|c}{} &
-            &
-            &
-            \multicolumn{3}{c|}{\bfseries{} Transfer-ID} &
-            An integer that uniquely identifies a transfer within its category.\\\hline
+            Request/response specifier applies to services only.\\\hline
         \end{tabu}
     }
     \caption{UAVCAN transport layer model}\label{fig:transport_layer_model}
