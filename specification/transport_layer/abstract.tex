@@ -1,16 +1,6 @@
-\chapter{Transport layer}\label{sec:transport_layer}
+\section{Abstract concepts}
 
-This chapter defines the transport layer of UAVCAN.
-First, general implementation-agnostic concepts are introduced.
-Afterwards, they are further defined for each supported transport medium, e.g., CAN FD.
-
-As the specification is extended to add support for new transport protocols,
-some of the generic aspects may be pushed to lower-level transport-specific sections
-if they are found to map poorly on the newly added transports.
-Such changes are guaranteed to preserve full backward compatibility of the existing transport protocols.
-
-<<<<<<< ae5ff22b8347eb509f5861033c502338fe3cc98b
-\section{Core concepts}
+This section defines core concepts that are agnostic of a particular transport layer implementation.
 
 \subsection{Transfer}
 
@@ -56,81 +46,6 @@ The application does not have any control over the type of transfer that will be
 except limiting the amount of payload data.
 UAVCAN protocol implementations must always choose single-frame transfers if possible;
 multi-frame transfers can be used only if all of the requested payload cannot be allocated in one transport frame.
-
-\subsubsection{Transport layer model}
-
-See the figure \ref{fig:transport_layer_model}.
-
-A \emph{specifier} is a collection of identifiers that together define a category of entities.
-Specifiers are auxiliary ephemeral constructs which are needed only for completeness of the model
-and for reasoning about the protocol.
-
-% Please do not remove the hard placement specifier [H], it is needed to keep elements ordered.
-\begin{figure}[H]
-    \centering
-    \resizebox{\textwidth}{!}{
-        \footnotesize
-        \begin{tabu}{|l l l|X[c,2] X[c] X[c]|l|}\hline\rowfont{\bfseries}
-            \multicolumn{3}{|c|}{Taxonomy} & Messages & \multicolumn{2}{|c|}{Services} & Description \\\hline
-
-            % TRANSFER PAYLOAD
-            \multicolumn{3}{|c|}{Transfer payload} &
-            \multicolumn{3}{c|}{\bfseries{} Serialized object} &
-            The serialized instance of a specific DSDL data type. \\\hline
-
-            % TRANSFER PRIORITY
-            \multicolumn{1}{|c|}{\multirow{7}{*}{\rotatebox[origin=c]{90}{Transfer metadata}}} &
-            &
-            &
-            \multicolumn{3}{c|}{\bfseries{} Transfer priority} &
-            Defines the urgency (time sensitivity) of the transferred object.\\\cline{4-7}
-
-            % TRANSFER ID
-            \multicolumn{1}{|c|}{} &
-            &
-            &
-            \multicolumn{3}{c|}{\bfseries{} Transfer-ID} &
-            An integer that uniquely identifies a transfer within its category.\\\cline{2-7}
-
-            % ROUTE SPECIFIER
-            \multicolumn{1}{|c|}{} &
-            \multicolumn{1}{c|}{\multirow{5}{*}{\rotatebox[origin=c]{90}{\shortstack{Session \\ specifier}}}} &
-            \multirow{2}{*}{\shortstack{Route \\ specifier}} &
-            \multicolumn{3}{c|}{\bfseries{} Source node-ID} &
-            Source node-ID is not defined for anonymous message transfers. \\\cline{5-6}
-
-            \multicolumn{1}{|c|}{} &
-            \multicolumn{1}{c|}{} &
-            &
-            \multicolumn{1}{c|}{} &
-            \multicolumn{2}{c|}{\bfseries{} Destination node-ID} &
-            Destination node-ID is not defined for message transfers.\\\cline{3-7}
-
-            % DATA SPECIFIER
-            \multicolumn{1}{|c|}{} &
-            \multicolumn{1}{c|}{} &
-            \multirow{3}{*}{\shortstack{Data \\ specifier}} &
-            \multicolumn{3}{c|}{\bfseries{} Transfer kind} &
-            Message (subject) or service transfer.\\\cline{4-6}
-
-            \multicolumn{1}{|c|}{} &
-            \multicolumn{1}{c|}{} &
-            &
-            \multicolumn{1}{c|}{\multirow{2}{*}{\bfseries{} Subject-ID}} &
-            \multicolumn{2}{c|}{\bfseries{} Service-ID} &
-            Port-ID specifies how the serialized object should be processed.\\\cline{5-6}
-
-            \multicolumn{1}{|c|}{} &
-            \multicolumn{1}{c|}{} &
-            &
-            \multicolumn{1}{c|}{} &
-            {\bfseries{} Request} &
-            {\bfseries{} Response} &
-            Request/response specifier applies to services only.\\\hline
-        \end{tabu}
-    }
-    \caption{UAVCAN transport layer model}\label{fig:transport_layer_model}
-\end{figure}
 
 \subsection{Message publication}
 
@@ -229,6 +144,81 @@ If the server uses a significant part of the timeout period to process the reque
 the client might drop the request before receiving the response.
 It is recommended to ensure that the server will be able to process any request in less than 0.5 seconds.
 
+\subsection{Transport layer model}
+
+See the figure \ref{fig:transport_layer_model}.
+
+A \emph{specifier} is a collection of identifiers that together define a category of entities.
+Specifiers are auxiliary ephemeral constructs which are needed only for completeness of the model
+and for reasoning about the protocol.
+
+% Please do not remove the hard placement specifier [H], it is needed to keep elements ordered.
+\begin{figure}[H]
+    \centering
+    \resizebox{\textwidth}{!}{
+        \footnotesize
+        \begin{tabu}{|l l l|X[c,2] X[c] X[c]|l|}\hline\rowfont{\bfseries}
+            \multicolumn{3}{|c|}{Taxonomy} & Messages & \multicolumn{2}{|c|}{Services} & Description \\\hline
+
+            % TRANSFER PAYLOAD
+            \multicolumn{3}{|c|}{Transfer payload} &
+            \multicolumn{3}{c|}{\bfseries{} Serialized object} &
+            The serialized instance of a specific DSDL data type. \\\hline
+
+            % TRANSFER PRIORITY
+            \multicolumn{1}{|c|}{\multirow{7}{*}{\rotatebox[origin=c]{90}{Transfer metadata}}} &
+            &
+            &
+            \multicolumn{3}{c|}{\bfseries{} Transfer priority} &
+            Defines the urgency (time sensitivity) of the transferred object.\\\cline{4-7}
+
+            % TRANSFER ID
+            \multicolumn{1}{|c|}{} &
+            &
+            &
+            \multicolumn{3}{c|}{\bfseries{} Transfer-ID} &
+            An integer that uniquely identifies a transfer within its category.\\\cline{2-7}
+
+            % ROUTE SPECIFIER
+            \multicolumn{1}{|c|}{} &
+            \multicolumn{1}{c|}{\multirow{5}{*}{\rotatebox[origin=c]{90}{\shortstack{Session \\ specifier}}}} &
+            \multirow{2}{*}{\shortstack{Route \\ specifier}} &
+            \multicolumn{3}{c|}{\bfseries{} Source node-ID} &
+            Source node-ID is not defined for anonymous message transfers. \\\cline{5-6}
+
+            \multicolumn{1}{|c|}{} &
+            \multicolumn{1}{c|}{} &
+            &
+            \multicolumn{1}{c|}{} &
+            \multicolumn{2}{c|}{\bfseries{} Destination node-ID} &
+            Destination node-ID is not defined for message transfers.\\\cline{3-7}
+
+            % DATA SPECIFIER
+            \multicolumn{1}{|c|}{} &
+            \multicolumn{1}{c|}{} &
+            \multirow{3}{*}{\shortstack{Data \\ specifier}} &
+            \multicolumn{3}{c|}{\bfseries{} Transfer kind} &
+            Message (subject) or service transfer.\\\cline{4-6}
+
+            \multicolumn{1}{|c|}{} &
+            \multicolumn{1}{c|}{} &
+            &
+            \multicolumn{1}{c|}{\multirow{2}{*}{\bfseries{} Subject-ID}} &
+            \multicolumn{2}{c|}{\bfseries{} Service-ID} &
+            Port-ID specifies how the serialized object should be processed.\\\cline{5-6}
+
+            \multicolumn{1}{|c|}{} &
+            \multicolumn{1}{c|}{} &
+            &
+            \multicolumn{1}{c|}{} &
+            {\bfseries{} Request} &
+            {\bfseries{} Response} &
+            Request/response specifier applies to services only.\\\hline
+        \end{tabu}
+    }
+    \caption{UAVCAN transport layer model}\label{fig:transport_layer_model}
+\end{figure}
+
 \subsection{Transfer priority}\label{sec:transfer_prioritization}
 
 UAVCAN transfers are prioritized by means of the transfer priority property,
@@ -286,7 +276,7 @@ delaying their transmission until there are no more higher priority transfers to
 \end{remark}
 
 \subsection{Transfer descriptor}\label{sec:transfer_descriptor}
-
+% TODO: SESSION SPECIFIER!
 Transfer emission and reception processes rely on the concept of \emph{transfer descriptor}.
 
 A transfer descriptor is a set of properties that identify a particular set of transfers that originate
@@ -333,8 +323,6 @@ hence, its contribution to the worst case data processing load should be careful
     Elements of such structures can be easily accessed via constant-complexity static look-up tables
     because the worst case number of elements is always statically known.
 \end{remark}
-
-\section{Transfer emission}
 
 \subsection{Transfer-ID computation}\label{sec:transfer_id}
 
@@ -434,13 +422,6 @@ and increase the overall average latency.}.
 Receiving nodes must be prepared to reconstruct multi-frame transfers that utilize the
 available payload space partially.
 
-All nodes in a UAVCAN network should be configured to use the same
-maximum amount of data per transport frame\footnote{%
-    This property is also known \emph{maximum transmission unit} or MTU.
-}.
-Failure to follow this rule may render nodes unable to communicate if a transmitting node emits larger frames
-than the receiving node is able to process.
-
 All frames of a multi-frame transfer should be pushed to the transmission queue at once,
 in the proper order from the first frame to the last frame.
 Explicit gap time between transport frames belonging to the same transfer should not be introduced;
@@ -460,120 +441,10 @@ transfer were received, all of the received frames were reassembled in the corre
 and that all of the received frames belong to the same multi-frame transfer.
 
 The transfer CRC is computed over the entire payload of the transfer.
-Certain transport implementations\footnote{Such as CAN FD.} may require a short sequence of zero padding bytes
+Certain transport implementations\footnote{Such as CAN FD.} may require a short sequence of padding bytes
 to be added at the end of the transfer payload due to the low granularity of the frame payload length property;
-in that case, the zero padding bytes must be included in the CRC computation as well,
-as if they were part of the useful payload\footnote{Non-zero padding is not allowed.}.
-
-The resulting CRC value is appended to the transfer in the \emph{big-endian byte order}
-(most significant byte first),
-in order to take advantage of the CRC residue check intrinsic to the used algorithm.
-
-The transfer CRC algorithm specification is provided in the table \ref{table:transfer_crc_params}.
-
-\begin{minipage}{0.7\textwidth}
-\begin{UAVCANSimpleTable}{Transfer CRC algorithm parameters}{|ll|}\label{table:transfer_crc_params}
-    Property        & Value \\
-    Name            & CRC-16/CCITT-FALSE \\
-    Initial value   & $\mathrm{FFFF}_{16}$ \\
-    Polynomial      & $\mathrm{1021}_{16}$ \\
-    Reverse         & No \\
-    Output XOR      & $0$ \\
-    Residue         & $0$ \\
-    Check           & $\left(49, 50, \ldots, 56, 57\right) \rightarrow \mathrm{29B1}_{16}$ \\
-\end{UAVCANSimpleTable}
-\end{minipage}
-
-The following code snippet provides a basic implementation of the transfer CRC algorithm in C++.
-
-\begin{minipage}{0.9\textwidth}
-\begin{minted}{cpp}
-// UAVCAN transfer CRC algorithm implementation in C++.
-// License: CC0, no copyright reserved.
-
-#include <iostream>
-#include <cstdint>
-#include <cstddef>
-
-class TransferCRC
-{
-    std::uint16_t value_ = 0xFFFFU;
-
-public:
-    void add(std::uint8_t byte)
-    {
-        value_ ^= static_cast<std::uint16_t>(byte) << 8U;
-        for (std::uint8_t bit = 8; bit > 0; --bit)
-        {
-            if ((value_ & 0x8000U) != 0)
-            {
-                value_ = (value_ << 1U) ^ 0x1021U;
-            }
-            else
-            {
-                value_ = value_ << 1U;
-            }
-        }
-    }
-
-    void add(const std::uint8_t* bytes, std::size_t length)
-    {
-        while (length-- > 0)
-        {
-            add(*bytes++);
-        }
-    }
-
-    [[nodiscard]] std::uint16_t get() const { return value_; }
-};
-
-int main()
-{
-    TransferCRC crc;
-    crc.add(reinterpret_cast<const std::uint8_t*>("123456789"), 9);
-    std::cout << std::hex << "0x" << crc.get() << std::endl;  // Outputs 0x29B1
-    return 0;
-}
-\end{minted}
-\end{minipage}
-
-\subsubsection{Toggle bit}\label{sec:toggle_bit}
-
-The toggle bit is a property defined at the transport frame level.
-Its purpose is to detect and avoid transport frame duplication errors in multi-frame
-transfers\footnote{In single-frame transfers, transport frame deduplication is based on the transfer-ID counter.}.
-
-The toggle bit of the first transport frame of a multi-frame transfer must be set to one.
-The toggle bits of the following transport frames of the transfer must alternate,
-i.e., the toggle bit of the second transport frame must be zero,
-the toggle bit of the third transport frame must be one, and so on.
-
-For single-frame transfers, the toggle bit must be set to one or removed completely,
-whichever option works best for the particular transport.
-
-Transfers where the initial value of the toggle bit is zero must be ignored.
-The initial state of the toggle bit may be inverted in the future revisions of the protocol
-to facilitate automatic protocol version detection.
-
-\begin{remark}
-    The toggle bit can be used to facilitate operation of heterogeneous deployments where the experimental
-    UAVCAN v0 shares the same CAN bus with UAVCAN v1 (this version of the standard).
-
-    Whenever a new transfer is initiated, the original state of the toggle bit reflects the protocol version.
-    Implementations that need to support simultaneous operation of two versions of the protocol can record
-    the state of the toggle bit when the ``start of transfer'' bit is set, and keep this information
-    indexed by the value of the CAN ID field (all frames of a transfer are guaranteed to share the same CAN ID).
-    The resulting mapping from CAN ID to the protocol version can be used to route incoming frames to the
-    implementation of the appropriate version of the protocol.
-
-    \begin{UAVCANSimpleTable}{Protocol version detection based on the toggle bit}{|l l X|}
-        Start of transfer   & Toggle bit    & Protocol version \\
-        1                   & 0             & UAVCAN v0 (experimental version). \\
-        1                   & 1             & UAVCAN v1 (this version). \\
-        0                   & x             & Keep the state of the toggle bit from the first frame of the transfer
-                                              to detect protocol version for multi-frame transfers. \\
-    \end{UAVCANSimpleTable}
-\end{remark}
+in that case, the padding bytes must be included in the CRC computation as well,
+as if they were part of the useful payload.
 
 \subsection{Redundant interface support}
 
@@ -600,68 +471,6 @@ In that case, a simpler configuration where each available redundant bus is conn
 preferred.}.
 See section \ref{sec:phy_non_uniform_transport_redundancy}.
 
-\section{Transfer reception}\label{sec:transfer_reception}
-
-\subsection{Transfer-ID comparison}\label{sec:transfer_id_forward_distance}
-
-The following explanation relies on the concept of the \emph{transfer-ID forward distance}.
-Transfer-ID forward distance $F$ is a function of two transfer-ID values,
-$A$ and $B$, that defines the number of increment operations that need to be applied to
-$A$ so that $A^\prime{} = B$, assuming modulo 32 arithmetic\footnote{%
-    For example:
-    $A=0, B=0, F\rightarrow0$;
-    $A=0, B=5, F\rightarrow5$;
-    $A=5, B=0, F\rightarrow27$;
-    $A=31, B=30, F\rightarrow31$;
-    $A=31, B=0, F\rightarrow1$.
-}:
-$$A + F = B \quad (\bmod{}\ 32)$$
-The \emph{half range} of transfer-ID is 16.
-
-The following code sample provides an example implementation of the transfer-ID comparison algorithm in C++.
-
-\begin{minipage}{0.9\textwidth}  % Mini page is needed to prevent page breaks within the snippet
-\begin{minted}{cpp}
-// UAVCAN transfer-ID forward distance computation algorithm implemented in C++.
-// License: CC0, no copyright reserved.
-
-#include <cstdint>
-#include <iostream>
-#include <cassert>
-
-constexpr std::uint8_t TransferIDBitLength = 5;  // Defined by the specification
-
-[[nodiscard]]
-constexpr std::uint8_t computeForwardDistance(std::uint8_t a, std::uint8_t b)
-{
-    constexpr std::uint8_t MaxValue = (1U << TransferIDBitLength) - 1U;
-    assert((a <= MaxValue) && (b <= MaxValue));
-
-    std::int16_t d = static_cast<std::int16_t>(b) - static_cast<std::int16_t>(a);
-    if (d < 0)
-    {
-        d += 1U << TransferIDBitLength;
-    }
-
-    assert(d >= 0);
-    assert(d <= MaxValue);
-    assert(((a + d) & MaxValue) == b);
-    return static_cast<std::uint8_t>(d);
-}
-
-int main()
-{
-    assert(0  == computeForwardDistance(0, 0));
-    assert(1  == computeForwardDistance(0, 1));
-    assert(7  == computeForwardDistance(0, 7));
-    assert(0  == computeForwardDistance(7, 7));
-    assert(31 == computeForwardDistance(31, 30)); // overflow
-    assert(1  == computeForwardDistance(31, 0));  // overflow
-    return 0;
-}
-\end{minted}
-\end{minipage}
-
 \subsection{Payload truncation}
 
 The deterministic nature of UAVCAN in general and DSDL in particular allows implementations to statically determine the
@@ -671,16 +480,16 @@ Consequently, an implementation that is interested in receiving data objects of 
 }
 can statically determine the maximum length of the transfer payload.
 
-Implementations shall handle incoming transfers containing a larger amount of payload data than expected.
-In the event of such extra payload being received, a compliant implementation should
-discard the excessive (unexpected) data at the end of the received payload\footnote{%
-    Such occurrence is not indicative of a problem so it should not be reported as such.
-}.
+Implementations shall be able to handle incoming transfers containing a larger amount of payload data than expected.
+In the event of such extra payload being received, a compliant implementation should silently\footnote{%
+    Such occurrence is not indicative of a problem so it shall not be reported as such.
+}
+discard the excessive (unexpected) data at the end of the received payload.
 The transfer CRC, if applicable, shall be validated regardless of the presence of the extra payload in the transfer.
 
-The requirement to discard the excessive payload data at the end of the transfer is motivated by
+The requirement to silently discard the excessive payload data at the end of the transfer is motivated by
 the necessity to allow extensibility of data type definitions, as described in chapter \ref{sec:dsdl}.
-Additionally, excessive payload data may contain zero padding bytes if required by the particular transport layer.
+Additionally, excessive payload data may contain padding bytes if required by the particular transport layer.
 
 \begin{figure}[H]
     $$
@@ -704,14 +513,14 @@ Additionally, excessive payload data may contain zero padding bytes if required 
 \end{figure}
 
 \begin{remark}
-    Let node $A$ publish an object of the following type over the subject $x$:
+    Let node $A$ publish an object of the following type over the subject $X$:
 
     \begin{minted}{python}
         float32 parameter
         float32 variance
     \end{minted}
 
-    Let node $B$ subscribe to the subject $x$ expecting an object of the following type:
+    Let node $B$ subscribe to the subject $X$ expecting an object of the following type:
 
     \begin{minted}{python}
         float32 parameter
@@ -720,309 +529,10 @@ Additionally, excessive payload data may contain zero padding bytes if required 
     The payload truncation requirement guarantees that the two nodes will be able to interoperate despite
     relying on incompatible data type definitions.
     Under this example, the duty of ensuring the semantic compatibility lies on the system integrator.
-
-    The requirement that all involved nodes use the same maximum amount of payload data per frame (also known as MTU
-    -- the maximum transmission unit) is crucial here.
-    Suppose that the MTU expected by the node $B$ is four bytes and the MTU of the node $A$ is eight bytes.
-    Under this setup, messages emitted by $A$ would be contained in single-frame transfers that are too large
-    for $B$ to process, resulting in the nodes being unable to communicate.
-    An attempt to optimize the memory utilization of $B$ by relying on the fact that the maximum length of a
-    serialized representation of the message is four bytes would be a mistake, because this assumption ignores
-    the existence of subtyping and introduces leaky abstractions throughout the protocol stack.
 \end{remark}
 
-\begin{remark}
-    In order to facilitate the implicit zero extension rule introduced in section \ref{sec:dsdl_data_serialization},
-    transport layer implementations shall not discard a transfer even if it is determined that it contains less payload
-    data than expected.
-\end{remark}
-
-\subsection{State variables}
-
-\subsubsection{Main principles}
-
-Nodes that receive transfers must keep a certain set of state variables for each
-received transfer descriptor (section \ref{sec:transfer_descriptor}).
-
-The set of state variables as documented in the table \ref{table:transfer_receiver_state_variables}
-will be referred to as the \emph{receiver state}.
-For the purposes of this specification, it is assumed that the node will maintain a
-mapping from transfer descriptors to receiver states, which will be referred to as the \emph{receiver map}.
-It is understood that implementations might prefer different architectures, which is permitted as
-long as the resulting behavior of the node observable at the protocol level is functionally equivalent.
-
-Whenever a node receives a transfer, it will query its receiver map for the matching received transfer descriptor.
-If the matching state does not exist, the node will add a new receiver state to the map
-and initialize it as defined in section \ref{sec:transfer_reception_initial_state}.
-The node then will proceed with the procedure of \emph{receiver state update},
-which is defined in section \ref{sec:transfer_reception_state_update_redundant} for redundant transports
-and section \ref{sec:transfer_reception_state_update_non_redundant} for non-redundant transports.
-
-It is expected that some transfers will be aperiodic or ad-hoc,
-which implies that the receiver map may over time accumulate receiver states that are no longer used.
-Therefore, nodes are allowed, but not required, to remove any receiver state from the receiver map
-as soon as the state reaches the \emph{transfer-ID timeout condition}\footnote{Such behavior is
-not recommended for hard real-time applications, where deterministic static look-up tables
-should be preferred instead.},
-as defined in section \ref{sec:transfer_id_timeout_condition}.
-
-Receiver state can only be modified when a new transport frame of a matching transfer is received.
-This guarantee simplifies implementation, as it implies that the receiver states will not
-require any periodic background maintenance activities.
-
-\begin{UAVCANSimpleTable}{Transfer reception state variables}{|l X|}
-    State               & Description \label{table:transfer_receiver_state_variables} \\
-    Transfer payload    & Useful payload byte sequence; extended upon reception of new matching transport frames. \\
-    Transfer-ID         & The transfer-ID value of the next expected transport frame. Section \ref{sec:transfer_id}. \\
-    Next toggle bit     & Expected value of the toggle bit in the next transport frame.
-                          Section \ref{sec:toggle_bit}. \\
-    Transfer timestamp  & The local monotonic timestamp sampled when the first frame of the transfer arrived.
-                          Here, ``monotonic'' means that the reference clock does not change its rate or make leaps. \\
-    Interface index     & Only in the case of redundant transport interfaces. \\
-\end{UAVCANSimpleTable}
-
-\subsubsection{Initial state}\label{sec:transfer_reception_initial_state}
-
-The initial state is reached when a new entry of the receiver map is created or an existing entry is reset.
-Like any other state update, an entry can be created or reset only synchronously with
-the reception of a matching transport frame.
-
-Upon reset, the receiver state will meet the following conditions:
-
-\begin{itemize}
-    \item The transfer payload buffer is empty.
-    \item The transfer-ID state matches the actual transfer-ID value from the newly received transfer,
-    unless this is a non-first frame of a multi-frame transfer.
-    In the latter case, the transfer-ID state will match the received transfer-ID value incremented by one.
-    \item The toggle bit is set to its initial state (section \ref{sec:toggle_bit}).
-    \item The transfer timestamp matches the reception timestamp from the transport frame.
-    \item The interface index matches the index of the interface that the new frame was received from
-    (for nodes with redundant interfaces only).
-\end{itemize}
-
-A receiver state must be reset when any of the following conditions are met:
-
-\begin{itemize}
-    \item A new receiver state instance is created.
-
-    \item A transfer-ID timeout condition is reached (section \ref{sec:transfer_id_timeout_condition}).
-
-    \item A first frame of a transfer (either a multi-frame or a single-frame; in the latter case, the same frame
-    would also be the last frame of the transfer) is received from the same interface as the previous frame
-    (does not apply to non-redundantly interfaced nodes),
-    and the transfer-ID forward distance (section \ref{sec:transfer_id_forward_distance}) from the received
-    transfer-ID to the stored transfer-ID is greater than one.
-
-    \item Only for redundantly interfaced nodes: A first frame of a transfer is received,
-    an interface switchover condition is reached (section \ref{sec:transfer_interface_switchover_condition}),
-    and the transfer-ID forward distance from the stored transfer-ID to the received transfer-ID is
-    less than the transfer-ID half range (section \ref{sec:transfer_id_forward_distance}).
-\end{itemize}
-
-\subsubsection{Transfer-ID timeout condition}\label{sec:transfer_id_timeout_condition}
-
-A state is said to have reached the transfer-ID timeout condition
-if the last matching transfer was seen more than 2 (two) seconds ago.
-When this condition is reached, the receiver must accept the next transfer disregarding its transfer-ID value.
-
-Nodes are allowed to use different timeout values, if that is believed to benefit the application.
-If a different timeout value is used, it must be explicitly documented.
-
-Low timeout values increase the risk of undetected transfer duplication when such transfers are significantly
-delayed due to bus congestion, which is possible with very low-priority transfers when the bus utilization is high.
-
-High timeout values increase the risk of an undetected transfer loss when a remote node suffers an emitted transfer-ID
-map state loss (e.g., due to the whole node being restarted).
-However, the effects of such a transfer loss caused by a loss of state on a remote node
-are always confined to the first transfer only.
-
-\subsubsection{Interface switchover condition}\label{sec:transfer_interface_switchover_condition}
-
-This condition is only applicable for configurations with redundant transport interfaces, which means
-the node is allowed to receive the next transfer from an interface that is not the same
-the previous transfer was received from.
-
-The condition is reached when the last matching transfer was successfully received more than
-$T_\text{switch}$ seconds ago. The value of $T_\text{switch}$ should not exceed the reception transfer
-ID timeout, as defined in section \ref{sec:transfer_id_timeout_condition},
-because if $T_\text{switch}$ were to exceed the transfer-ID timeout, an interface switchover would be
-performed by the normal receiver state reset procedure, rendering $T_\text{switch}$ useless.
-
-The actual value of $T_\text{switch}$ can be either a constant chosen by the designer according
-to the application requirements (e.g., the maximum recovery time in the event of an interface failure),
-or the protocol stack can estimate this value automatically by analyzing the transfer intervals.
-
-Nodes are required to let the first interface time out before using the next one because the
-transfer-ID field is expected to wrap around frequently (every 32 transfers).
-Different interfaces are expected to exhibit different latencies even in a properly functioning system,
-especially if the system contains both redundantly-interfaced and non-redundantly-interfaced nodes.
-If the latency of a backup interface relative to the primary interface exceeds 32 transfer intervals,
-and receiving nodes were to be allowed to switch between interfaces freely disregarding the timeout,
-the receiving node would skip the whole period of transfer-IDs (32 transfers will be lost).
-The problem would primarily affect low-priority transfers where large latencies are more likely.
-
-\subsection{State update in a redundant interface configuration}
-\label{sec:transfer_reception_state_update_redundant}
-
-The following pseudocode demonstrates the transfer reception process
-for a configuration with redundant transport interfaces.
-Implementations are allowed to implement the reception logic differently as long as the resulting
-behavior is equivalent.
-
-\clearpage
-\begin{minted}{cpp}
-// Constants:
-tid_timeout := 2 seconds;
-tid_half_range := 16;
-iface_switch_delay := UserDefinedConstant; // Or autodetect
-
-// State variables:
-initialized := 0;
-payload;
-this_transfer_timestamp;
-current_transfer_id;
-iface_index;
-toggle;
-
-function receiveFrame(frame)
-{
-    // Resolving the state flags:
-    tid_timed_out := (frame.timestamp - this_transfer_timestamp) > tid_timeout;
-    same_iface := frame.iface_index == iface_index;
-    start_of_transfer := frame.start_of_transfer;
-    non_wrapped_tid := computeForwardDistance(current_transfer_id, frame.transfer_id) < tid_half_range;
-    not_previous_tid := computeForwardDistance(frame.transfer_id, current_transfer_id) > 1;
-    iface_switch_allowed := (frame.timestamp - this_transfer_timestamp) > iface_switch_delay;
-    // Using the state flags from above, deciding whether we need to reset:
-    need_restart :=
-        (!initialized) or
-        (tid_timed_out) or
-        (same_iface and start_of_transfer and not_previous_tid) or
-        (iface_switch_allowed and start_of_transfer and non_wrapped_tid);
-
-    if (need_restart)
-    {
-        initialized := 1;
-        iface_index := frame.iface_index;
-        current_transfer_id := frame.transfer_id;
-        payload.clear();
-        toggle := frame.toggle;
-        if (!start_of_transfer)
-        {
-            current_transfer_id.increment();
-            return;         // Ignore this frame, since the start of the transfer has already been missed
-        }
-    }
-
-    if (frame.iface_index != iface_index)
-    {
-        return;  // Wrong interface, ignore
-    }
-
-    if (frame.toggle != toggle)
-    {
-        return;  // Unexpected toggle bit, ignore
-    }
-
-    if (frame.transfer_id != current_transfer_id)
-    {
-        return;  // Unexpected transfer-ID, ignore
-    }
-
-    if (start_of_transfer)
-    {
-        this_transfer_timestamp := frame.timestamp;
-    }
-
-    toggle := !toggle;
-    payload.append(frame.data);
-
-    if (frame.end_of_transfer)
-    {
-        // CRC validation for multi-frame transfers is intentionally omitted for brevity
-        processTransfer(payload, ...);
-        current_transfer_id.increment();
-        toggle := 1;
-        payload.clear();
-    }
-}
-\end{minted}
-
-\clearpage
-\subsection{State update in a non-redundant interface configuration}
-\label{sec:transfer_reception_state_update_non_redundant}
-
-The following pseudocode demonstrates the transfer reception process for a configuration
-with a non-redundant transport interface.
-This is a specialization of the more general algorithm defined for redundant transport.
-Implementations are allowed to implement the reception logic differently as long as the resulting
-behavior is equivalent.
-
-\begin{minted}{cpp}
-// Constants:
-tid_timeout := 2 seconds;
-
-// State variables:
-initialized := 0;
-payload;
-this_transfer_timestamp;
-current_transfer_id;
-toggle;
-
-function receiveFrame(frame)
-{
-    // Resolving the state flags:
-    tid_timed_out := (frame.timestamp - this_transfer_timestamp) > tid_timeout;
-    start_of_transfer := frame.start_of_transfer;
-    not_previous_tid := computeForwardDistance(frame.transfer_id, current_transfer_id) > 1;
-    // Using the state flags from above, deciding whether we need to reset:
-    need_restart :=
-        (!initialized) or
-        (tid_timed_out) or
-        (start_of_transfer and not_previous_tid);
-
-    if (need_restart)
-    {
-        initialized := 1;
-        current_transfer_id := frame.transfer_id;
-        payload.clear();
-        toggle := frame.toggle;
-        if (!start_of_transfer)
-        {
-            current_transfer_id.increment();
-            return; // Ignore this frame, since the start of the transfer has already been missed
-        }
-    }
-
-    if (frame.toggle != toggle)
-    {
-        return;  // Unexpected toggle bit, ignore
-    }
-
-    if (frame.transfer_id != current_transfer_id)
-    {
-        return;  // Unexpected transfer-ID, ignore
-    }
-
-    if (start_of_transfer)
-    {
-        this_transfer_timestamp := frame.timestamp;
-    }
-
-    toggle := !toggle;
-    payload.append(frame.data);
-
-    if (frame.end_of_transfer)
-    {
-        // CRC validation for multi-frame transfers is intentionally omitted for brevity
-        processTransfer(payload, ...);
-        current_transfer_id.increment();
-        toggle := 1;
-        payload.clear();
-    }
-}
-\end{minted}
-
-% Please keep \clearpage in front of every section to enforce clear separation!
-\clearpage\input{transport_layer/abstract.tex}
-\clearpage\input{transport_layer/can.tex}
+Implementations shall not enforce the minimum payload size on received transfers.
+In other words, implementations shall not discard a transfer even if it is determined that it contains less payload
+data than expected.
+Serialization validity constraints are to be enforced by the object deserialization routines
+instead of the transport layer.
