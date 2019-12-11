@@ -95,7 +95,7 @@ any excessive (unused) data remaining upon deserialization\footnote{%
     The specifics of such padding behavior fall outside of the scope of the DSDL specification
     as they belong to the domain of network transports rather than data presentation.
 
-    Another consequence is that a serialized representation constructed from an instance of type $B$ can be
+    Because of implicit truncation a serialized representation constructed from an instance of type $B$ can be
     deserialized into an instance of type $A$ as long as $B$ is a structural subtype of $A$.
     The topic of data type compatibility is explored in section \ref{sec:dsdl_versioning}.
 \end{remark}
