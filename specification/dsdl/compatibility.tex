@@ -484,7 +484,7 @@ The minor versions may differ, which is acceptable due to the major version comp
 % We need to work out a rigorous definition of semantic compatibility so that it can be effectively reasoned about
 % and enforced automatically.
 A port identifier of a given kind (subject or service)\footnote{%
-    The kind is specified explicitly due to the fact that the sets of subject-ID and service-ID are orthogonal.
+    The kind is specified explicitly because the sets of subject-ID and service-ID are orthogonal.
     In other words, the numeric value of a port-ID may refer to different data types if they are of different kinds.
 } shall only be used with semantically compatible data types in a given UAVCAN network.
 Semantic compatibility shall be enforced before runtime, either by the integrator or by the architect of the system.
