@@ -488,6 +488,26 @@ Transfers where the initial value of the toggle bit is zero must be ignored.
 The initial state of the toggle bit may be inverted in the future revisions of the protocol
 to facilitate automatic protocol version detection.
 
+\begin{remark}
+    The toggle bit can be used to facilitate operation of heterogeneous deployments where the experimental
+    UAVCAN v0 shares the same CAN bus with UAVCAN v1 (this version of the standard).
+
+    Whenever a new transfer is initiated, the original state of the toggle bit reflects the protocol version.
+    Implementations that need to support simultaneous operation of two versions of the protocol can record
+    the state of the toggle bit when the ``start of transfer'' bit is set, and keep this information
+    indexed by the value of the CAN ID field (all frames of a transfer are guaranteed to share the same CAN ID).
+    The resulting mapping from CAN ID to the protocol version can be used to route incoming frames to the
+    implementation of the appropriate version of the protocol.
+
+    \begin{UAVCANSimpleTable}{Protocol version detection based on the toggle bit}{|l l X|}
+        Start of transfer   & Toggle bit    & Protocol version \\
+        1                   & 0             & UAVCAN v0 (experimental version). \\
+        1                   & 1             & UAVCAN v1 (this version). \\
+        0                   & x             & Keep the state of the toggle bit from the first frame of the transfer
+                                              to detect protocol version for multi-frame transfers. \\
+    \end{UAVCANSimpleTable}
+\end{remark}
+
 \subsection{Redundant interface support}
 
 In configurations with redundant bus interfaces,
