@@ -393,10 +393,10 @@ transfer were received, all of the received frames were reassembled in the corre
 and that all of the received frames belong to the same multi-frame transfer.
 
 The transfer CRC is computed over the entire payload of the transfer.
-Certain transport implementations\footnote{Such as CAN FD.} may require a short sequence of padding bytes
+Certain transport implementations\footnote{Such as CAN FD.} may require a short sequence of zero padding bytes
 to be added at the end of the transfer payload due to the low granularity of the frame payload length property;
-in that case, the padding bytes must be included in the CRC computation as well,
-as if they were part of the useful payload.
+in that case, the zero padding bytes must be included in the CRC computation as well,
+as if they were part of the useful payload\footnote{Non-zero padding is not allowed.}.
 
 The resulting CRC value is appended to the transfer in the \emph{big-endian byte order}
 (most significant byte first),
@@ -593,7 +593,7 @@ The transfer CRC, if applicable, shall be validated regardless of the presence o
 
 The requirement to discard the excessive payload data at the end of the transfer is motivated by
 the necessity to allow extensibility of data type definitions, as described in chapter \ref{sec:dsdl}.
-Additionally, excessive payload data may contain padding bytes if required by the particular transport layer.
+Additionally, excessive payload data may contain zero padding bytes if required by the particular transport layer.
 
 \begin{figure}[H]
     $$

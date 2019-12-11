@@ -89,12 +89,14 @@ any excessive (unused) data remaining upon deserialization\footnote{%
     The presence of unused data should not be considered an error.
 }.
 
-\begin{remark}
-    As a consequence of the above requirement the transport layer can introduce
-    additional padding at the end of a serialized representation to satisfy data size granularity constraints.
-    The specifics of such padding behavior fall outside of the scope of the DSDL specification
-    as they belong to the domain of network transports rather than data presentation.
+As a consequence of the above requirement the transport layer can introduce
+additional zero padding bits (bytes) at the end of a serialized representation
+to satisfy data size granularity constraints.
+Non-zero padding bits (bytes) are not allowed\footnote{%
+    Because padding bits may be misinterpreted as part of the serialized representation.
+}.
 
+\begin{remark}
     Because of implicit truncation a serialized representation constructed from an instance of type $B$ can be
     deserialized into an instance of type $A$ as long as $B$ is a structural subtype of $A$.
 
