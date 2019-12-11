@@ -591,7 +591,7 @@ In the event of such extra payload being received, a compliant implementation sh
 discard the excessive (unexpected) data at the end of the received payload.
 The transfer CRC, if applicable, shall be validated regardless of the presence of the extra payload in the transfer.
 
-The requirement to silently discard the excessive payload data at the end of the transfer is motivated by
+The requirement to discard the excessive payload data at the end of the transfer is motivated by
 the necessity to allow extensibility of data type definitions, as described in chapter \ref{sec:dsdl}.
 Additionally, excessive payload data may contain padding bytes if required by the particular transport layer.
 
