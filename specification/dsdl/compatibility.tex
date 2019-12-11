@@ -216,6 +216,26 @@ Polymorphic compatibility implies semantic compatibility.
     \end{minted}
 \end{remark}
 
+\begin{remark}
+    Let there be type $A$:
+
+    \begin{minted}{python}
+        void1
+        # Values above 100% are not allowed.
+        uint7 demand_factor_pct  # [percent]
+    \end{minted}
+
+    And type $B$:
+
+    \begin{minted}{python}
+        # Values above 100 indicate overload.
+        uint8 demand_factor_pct  # [percent]
+    \end{minted}
+
+    A subscriber expecting $B$ can accept $A$, but the reverse is not true.
+    Therefore, $B$ is semantically compatible with $A$; the reverse is false.
+\end{remark}
+
 \subsubsection{Variabilities}
 
 Compatibility of a set of data types is a function of their structural properties only.
