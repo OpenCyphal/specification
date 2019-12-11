@@ -97,11 +97,8 @@ any excessive (unused) data remaining upon deserialization\footnote{%
 
     Because of implicit truncation a serialized representation constructed from an instance of type $B$ can be
     deserialized into an instance of type $A$ as long as $B$ is a structural subtype of $A$.
-    The topic of data type compatibility is explored in section \ref{sec:dsdl_versioning}.
-\end{remark}
-% Start a new remark because they cover different issues.
-\begin{remark}
-    Let $X$ be an instance of data type $B$, which is defined as follows:
+
+    Let $x$ be an instance of data type $B$, which is defined as follows:
 
     \begin{minted}{python}
         float32 parameter
@@ -114,11 +111,7 @@ any excessive (unused) data remaining upon deserialization\footnote{%
         float32 parameter
     \end{minted}
 
-    Then the serialized representation of $X$ can be deserialized into an instance of $A$.
-
-    The implicit truncation rule is introduced to permit extension of data types by introducing additional fields
-    without breaking backward compatibility with existing deployments,
-    and to permit introduction of more specific derived types while retaining compatibility with their base types.
+    Then the serialized representation of $x$ can be deserialized into an instance of $A$.
     The topic of data type compatibility is explored in detail in section \ref{sec:dsdl_versioning}.
 \end{remark}
 
@@ -137,7 +130,11 @@ upon construction of a serialized representation of an object\footnote{%
 }.
 
 \begin{remark}
-    This example assumes that the reader is familiar with the variable-length array serialization rules,
+    The implicit zero extension rule enables extension of data types by introducing additional fields
+    without breaking backward compatibility with existing deployments.
+    The topic of data type compatibility is explored in detail in section \ref{sec:dsdl_versioning}.
+
+    The following example assumes that the reader is familiar with the variable-length array serialization rules,
     explained in section \ref{sec:dsdl_serialized_variable_length_array}.
 
     Let the data type $A$ be defined as follows:
@@ -146,19 +143,15 @@ upon construction of a serialized representation of an object\footnote{%
         uint8 scalar
     \end{minted}
 
-    Let $X$ be an instance of $A$, where the value of \verb|scalar| is 4.
+    Let $x$ be an instance of $A$, where the value of \verb|scalar| is 4.
     Let the data type $B$ be defined as follows:
 
     \begin{minted}{python}
         uint8[<256] array
     \end{minted}
 
-    Then the serialized representation of $X$ can be deserialized into an instance of $B$ where the field
+    Then the serialized representation of $x$ can be deserialized into an instance of $B$ where the field
     \verb|array| contains a sequence of four zeros: $0, 0, 0, 0$.
-
-    The implicit truncation rule is introduced to permit extension of data types by introducing additional fields
-    without breaking backward compatibility with existing deployments.
-    The topic of data type compatibility is explored in detail in section \ref{sec:dsdl_versioning}.
 \end{remark}
 
 \subsection{Void types}\label{sec:dsdl_serialized_void}
