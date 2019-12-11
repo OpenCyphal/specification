@@ -89,15 +89,17 @@ any excessive (unused) data remaining upon deserialization\footnote{%
     The presence of unused data should not be considered an error.
 }.
 
-As a consequence of the above requirement the transport layer can introduce
-additional padding at the end of a serialized representation to satisfy data size granularity constraints.
-The specifics of such padding behavior fall outside of the scope of the DSDL specification
-as they belong to the domain of network transports rather than data presentation.
+\begin{remark}
+    As a consequence of the above requirement the transport layer can introduce
+    additional padding at the end of a serialized representation to satisfy data size granularity constraints.
+    The specifics of such padding behavior fall outside of the scope of the DSDL specification
+    as they belong to the domain of network transports rather than data presentation.
 
-Another consequence is that a serialized representation constructed from an instance of type $B$ can be
-deserialized into an instance of type $A$ as long as $B$ is a structural subtype of $A$.
-The topic of data type compatibility is explored in section \ref{sec:dsdl_versioning}.
-
+    Another consequence is that a serialized representation constructed from an instance of type $B$ can be
+    deserialized into an instance of type $A$ as long as $B$ is a structural subtype of $A$.
+    The topic of data type compatibility is explored in section \ref{sec:dsdl_versioning}.
+\end{remark}
+% Start a new remark because they cover different issues.
 \begin{remark}
     Let $X$ be an instance of data type $B$, which is defined as follows:
 
