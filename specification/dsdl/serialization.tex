@@ -138,7 +138,7 @@ upon construction of a serialized representation of an object\footnote{%
 
 \begin{remark}
     This example assumes that the reader is familiar with the variable-length array serialization rules,
-    explained later in this section.
+    explained in section \ref{sec:dsdl_serialized_variable_length_array}.
 
     Let the data type $A$ be defined as follows:
 
@@ -308,7 +308,7 @@ a sequence of $n$ field attributes of type $T$ are equivalent.
     \end{minted}
 \end{remark}
 
-\subsubsection{Variable-length array types}
+\subsubsection{Variable-length array types}\label{sec:dsdl_serialized_variable_length_array}
 
 A serialized representation of a variable-length array consists of two segments:
 the implicit length field followed by the array elements.
