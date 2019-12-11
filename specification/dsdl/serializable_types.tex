@@ -299,7 +299,9 @@ Let each field attribute be assigned a sequential index according to its positio
 
 $D$ is a \emph{structural subtype} of $B$ if, and only if,
 $b \leq d$, $B$ is not $D$, neither $B$ nor $D$ define a tagged union, and
-for each field attribute of $B$ at index $i$ there is an equal field attribute in $D$ at index $i$.
+for each field attribute of $B$ at index $i$ there is an equal\footnote{%
+    Field attribute equality is defined in section \ref{sec:dsdl_attributes}.
+} field attribute in $D$ at index $i$.
 
 If $D$ is a structural subtype of $B$, then $B$ is a structural supertype of $D$.
 
