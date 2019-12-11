@@ -89,7 +89,7 @@ When a serialized representation is deserialized, implementations shall silently
 } ignore any excessive (unused) data remaining upon deserialization, irrespective of its amount.
 
 As a consequence of the above requirement the transport layer can introduce
-additional padding at the end of the serialized representation to satisfy its data size granularity constraints.
+additional padding at the end of a serialized representation to satisfy data size granularity constraints.
 The specifics of such padding behavior fall outside of the scope of the DSDL specification
 as they belong to the domain of network transports rather than data presentation.
 
