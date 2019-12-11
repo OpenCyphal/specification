@@ -56,7 +56,7 @@ Both message and service transfers can be further distinguished between single-f
     The UAVCAN protocol stack handles transfer decomposition and reassembly automatically.
     The payload of a multi-frame transfer is appended with its hash for data integrity check purposes;
     such hash is called \emph{transfer CRC}.
-    The algorithm used for computation of the transfer CRC and its representation are defined on a per-transfer basis.
+    The algorithm used for computation of the transfer CRC and its representation are defined on a per-transport basis.
 \end{description}
 
 The choice between single-frame and multi-frame transfers is made by the UAVCAN protocol logic on
