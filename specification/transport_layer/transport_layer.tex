@@ -617,14 +617,14 @@ Additionally, excessive payload data may contain padding bytes if required by th
 \end{figure}
 
 \begin{remark}
-    Let node $A$ publish an object of the following type over the subject $X$:
+    Let node $A$ publish an object of the following type over the subject $x$:
 
     \begin{minted}{python}
         float32 parameter
         float32 variance
     \end{minted}
 
-    Let node $B$ subscribe to the subject $X$ expecting an object of the following type:
+    Let node $B$ subscribe to the subject $x$ expecting an object of the following type:
 
     \begin{minted}{python}
         float32 parameter
@@ -635,11 +635,11 @@ Additionally, excessive payload data may contain padding bytes if required by th
     Under this example, the duty of ensuring the semantic compatibility lies on the system integrator.
 \end{remark}
 
-Implementations shall not enforce the minimum payload size on received transfers.
-In other words, implementations shall not discard a transfer even if it is determined that it contains less payload
-data than expected.
-Serialization validity constraints are to be enforced by the object deserialization routines
-instead of the transport layer.
+\begin{remark}
+    In order to facilitate the implicit zero extension rule introduced in section \ref{sec:dsdl_data_serialization},
+    transport layer implementations shall not discard a transfer even if it is determined that it contains less payload
+    data than expected.
+\end{remark}
 
 \subsection{State variables}
 
