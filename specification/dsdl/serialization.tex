@@ -16,7 +16,7 @@ exchanging data over a UAVCAN network.
 The implicit truncation and implicit zero extension rules introduced in this section are designed to
 facilitate structural subtyping and to enable extensibility of data types while retaining backward compatibility.
 This is a conscious trade-off between runtime type checking and long-term stability guarantees.
-This model assumes that data type compatibility is to be enforced not at runtime, but beforehand.
+This model assumes data type compatibility is determined statically and not enforced at runtime.
 
 \subsubsection{Bit and byte ordering}
 
@@ -470,4 +470,3 @@ the serialized representation of the currently selected field attribute value.
         AnyType.1.0[<=1] maybe_some
     \end{minted}
 \end{remark}
-
