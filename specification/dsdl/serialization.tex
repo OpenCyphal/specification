@@ -86,7 +86,7 @@ handed over for transmission over the UAVCAN network
 
 When a serialized representation is deserialized, implementations shall silently\footnote{%
     I.e., without registering an error of any kind.
-} ignore any excessive (unused) data remaining upon deserialization, irrespective of its amount.
+} ignore any excessive (unused) data remaining upon deserialization.
 
 As a consequence of the above requirement the transport layer can introduce
 additional padding at the end of a serialized representation to satisfy data size granularity constraints.
