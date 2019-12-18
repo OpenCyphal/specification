@@ -287,7 +287,7 @@ A tagged union shall not contain padding field attributes.
 The value of a tagged union object is a function of the field attribute which value it is currently holding
 and the value of the field attribute itself.
 
-\subsubsection{Type polymorphism}
+\subsubsection{Type polymorphism and equivalency}
 
 Type polymorphism is supported in DSDL through structural subtyping.
 The following definition relies on the concept of \emph{field attribute},
@@ -297,16 +297,36 @@ Let $B$ and $D$ be DSDL message types whose data schemas define $b$ and $d$ fiel
 Let each field attribute be assigned a sequential index according to its position in the DSDL definition
 (see section \ref{sec:dsdl_grammar} on statement ordering).
 
-$D$ is a \emph{structural subtype} of $B$ if, and only if,
-$b \leq d$, $B$ is not $D$, neither $B$ nor $D$ define a tagged union, and
-for each field attribute of $B$ at index $i$ there is an equal\footnote{%
-    Field attribute equality is defined in section \ref{sec:dsdl_attributes}.
-} field attribute in $D$ at index $i$.
+$D$ is a \emph{structural subtype} of $B$ if all conditions are satisfied:
+\begin{itemize}
+    \item neither $B$ nor $D$ define a tagged union;
+    \item $B$ is not $D$;
+    \item $b \leq d$;
+    \item for each field attribute of $B$ at index $i$ there is an equal\footnote{%
+              Field attribute equality is defined in section \ref{sec:dsdl_attributes}.
+          } field attribute in $D$ at index $i$.
+\end{itemize}
 
-If $D$ is a structural subtype of $B$, then $B$ is a structural supertype of $D$.
+$D$ is a structural subtype of $B$ if all conditions are satisfied:
+\begin{itemize}
+    \item both $B$ and $D$ define tagged unions;
+    \item $B$ is not $D$;
+    \item $b \leq d$;
+    \item $\lceil{}\log_2 b\rceil{} = \lceil{}\log_2 d\rceil{}$;
+    \item for $i \in \left[0, b\right)$, the type of the field attribute of $D$ at index $i$
+          is the same or is a subtype of the type of the field attribute of $B$ at index $i$.
+    \item for $i \in \left[0, b\right)$, the name of the field attribute of $D$ at index $i$
+          is the same as the name of the field attribute of $B$ at index $i$.
+\end{itemize}
+
+$D$ is a structural subtype of $B$ if $b = 0$.
+
+If $D$ is a structural subtype of $B$, then $B$ is a \emph{structural supertype} of $D$.
+
+$D$ and $B$ are \emph{structurally equivalent} if $D$ is a structural subtype and a structural supertype of $B$.
 
 \begin{remark}
-    Subtyping example. First type:
+    Subtyping example for structure (non-union) types. First type:
 
     \begin{minted}{python}
         float64 a       # Index 0
@@ -321,8 +341,29 @@ If $D$ is a structural subtype of $B$, then $B$ is a structural supertype of $D$
         uint8 foo       # Index 2
     \end{minted}
 
-    A message type that defines zero fields is a structural supertype of any other message type.
+    Subtyping example for union types. First type:
+
+    \begin{minted}{python}
+        @union                            # The implicit union tag field is 2 bits wide
+        uavcan.primitive.Empty.1.0 foo
+        float16 bar
+        uint8 zoo
+    \end{minted}
+
+    The second type is a structural subtype of the first type:
+
+    \begin{minted}{python}
+        @union                            # The implicit union tag field is 2 bits wide
+        uavcan.diagnostic.Record.1.0 foo  # Subtype
+        float16 bar                       # Same
+        uint8 zoo                         # Same
+        int64[<=64] baz                   # New field
+    \end{minted}
+
+    A message type that defines zero fields is a structural supertype of any other message type, regardless of either
+    or both being a union.
     A message type may have an arbitrary number of supertypes as long as the field equality constraint is satisfied.
 
-    Polymorphic relations are not defined on service types and tagged unions.
+    Polymorphic relations are not defined on service types;
+    however, this may change in a future revision of the standard.
 \end{remark}
