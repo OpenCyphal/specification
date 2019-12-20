@@ -374,6 +374,13 @@ and increase the overall average latency.}.
 Receiving nodes must be prepared to reconstruct multi-frame transfers that utilize the
 available payload space partially.
 
+All nodes in a UAVCAN network should be configured to use the same
+maximum amount of data per transport frame\footnote{%
+    This property is also known \emph{maximum transmission unit} or MTU.
+}.
+Failure to follow this rule may render nodes unable to communicate if a transmitting node emits larger frames
+than the receiving node is able to process.
+
 All frames of a multi-frame transfer should be pushed to the transmission queue at once,
 in the proper order from the first frame to the last frame.
 Explicit gap time between transport frames belonging to the same transfer should not be introduced;
@@ -653,6 +660,15 @@ Additionally, excessive payload data may contain zero padding bytes if required 
     The payload truncation requirement guarantees that the two nodes will be able to interoperate despite
     relying on incompatible data type definitions.
     Under this example, the duty of ensuring the semantic compatibility lies on the system integrator.
+
+    The requirement that all involved nodes use the same maximum amount of payload data per frame (also known as MTU
+    -- the maximum transmission unit) is crucial here.
+    Suppose that the MTU expected by the node $B$ is four bytes and the MTU of the node $A$ is eight bytes.
+    Under this setup, messages emitted by $A$ would be contained in single-frame transfers that are too large
+    for $B$ to process, resulting in the nodes being unable to communicate.
+    An attempt to optimize the memory utilization of $B$ by relying on the fact that the maximum length of a
+    serialized representation of the message is four bytes would be a mistake, because this assumption ignores
+    the existence of subtyping and introduces leaky abstractions throughout the protocol stack.
 \end{remark}
 
 \begin{remark}
