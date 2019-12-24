@@ -123,12 +123,66 @@ Conversely, any data type or schema that is not variable-length is \emph{fixed-l
     \end{table}
 \end{remark}
 
+\subsubsection{Polymorphic compatibility}
+
+The implicit truncation rule renders a data type compatible with its supertypes.
+Such compatibility enabled by the implicit truncation rule is called \emph{polymorphic compatibility}.
+
+Polymorphic compatibility is non-commutative.
+
+\begin{remark}[breakable]
+    The following short example in C demonstrates the concept of polymorphic compatibility detached from DSDL.
+
+    \begin{minted}{c}
+        struct base
+        {
+            int a;
+            float b;
+        };
+
+        struct derived_first
+        {
+            int a;
+            float b;
+            double c;
+        };
+
+        struct derived_second
+        {
+            int a;
+            float b;
+            short d;
+        };
+
+        float compute(struct base* value)
+        {
+            return (float)value->a + value->b;
+        }
+
+        int main()
+        {
+            struct derived_first foo  = { .a = 123, .b = -456.789F, .c = 123.456 };
+            struct derived_second bar = { .a = -123, .b = 456.789F, .d = -123 };
+            // Both derived_first and derived_second are structural subtypes of base. The program returns zero.
+            return compute(&foo) + compute(&bar);
+        }
+    \end{minted}
+\end{remark}
+
 \subsubsection{Semantic compatibility}\label{sec:dsdl_semantic_compatibility}
 
 A data type $A$ is semantically compatible with a data type $B$
 if an application that correctly uses $A$ exhibits a functionally equivalent behavior to an application
 that correctly uses $B$.
-The property of semantic compatibility is commutative.
+The property of semantic compatibility is non-commutative.
+
+$A$ and $B$ are said to be \emph{mutually semantically compatible} if
+$A$ is semantically compatible with $B$ and $B$ is semantically compatible with $A$.
+
+Due to the implicit truncation and implicit zero-extension rules,
+semantic compatibility is orthogonal to bit-compatibility.
+
+Polymorphic compatibility implies semantic compatibility.
 
 \begin{remark}[breakable]
     Despite using different binary layouts, the following two definitions are semantically compatible
@@ -152,6 +206,56 @@ The property of semantic compatibility is commutative.
     the source code auto-generated from the provided definitions may be not drop-in replaceable,
     requiring changes in the application;
     however, source-code-level application compatibility is orthogonal to data type compatibility.
+
+    The following supertype is neither bit-compatible nor polymorphically compatible to the above,
+    but it may be semantically compatible depending on the semantics of the removed field.
+
+    \begin{minted}{python}
+        uint8 FLAG_A = 1
+        uint8 flags_a
+    \end{minted}
+\end{remark}
+
+\begin{remark}
+    Let there be type $A$:
+
+    \begin{minted}{python}
+        void1
+        # Values above 100% are not allowed.
+        uint7 demand_factor_pct  # [percent]
+    \end{minted}
+
+    And type $B$:
+
+    \begin{minted}{python}
+        # Values above 100 indicate overload.
+        uint8 demand_factor_pct  # [percent]
+    \end{minted}
+
+    A subscriber expecting $B$ can accept $A$, but the reverse is not true.
+    Therefore, $B$ is semantically compatible with $A$; the reverse is false.
+\end{remark}
+
+\subsubsection{Variabilities}
+
+Compatibility of a set of data types is a function of their structural properties only.
+
+Whether a set of data types are bit-compatible, polymorphically compatible, and/or semantically compatible
+with each other is determined by their DSDL definitions and is invariant to their name,
+version, and/or the fixed port-ID.
+
+\begin{remark}
+    The invariance of data type compatibility to the above properties permits free migration of
+    data types between namespaces, their renaming, re-versioning, and update of their fixed port-ID values.
+    The practical outcome is that UAVCAN interfaces codified by DSDL definitions can survive
+    major changes in the outer data type ecosystem without breakage.
+
+    For example, a vendor may publish a data type under their unregulated namespace.
+    They would be able to move this type to a public-regulated namespace of a different name
+    at a later time without breaking compatibility with existing deployments.
+    Alternatively, nodes provided by different vendors that utilize differently named data types may
+    still interoperate if such data types happen to be compatible.
+    Under this example, the duty of ensuring the compatibility lies on the system integrator.
 \end{remark}
 
 \subsection{Versioning}
@@ -180,7 +284,7 @@ or for the commencement of usage of the data type definition in a production sys
 
 In order to ensure a deterministic application behavior and ensure a robust migration path
 as data type definitions evolve, UAVCAN requires that all data type definitions that share the same
-full name and the same major version number must be semantically compatible with each other
+full name and the same major version number must be mutually semantically compatible with each other
 and mutually bit-compatible with each other.
 
 The versioning rules do not extend to scenarios where the name of a data type is changed,
@@ -228,15 +332,7 @@ All data types under the same name must be also of the same kind.
 In other words, if the first released definition of a data type is of the message kind,
 all other versions must also be of the message kind.
 
-\subsubsection{Port identifier assignment constraints}
-
-A port identifier of a given kind (subject or service)\footnote{%
-    The kind is specified explicitly due to the fact that the sets of subject-ID and service-ID are orthogonal.
-    In other words, the numeric value of a port-ID may refer to different data types if they are of different kinds.
-} shall only be used with one major version of one data type in a given UAVCAN network.
-
-The mapping from port-ID to its data type may be non-injective.
-In other words, a data type may be simultaneously used with more than one port-ID.
+\subsubsection{Fixed port identifier assignment constraints}
 
 The following constraints apply to fixed port-ID assignments:
 \begin{align*}
@@ -404,3 +500,19 @@ The minor versions may differ, which is acceptable due to the major version comp
     using different major versions concurrently to circumvent compatibility issues
     (in the example reviewed here that would be v1.1 and v2.0).
 \end{remark}
+
+\subsection{Port identifier assignment constraints}
+
+% Sigh. Here, we are just saying "do what you think is best, you are on your own".
+% We need to work out a rigorous definition of semantic compatibility so that it can be effectively reasoned about
+% and enforced automatically.
+A port identifier of a given kind (subject or service)\footnote{%
+    The kind is specified explicitly because the sets of subject-ID and service-ID are orthogonal.
+    In other words, the numeric value of a port-ID may refer to different data types if they are of different kinds.
+} shall only be used with semantically compatible data types in a given UAVCAN network.
+Semantic compatibility shall be enforced before runtime, either by the integrator or by the architect of the system.
+Implementers may take advantage of the implicit truncation and implicit zero extension rules to facilitate
+semantic compatibility of data types even if they are not bit-compatible and/or polymorphically compatible.
+
+The mapping from port-ID to its data type may be non-injective.
+In other words, a data type may be simultaneously used with more than one port-ID.

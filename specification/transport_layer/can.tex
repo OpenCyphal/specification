@@ -20,6 +20,9 @@ The tables \ref{table:can_id_fields_message_transfer} and \ref{table:can_id_fiel
 summarize the purpose of the fields and their permitted values
 for message transfers and service transfers, respectively.
 
+Automatic protocol version detection can be implemented with the help of the toggle bit,
+as described in section \ref{sec:toggle_bit}.
+
 % Please do not remove the hard placement specifier [H], it is needed to keep elements ordered.
 \begin{figure}[H]
     \centering
@@ -33,26 +36,30 @@ for message transfers and service transfers, respectively.
             \multicolumn{4}{c|}{Service, not message} &
             \multicolumn{5}{c|}{Anonymous message} &
             \multicolumn{12}{c|}{\multirow{2}{*}{Subject-ID}} &
-            \multicolumn{8}{c|}{Protocol version}
-            \\\cline{2-4} \cline{7-10} \cline{23-29}
+            \multicolumn{1}{c|}{\multirow{2}{*}{R}} &
+            \multicolumn{7}{c|}{\multirow{2}{*}{Source node-ID}}
+            \\\cline{2-4} \cline{7-10}
 
             &
             \multicolumn{3}{c|}{Priority}
             &
             &
             &
-            \multicolumn{16}{c|}{} &
-            \multicolumn{7}{c|}{Source node-ID} &
+            R &
+            \multicolumn{15}{c|}{} &
+            &
+            \multicolumn{7}{c|}{}
             \\
 
             \textbf{Values} &
             \multicolumn{3}{c|}{$[0, 7]$} &
             $0$ &
             $\mathbb{B}$ &
-            \multicolumn{4}{c}{} &
+            $0$ &
+            \multicolumn{3}{c}{} &
             \multicolumn{12}{c|}{$[0, 32767]$} &
-            \multicolumn{7}{c|}{$[0, 127]$} &
-            $1$
+            $0$ &
+            \multicolumn{7}{c|}{$[0, 127]$}
             \\\hline
 
             \textbf{CAN ID bit} &
@@ -72,28 +79,29 @@ for message transfers and service transfers, respectively.
             \multirow{2}{*}{\textbf{Service}} &
             \multicolumn{4}{c|}{Service, not message} &
             \multicolumn{5}{c|}{Request, not response} &
-            \multicolumn{5}{c|}{} &
+            \multicolumn{6}{c|}{} &
             \multicolumn{7}{c|}{\multirow{2}{*}{Destination node-ID}} &
-            \multicolumn{8}{c|}{Protocol version}
-            \\\cline{2-4} \cline{7-10} \cline{23-29}
+            \multicolumn{7}{c|}{\multirow{2}{*}{Source node-ID}}
+            \\\cline{2-4} \cline{7-10}
 
             &
             \multicolumn{3}{c|}{Priority} &
-            \cellcolor{red} &
             &
+            &
+            R &
             \multicolumn{9}{c|}{Service-ID} &
             \multicolumn{7}{c|}{} &
-            \multicolumn{7}{c|}{Source node-ID} &
+            \multicolumn{7}{c|}{}
             \\
 
             \textbf{Values} &
             \multicolumn{3}{c|}{$[0, 7]$} &
             $1$ &
             $\mathbb{B}$ &
+            $0$ &
             \multicolumn{9}{c|}{$[0, 511]$} &
             \multicolumn{7}{c|}{$[0, 127]$} &
-            \multicolumn{7}{c|}{$[0, 127]$} &
-            $1$
+            \multicolumn{7}{c|}{$[0, 127]$}
             \\\hline
 
             \textbf{CAN ID bit} &
@@ -120,16 +128,18 @@ for message transfers and service transfers, respectively.
     Anonymous message   & 1     & $\{0, 1\}$ (any)  & Zero for regular (non-anonymous) message transfers.
                                                       One for anonymous message transfers. \\
 
-    Subject-ID          & 16    & $[0, 32767]$       & Subject identifier of the current message.
+    Reserved bit 23     & 1     & $0$               & Ignore frame (or use according to a newer specification)
+                                                      if this field has a different value. \\
+
+    Subject-ID          & 15    & $[0, 32767]$ (any) & Subject identifier of the current message.
                                                        The most significant bit is always zero. \\
+
+    Reserved bit 7      & 1     & $0$               & Ignore frame (or use according to a newer specification)
+                                                      if this field has a different value. \\
 
     Source node-ID      & 7     & $[0, 127]$ (any)  & Node-ID of the origin.
                                                       For anonymous transfers, this field contains a pseudo-ID instead,
                                                       as described in section \ref{sec:can_source_node_pseudo_id}. \\
-
-    Protocol version    & 1     & $1$               & Protocol version, ignore frame
-                                                      (or use according to a newer specification)
-                                                      if this field is not 1. \\
 \end{UAVCANSimpleTable}
 
 \begin{UAVCANSimpleTable}{CAN ID fields for service transfers}{|l l l X|}
@@ -142,6 +152,9 @@ for message transfers and service transfers, respectively.
 
     Request not response& 1     & $\{0, 1\}$ (any)  & 1 for service request, 0 for service response. \\
 
+    Reserved bit 23     & 1     & $0$               & Ignore frame (or use according to a newer specification)
+                                                      if this field has a different value. \\
+
     Service-ID          & 9     & $[0, 511]$ (any)  & Service-ID of the encoded service object
                                                       (request or response). \\
 
@@ -150,10 +163,6 @@ for message transfers and service transfers, respectively.
 
     Source node-ID      & 7     & $[0, 127]$ (any)  & Node-ID of the origin
                                                       (i.e., client for requests, server for responses). \\
-
-    Protocol version    & 1     & $1$               & Protocol version, ignore frame
-                                                      (or use according to a newer specification)
-                                                      if this field is not 1. \\
 \end{UAVCANSimpleTable}
 
 \subsubsection{Transfer priority}
@@ -254,7 +263,7 @@ The CAN frame data field may contain the following segments, in the listed order
 \begin{samepage}
 \begin{enumerate}
     \item The useful payload (serialized object). This segment may be empty.
-    \item Possible padding bytes.
+    \item Possible zero padding bytes.
           Padding bytes may be necessary if the transport layer does not provide byte-level
           granularity of the data field length (e.g., CAN FD).
     \item The last frame of multi-frame transfers always contains the transfer CRC (section \ref{sec:transfer_crc}).
@@ -311,22 +320,12 @@ two main purposes: CAN frame deduplication and protocol version detection.
 \subsubsection{Padding bytes}
 
 Certain transports (such as CAN FD) may not provide byte-level granularity of the CAN data field length.
-In that case, the useful payload is to be padded with the minimal number of padding bytes required
+In that case, the useful payload is to be padded with the minimal number of zero padding bytes required
 to bring the total length of the CAN data field to a value that can satisfy the length granularity constraints.
-
-When transmitting, each padding byte must be set to $\text{85} = \text{55}_\text{hex} = \text{0101\,0101}_\text{bin}$.
-This specific padding value is chosen to avoid stuff bits and to facilitate CAN controller synchronization.
-
-When receiving, the values of the padding bytes must be ignored.
-In other words, receiving nodes must not make any assumptions about the values of the
-padding bytes.
 
 Usage of padding bytes implies that when a serialized message is being deserialized by a receiving node,
 the byte sequence used for deserialization may be longer than the actual byte sequence generated by the
 emitting node during serialization.
-Therefore, nodes must ignore the trailing unused data bytes at the end of serialized byte sequences;
-a length mismatch is only to be considered an error if the received byte sequence is shorter
-than expected by the deserialization routine.
 
 \subsubsection{Single-frame transfers}
 
@@ -343,7 +342,7 @@ The resulting data field segmentation is shown in the table \ref{table:can_data_
     \rowfont{\bfseries}
     Offset                  & Length                     & Segment \\\hline
     $0$                     & $L_\text{payload}\geq{}0$  & Useful payload (serialized object). \\\hline
-    $L_\text{payload}$      & $L_\text{padding}\geq{}0$  & Padding bytes (if necessary). \\\hline
+    $L_\text{payload}$      & $L_\text{padding}\geq{}0$  & Zero padding bytes (if necessary). \\\hline
     $L_\text{payload} + L_\text{padding}$ & $1$          & Tail byte. \\\hline
 \end{tabu}
 \end{table}
@@ -405,7 +404,7 @@ The resulting data field segmentation is shown in the table \ref{table:can_data_
     Offset                  & Length                     & Segment \\\hline
     $0$                     & $L_\text{payload}\geq{}0$  & The last fragment of the useful payload
                                                            (serialized object). \\\hline
-    $L_\text{payload}$      & $L_\text{padding}\geq{}0$  & Padding bytes (if necessary). \\\hline
+    $L_\text{payload}$      & $L_\text{padding}\geq{}0$  & Zero padding bytes (if necessary). \\\hline
 
     \multirow{2}{*}{$L_\text{payload} + L_\text{padding}$} & \multirow{2}{*}{$2$} &
                                                            Transfer CRC, high byte.\\
