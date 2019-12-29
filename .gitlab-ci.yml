@@ -20,4 +20,4 @@ job:
     - ./compile.sh
   artifacts:
     paths:
-      - specification/out/UAVCAN_Specification.pdf
+      - specification/UAVCAN_Specification.pdf
