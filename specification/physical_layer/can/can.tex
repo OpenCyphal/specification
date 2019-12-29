@@ -3,7 +3,7 @@
 This section specifies the CAN-based physical layer of UAVCAN.
 
 Here and in the following parts of this section,
-``CAN'' implies both CAN 2.0 and CAN FD, unless specifically noted otherwise.
+``CAN'' implies both Classic CAN 2.0 and CAN FD, unless specifically noted otherwise.
 
 \subsection{Physical connector specification}
 
@@ -105,14 +105,14 @@ Usage of twisted or flat wires for all other signals remains at the discretion o
 
 \begin{figure}[hbt]
     \centering
-    \includegraphics[width=0.6\textwidth]{physical_layer/de-9_connector_male_plug}
+    \includegraphics[width=0.6\textwidth]{physical_layer/can/de-9_connector_male_plug}
     \caption{UAVCAN D-Sub device connector example.
     \label{fig:can_uavcan_d_sub_connector_device}}
 \end{figure}
 
 \begin{figure}[hbt]
     \centering
-    \includegraphics[width=0.6\textwidth]{physical_layer/de-9_cable_female_socket}
+    \includegraphics[width=0.6\textwidth]{physical_layer/can/de-9_cable_female_socket}
     \caption{UAVCAN D-Sub cable connector example.
     \label{fig:can_uavcan_d_sub_connector_cable}}
 \end{figure}
@@ -180,7 +180,7 @@ Note that the wires ``CAN high'' and ``CAN low'' should be a twisted pair.
 
 \begin{figure}[hbt]
     \centering
-    \includegraphics[width=0.7\textwidth]{physical_layer/m8_connector_pair_female_socket_male_plug}\\
+    \includegraphics[width=0.7\textwidth]{physical_layer/can/m8_connector_pair_female_socket_male_plug}\\
     Example connectors: female socket cable (left) and male plug device connector (right).
     Different connector types are available from various vendors: PCB mounted, panel mounted;
     straight cables, angled cables, etc.
@@ -190,7 +190,7 @@ Note that the wires ``CAN high'' and ``CAN low'' should be a twisted pair.
 
 \begin{figure}[hbt]
     \centering
-    \includegraphics[width=0.7\textwidth]{physical_layer/m8_connector_pair_assembled}
+    \includegraphics[width=0.7\textwidth]{physical_layer/can/m8_connector_pair_assembled}
     \caption{UAVCAN M8 assembled connector pair example.}
 \end{figure}
 
@@ -258,14 +258,14 @@ Note that the wires ``CAN high'' and ``CAN low'' should be a twisted pair.
 
 \begin{figure}[hbt]
     \centering
-    \includegraphics[width=0.7\textwidth]{physical_layer/jst_gh_connectors}
+    \includegraphics[width=0.7\textwidth]{physical_layer/can/jst_gh_connectors}
     \caption{UAVCAN Micro right-angle connectors with a twisted pair patch cable connected.
     \label{fig:can_uavcan_micro_connector_example}}
 \end{figure}
 
 \begin{figure}[hbt]
     \centering
-    \includegraphics[width=0.4\textwidth]{physical_layer/jst_gh_termination_plug}
+    \includegraphics[width=0.4\textwidth]{physical_layer/can/jst_gh_termination_plug}
     \caption{UAVCAN Micro CAN bus termination plug.}
 \end{figure}
 
@@ -277,21 +277,21 @@ UAVCAN is mostly agnostic of the parameters of the physical layer.
 However, vendors should follow the recommendations provided in this section
 to maximize the cross-vendor compatibility.
 
-\subsubsection{CAN 2.0}
+\subsubsection{Classic CAN 2.0}
 
-This section is dedicated to the legacy CAN 2.0 protocol.
+This section is dedicated to the legacy Classic CAN 2.0 protocol.
 
-The table \ref{table:can_2.0_phy_parameters} lists the standard parameters of the CAN PHY for
+The table \ref{table:classic_can_phy_parameters} lists the standard parameters of the CAN PHY for
 ISO 11898-2.
 The estimated bus length limits are based on the assumption that the propagation delay does not exceed 5 ns/m,
 not including additional delay times of CAN transceivers and other components.
 
-\begin{UAVCANSimpleTable}{Standard CAN 2.0 PHY parameters}{|X[c] X[c] X[c] X[c] X[c]|}
+\begin{UAVCANSimpleTable}{Standard Classic CAN 2.0 PHY parameters}{|X[c] X[c] X[c] X[c] X[c]|}
     Bit rate [kbit/s] &
     Valid range for location of sample point [\%] &
     Recommended location of sample point [\%] &
     Maximum bus length [m] &
-    Maximum stub length [m] \label{table:can_2.0_phy_parameters} \\
+    Maximum stub length [m] \label{table:classic_can_phy_parameters} \\
 
     1000    & 75 to 90  & 87.5  & 40    & 0.3 \\
      500    & 85 to 90  & 87.5  & 100   & 0.3 \\
