@@ -103,7 +103,7 @@ are dependent on the transport layer implementation\footnote{
     Frames that follow the format are UAVCAN transport frames of the CAN bus transport.
 }.
 
-\subsubsection{Transfer payload}
+\subsubsection{Transfer payload}\label{sec:transport_transfer_payload}
 
 The transfer payload contains the serialized representation of the carried
 DSDL object\footnote{Chapter \ref{sec:dsdl}.}.
@@ -225,7 +225,7 @@ data than a predicted minimum.
 
 \subsubsection{Transfer priority}\label{sec:transport_transfer_priority}
 
-Transfers are prioritized by means of the \emph{transfer priority} property,
+Transfers are prioritized by means of the \emph{transfer priority} parameter,
 which allows at least 8 (eight) distinct priority levels.
 Concrete transport implementations may support more than eight priority levels.
 
@@ -285,20 +285,93 @@ the transmission queue.
     \end{description}
 \end{remark}
 
-\subsubsection{Transfer-ID}\label{sec:transport_transfer_id}
+\subsubsection{Route specifier}\label{sec:transport_route_specifier}
 
-Cyclic vs. monotonic.
 
-\subsubsection{Route specifier}
+\subsubsection{Data specifier}\label{sec:transport_data_specifier}
 
-\subsubsection{Data specifier}
 
-\subsubsection{Session specifier}
+\subsubsection{Session specifier}\label{sec:transport_session_specifier}
 
 UAVCAN is stateless. Sessions are purely local constructs.
 
-\subsection{Transfers}
+Hard real-time considerations.
+
+\subsubsection{Transfer-ID}\label{sec:transport_transfer_id}
+
+The \emph{transfer-ID} is an unsigned integer value that is provided for every transfer.
+Barring the case of transfer-ID overflow reviewed below,
+each transfer under a given session specifier has a unique transfer-ID value.
+This parameter is crucial for many aspects of UAVCAN communication\footnote{%
+    One might be tempted to use the transfer-ID value for temporal synchronization of
+    parallel message streams originating from the same node,
+    where messages bearing the same transfer-ID value are supposed to correspond to the same moment in time.
+    Such use is strongly discouraged because it is incompatible with transports that rely on overflowing
+    transfer-ID values and because it introduces a leaky abstraction into the system.
+    If temporal synchronization is necessary, explicit time stamping should be used instead.
+}; specifically:
+
+\begin{description}
+    \item[Message sequence monitoring] -- transfer-ID allows receiving nodes to detect discontinuities
+    in incoming message streams from remote nodes.
+
+    \item[Service response matching] -- when a server responds to a request, it uses the same transfer-ID for the
+    response transfer as in the request transfer,
+    allowing the client to emit concurrent requests to the same server while being able to
+    match each response with the corresponding local request state.
+
+    \item[Transfer deduplication] -- the transfer-ID allows receiving nodes to detect and eliminate duplicated
+    transfers.
+    Transfer duplication may occur either spuriously as an artifact of a concrete
+    transport layer implementation\footnote{%
+        For example, in CAN bus, a frame that appears valid to the receiver may under certain (rare) conditions
+        appear invalid to the transmitter, triggering the latter to retransmit the frame,
+        in which case it will be duplicated on the side of the receiver.
+        Sequence counting mechanisms such as transfer-ID allow implementations to circumvent this problem.
+    } or deliberately as a method of deterministic data loss mitigation for unreliable links\footnote{%
+        \url{https://forum.uavcan.org/t/idempotent-interfaces-and-deterministic-data-loss-mitigation/643}.
+    }.
+
+    \item[Multi-frame transfer reassembly] -- a transfer that is split over multiple transport frames is reassembled
+    back upon reception with the help of transfer-ID: all transport frames that comprise a transfer
+    share the same transfer-ID value.
+
+    \item[Automatic management of redundant interfaces] -- in redundant transport networks,
+    transfer-ID enables automatic switchover to a back-up interface shall the primary interface fail.
+    The switchover logic can be completely transparent to the application, joining several independent
+    redundant transport networks into a highly reliable single virtual communication channel.
+\end{description}
+
+For service response transfers the transfer-ID value shall be directly copied from the corresponding
+service request transfer\footnote{This behavior facilitates request-response matching on the client node.}.
+
+A node that is interested in emitting message transfers or service request transfers
+under a particular session specifier, whether periodically or on an ad-hoc basis,
+shall allocate a transfer-ID counter state associated with said session specifier exclusively.
+The transfer-ID value of every emitted transfer is determined by sampling the corresponding counter
+keyed by the session specifier of the transfer; afterwards, the counter is incremented by one.
+
+The initial value of a transfer-ID counter shall be zero.
+Once a new transfer-ID counter is created,
+it shall be kept at least as long as the node remains connected to the transport network;
+destruction of transfer-ID counter states is prohibited\footnote{%
+    The number of unique session specifiers is bounded and can be determined statically per application,
+    so this requirement does not introduce non-deterministic features into the application even if it leverages
+    aperiodic/ad-hoc transfers.
+}.
+
+When the transfer-ID counter reaches the maximum value defined for the concrete transport layer implementation,
+the next increment resets its value to zero.
+Transports where such events are expected to take place during operation are said to have \emph{cyclic transfer-ID}.
+Transports where the maximum value of the transfer-ID is high enough to be unreachable under all conceivable
+practical circumstances are said to have \emph{monotonic transfer-ID}.
+
+\subsection{Transfer categories}
 
 \subsubsection{Single-frame and multi-frame transfers}
 
+\subsection{Redundant transports}
 
+Heterogeneous redundancy.
+
+Cyclic transfer-ID -- same overflow period. Monotonic transfer-ID.
