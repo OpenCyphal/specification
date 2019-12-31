@@ -39,21 +39,21 @@ implementations; despite that, they are convenient for an abstract discussion.
             &
             &
             \multicolumn{3}{c|}{\bfseries{} Transfer-ID} &
-            An integer that uniquely identifies a transfer within its category.\\\cline{2-7}
+            An integer that uniquely identifies a transfer within its session.\\\cline{2-7}
 
             % ROUTE SPECIFIER
             \multicolumn{1}{|c|}{} &
             \multicolumn{1}{c|}{\multirow{5}{*}{\rotatebox[origin=c]{90}{\shortstack{Session \\ specifier}}}} &
             \multirow{2}{*}{\shortstack{Route \\ specifier}} &
             \multicolumn{3}{c|}{\bfseries{} Source node-ID} &
-            Source node-ID is not defined for anonymous message transfers. \\\cline{5-6}
+            Source node-ID is not specified for anonymous transfers. \\\cline{5-6}
 
             \multicolumn{1}{|c|}{} &
             \multicolumn{1}{c|}{} &
             &
             \multicolumn{1}{c|}{} &
             \multicolumn{2}{c|}{\bfseries{} Destination node-ID} &
-            Destination node-ID is not defined for message transfers.\\\cline{3-7}
+            Destination node-ID is not specified for broadcast transfers.\\\cline{3-7}
 
             % DATA SPECIFIER
             \multicolumn{1}{|c|}{} &
@@ -172,7 +172,7 @@ network as a single transport frame\footnote{%
     \caption{Transfer payload truncation.\label{fig:transport_payload_truncation}}
 \end{figure}
 
-\begin{remark}
+\begin{remark}[breakable]
     The requirement to discard the excessive payload data at the end of the transfer is motivated by
     the necessity to allow extensibility of data type definitions, as described in chapter \ref{sec:dsdl}.
     Additionally, excessive payload data may contain zero padding bytes if required by the particular
@@ -204,7 +204,7 @@ network as a single transport frame\footnote{%
     the existence of subtyping and introduces leaky abstractions throughout the protocol stack.
 \end{remark}
 
-\begin{remark}
+\begin{remark}[breakable]
     The implicit zero extension rule makes deserialization routines sensitive to the trailing unused data.
     For example, suppose that a publisher emits an object of type:
 
@@ -295,6 +295,40 @@ the transmission queue.
 
 \subsubsection{Route specifier}\label{sec:transport_route_specifier}
 
+The \emph{route specifier} defines the node-ID of the origin and the node-ID of the destination of a transfer.
+
+A \emph{broadcast transfer} is a transfer that does not have a specific destination\footnote{%
+    This does not imply that every node is required to process such transfers.
+    The opt-in logic is facilitated by automatic acceptance filtering features implemented on the transport layer.
+}.
+A \emph{unicast transfer} is a transfer that is addressed to a specific single node\footnote{%
+    Whose existence and availability is optional.
+}.
+
+An \emph{anonymous transfer} is a transfer that does not have a specific source.
+Anonymous transfers have the following limitations\footnote{%
+    Anonymous transfers are intended primarily for the facilitation of the optional plug-and-play feature
+    (section \ref{sec:application_level_functions})
+    which enables fully automatic configuration of UAVCAN nodes upon their connection to the network.
+    Some transports may provide native support for auto-configuration, rendering anonymous transfers unnecessary.
+}:
+\begin{itemize}
+    \item An anonymous transfer can be only a message transfer.
+    \item An anonymous transfer can be only a single-frame transfer.
+    \item Concrete transport layer implementations may introduce arbitrary additional restrictions
+          on anonymous transfers or omit their support completely.
+\end{itemize}
+
+A message transfer can be only a broadcast transfer; unicast message transfers are not defined\footnote{%
+    Unicast message transfers may be defined in a future revision of this Specification.
+}.
+A service transfer can be only a unicast transfer; broadcast service transfers are prohibited.
+
+\begin{UAVCANCompactTable}{|l l l|}
+    Transfer kind       & Unicast       & Broadcast     \\
+    Message transfer    & Not defined   & Valid         \\
+    Service transfer    & Valid         & Prohibited    \\
+\end{UAVCANCompactTable}
 
 \subsubsection{Data specifier}\label{sec:transport_data_specifier}
 
