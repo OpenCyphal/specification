@@ -143,6 +143,14 @@ In order to facilitate the implicit zero extension rule introduced in section \r
 implementations shall not discard a transfer even if it is determined that it contains less payload
 data than a predicted minimum.
 
+A transfer whose payload exceeds the capacity of the transport frame is manifested on the transport network
+as a set of multiple transport frames; such transfers are referred to as \emph{multi-frame transfers}.
+A transfer whose payload does not exceed the capacity of the transport frame shall be manifested on the transport
+network as a single transport frame\footnote{%
+    In other words, multi-frame transfers are prohibited for payloads that can be transferred
+    using a single-frame transfer.
+}; such transfers are referred to as \emph{single-frame transfers}.
+
 \begin{figure}[H]
     $$
     \raisebox{1em}{\footnotesize{\text{first byte}}}
@@ -366,9 +374,11 @@ Transports where such events are expected to take place during operation are sai
 Transports where the maximum value of the transfer-ID is high enough to be unreachable under all conceivable
 practical circumstances are said to have \emph{monotonic transfer-ID}.
 
-\subsection{Transfer categories}
+\subsection{Message transfers}
 
-\subsubsection{Single-frame and multi-frame transfers}
+
+\subsection{Service transfers}
+
 
 \subsection{Redundant transports}
 
