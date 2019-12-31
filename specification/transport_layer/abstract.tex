@@ -332,12 +332,22 @@ A service transfer can be only a unicast transfer; broadcast service transfers a
 
 \subsubsection{Data specifier}\label{sec:transport_data_specifier}
 
+The \emph{data specifier} encodes the semantic properties of the DSDL object carried by a transfer and its kind.
+
+The data specifier of a message transfer is the subject-ID of the contained DSDL message object.
+
+The data specifier of a service transfer is a combination of the service-ID of the contained DSDL service object
+and an additional binary parameter that segregates service requests from service responses.
 
 \subsubsection{Session specifier}\label{sec:transport_session_specifier}
 
-UAVCAN is stateless. Sessions are purely local constructs.
+The \emph{session specifier} is a combination of the data specifier and the route specifier.
+Its function is to uniquely identify not only the semantics of exchanged data but also the
+agents participating in its exchange.
 
-Hard real-time considerations.
+TODO UAVCAN is stateless. Sessions are purely local constructs.
+
+TODO Hard real-time considerations.
 
 \subsubsection{Transfer-ID}\label{sec:transport_transfer_id}
 
