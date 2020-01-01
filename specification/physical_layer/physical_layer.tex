@@ -18,7 +18,7 @@ directly correspond to those defined in the chapter \ref{sec:transport_layer}.
 This section contains certain generic hardware design recommendations that are agnostic of a particular
 physical layer implementation.
 
-\subsection{Non-uniform transport redundancy}\label{sec:phy_non_uniform_transport_redundancy}
+\subsection{Nonuniform transport redundancy}\label{sec:phy_nonuniform_transport_redundancy}
 
 Mission critical devices and non-mission critical devices often need to co-exist within the same UAVCAN network.
 Non-mission critical devices are likely to be equipped with a non-redundant transport interface,
@@ -27,17 +27,17 @@ need to be connected to the same network.
 In that case, the following rules should be followed:
 
 \begin{itemize}
-    \item Each available bus is assigned a level of importance (primary, secondary, etc.).
-    \item All nodes should be connected to the primary bus.
-    \item Only nodes with redundant interfaces should be also connected to the non-primary bus/buses.
+    \item Each available transport network is assigned a level of importance (primary, secondary, etc.).
+    \item All nodes should be connected to the primary transport network.
+    \item Only nodes with redundant interfaces should be also connected to the non-primary transport network(s).
 \end{itemize}
 
-The figure \ref{fig:phy_non_uniform_transport_redundancy} shows a doubly redundant bus transport as an example.
+The figure \ref{fig:phy_nonuniform_transport_redundancy} shows a doubly redundant network as an example.
 
 \begin{figure}[H]
     \centering
-	\includegraphics[width=\textwidth]{physical_layer/non_uniform_bus_redundancy}
-	\caption{Non-uniform transport redundancy.\label{fig:phy_non_uniform_transport_redundancy}}
+	\includegraphics[width=\textwidth]{physical_layer/nonuniform_bus_redundancy}
+	\caption{Nonuniform transport redundancy.\label{fig:phy_nonuniform_transport_redundancy}}
 \end{figure}
 
 \subsection{Bus power supply}
