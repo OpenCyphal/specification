@@ -450,9 +450,8 @@ This parameter is crucial for many aspects of UAVCAN communication\footnote{%
         appear invalid to the transmitter, triggering the latter to retransmit the frame,
         in which case it will be duplicated on the side of the receiver.
         Sequence counting mechanisms such as transfer-ID allow implementations to circumvent this problem.
-    } or deliberately as a method of deterministic data loss mitigation for unreliable links\footnote{%
-        \url{https://forum.uavcan.org/t/idempotent-interfaces-and-deterministic-data-loss-mitigation/643}.
-    }.
+    } or deliberately as a method of deterministic data loss mitigation for unreliable links
+    (section \ref{sec:transport_deterministic_data_loss_mitigation}).
 
     \item[Multi-frame transfer reassembly] -- a transfer that is split over multiple transport frames is reassembled
     back upon reception with the help of transfer-ID: all transport frames that comprise a transfer
@@ -564,7 +563,7 @@ A heterogeneous redundant transport shall meet \emph{either} of the following re
 
 \subsection{Transfer transmission}
 
-\subsubsection{Deterministic data loss mitigation}
+\subsubsection{Deterministic data loss mitigation}\label{sec:transport_deterministic_data_loss_mitigation}
 
 Performance of transport networks where the probability of a successful transfer delivery
 does not meet design requirements can be adjusted by repeating relevant outgoing transfers
