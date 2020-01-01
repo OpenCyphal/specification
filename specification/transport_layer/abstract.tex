@@ -297,13 +297,15 @@ the transmission queue.
 
 The \emph{route specifier} defines the node-ID of the origin and the node-ID of the destination of a transfer.
 
-A \emph{broadcast transfer} is a transfer that does not have a specific destination\footnote{%
-    This does not imply that every node is required to process such transfers.
-    The opt-in logic is facilitated by automatic acceptance filtering features implemented on the transport layer.
+A \emph{broadcast transfer} is a transfer that does not have a specific destination;
+the decision of whether to process a broadcast transfer is delegated to receiving nodes\footnote{%
+    This does not imply that applications are required to be involved with every broadcast transfer.
+    The opt-in logic is facilitated by the low-level routing and/or filtering features implemented
+    by the network stack and/or the underlying hardware.
 }.
 A \emph{unicast transfer} is a transfer that is addressed to a specific single node\footnote{%
     Whose existence and availability is optional.
-}.
+}; which node should process a unicast transfer is decided by the sending node.
 
 An \emph{anonymous transfer} is a transfer that does not have a specific source.
 Anonymous transfers have the following limitations\footnote{%
@@ -342,10 +344,36 @@ and an additional binary parameter that segregates service requests from service
 \subsubsection{Session specifier}\label{sec:transport_session_specifier}
 
 The \emph{session specifier} is a combination of the data specifier and the route specifier.
-Its function is to uniquely identify not only the semantics of exchanged data but also the
-agents participating in its exchange.
+Its function is to uniquely identify a category of transfers by the semantics of exchanged data and
+the agents participating in its exchange while abstracting over individual transfers and their concrete data.
 
-TODO UAVCAN is stateless. Sessions are purely local constructs.
+The term \emph{session} used here denotes the node's local representation of a logical communication
+channel that it is a member of.
+Following the stateless and low-context nature of UAVCAN, this concept excludes any notion of explicit state sharing
+between nodes.
+
+\begin{remark}
+    One of the key design principles is that UAVCAN is a stateless low-context protocol where collaborating agents
+    do not make strong assumptions about the state of each other.
+    Statelessness and context invariance are important because they facilitate behavioral simplicity and robustness;
+    these properties are desirable for deterministic real-time distributed applications which UAVCAN is designed for.
+
+    Design and verification of a system that relies on multiple agents sharing the same model of a distributed process
+    necessitates careful analysis of special cases such as unintended state divergence, latency and transient states,
+    sudden loss of state (e.g., due to disconnection or a software reset), etc.
+    Lack of adequate consideration may render the resulting solution fragile and prone to unspecified behaviors.
+
+    Some of the practical consequences of the low-context design include the ability of a node to immediately
+    commence operation on the network without any prior initialization steps.
+    Likewise, addition and removal of a subscriber to a given subject is transparent to the publisher.
+
+    The above considerations only hold for the communication protocol itself.
+    Applications whose functionality is built on top of the protocol may engage in state sharing if such is
+    found to be beneficial\footnote{%
+        Related discussion in
+        \url{https://forum.uavcan.org/t/idempotent-interfaces-and-deterministic-data-loss-mitigation/643}.
+    }.
+\end{remark}
 
 TODO Hard real-time considerations.
 
