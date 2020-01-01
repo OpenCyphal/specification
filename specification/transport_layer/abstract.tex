@@ -352,7 +352,7 @@ channel that it is a member of.
 Following the stateless and low-context nature of UAVCAN, this concept excludes any notion of explicit state sharing
 between nodes.
 
-\begin{remark}
+\begin{remark}[breakable]
     One of the key design principles is that UAVCAN is a stateless low-context protocol where collaborating agents
     do not make strong assumptions about the state of each other.
     Statelessness and context invariance are important because they facilitate behavioral simplicity and robustness;
@@ -375,7 +375,37 @@ between nodes.
     }.
 \end{remark}
 
-TODO Hard real-time considerations.
+\begin{remark}[breakable]
+    Some implementations of the UAVCAN communication stack may contain states indexed by the session specifier.
+    For example, in order to emit a transfer, the stack may need to query the appropriate transfer-ID counter
+    by the session specifier of the transfer.
+    Likewise, in order to process a received frame,
+    the stack may need to locate the appropriate states keyed by the session specifier.
+
+    Given the intended application domains of UAVCAN,
+    the temporal characteristics of such look-up activities should be well-characterized and predictable.
+    Due to the fact that all underlying primitive parameters that form the session specifier
+    (such as node-ID, port-ID, etc.) have statically defined bounds,
+    it is trivial to construct a look-up procedure satisfying any computational complexity envelope,
+    from constant-complexity $O(1)$ at the expense of heightened memory utilization,
+    up to low-memory-footprint $O(n)$ if temporal predictability is less relevant.
+
+    For example, given a subject-ID, the maximum number of distinct sessions that can be observed
+    by the local node will never exceed the number of nodes in the network minus one\footnote{%
+        A node cannot receive transfers from itself, hence minus one.
+    }.
+    If the number of nodes in the network cannot be reliably known in advance (which is the case in most applications),
+    it can be considered to equal the maximum number of nodes permitted by the concrete transport layer\footnote{%
+        E.g., 128 nodes for the CAN bus transport.
+    }.
+    The total number of distinct sessions that can be observed by a node is a product of the number
+    of distinct data specifiers utilized by the node and the number of other nodes in the network.
+
+    It is recognized that highly rigid safety-critical applications may benefit from avoiding any
+    dynamic look-up by sacrificing generality, by employing automatic code generation, or through other methods,
+    in the interest of greater determinism and robustness.
+    In such cases, the above considerations may be irrelevant.
+\end{remark}
 
 \subsubsection{Transfer-ID}\label{sec:transport_transfer_id}
 
