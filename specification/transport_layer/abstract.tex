@@ -492,10 +492,15 @@ practical circumstances are said to have \emph{monotonic transfer-ID}.
 
 UAVCAN supports modular transport redundancy for the benefit of a certain class of safety-critical applications.
 A modular redundant transport interconnects nodes belonging to the same network (all or their subset)
-via more than one transport network,
-where each transport network is capable of independent operation.
+via more than one transport network.
+A set of such transport networks that together form a redundant transport is referred to as a
+\emph{redundant transport group}.
 
-Redundant transports are designed for increased fault tolerance, not for load sharing.
+Each member of a redundant transport group shall be capable of independent operation
+such that the level of service of the resulting modular redundant transport remains constant
+as long as at least one member of the redundant group remains functional\footnote{%
+    Redundant transports are designed for increased fault tolerance, not for load sharing.
+}.
 
 \begin{remark}
     Networks containing nodes with different reliability requirements may benefit from
@@ -557,6 +562,35 @@ A heterogeneous redundant transport shall meet \emph{either} of the following re
 \end{remark}
 \end{comment}
 
-\subsection{Transmission}
+\subsection{Transfer transmission}
 
-\subsection{Reception}
+\subsubsection{Deterministic data loss mitigation}
+
+Performance of transport networks where the probability of a successful transfer delivery
+does not meet design requirements can be adjusted by repeating relevant outgoing transfers
+under the same transfer-ID value.
+This tactic is referred to as \emph{deterministic data loss mitigation}\footnote{
+    Discussed in
+    \url{https://forum.uavcan.org/t/idempotent-interfaces-and-deterministic-data-loss-mitigation/643}.
+}.
+
+\subsubsection{Transmission over redundant transports}
+
+Nodes equipped with redundant transports shall submit every outgoing transfer to the transmission queues of all
+available redundant transports simultaneously\footnote{%
+    The objective of this requirement is to guarantee that a redundant transport remains fully functional
+    as long as at least one transport in the redundant group is functional.
+}.
+It is recognized that perfectly simultaneous transmission may not be possible due to different
+utilization rates of the redundant transports, different phasing of their traffic, and/or application constraints,
+in which case implementations shall strive to minimize the temporal skew.
+
+An exception to the above rule applies if the payload of the transfer is a function of
+the identity of the transport instance that carries the transfer\footnote{%
+    An example of such a special case is the time synchronization algorithm documented in section
+    \ref{sec:application_level_functions}.
+}.
+
+\subsection{Transfer reception}
+
+
