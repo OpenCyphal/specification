@@ -15,6 +15,26 @@ which is guaranteed to be above 127 for any transport.
 The two uppermost node-ID values are reserved for diagnostic and debugging tools;
 these node-ID values should not be used in fielded systems.
 
+\subsection{Timing constraints}
+
+\subsubsection{Recommended message publication timing constraints}
+
+Generally, it is recommended to abort a message transmission if it cannot be completed in 1 second.
+
+It is expected that high-frequency high-priority messages may opt for lower timeout values,
+whereas low-priority delayable data may opt for higher timeout values to account for network congestion.
+Refer to section \ref{sec:transport_transfer_priority} on transfer prioritization.
+
+\subsubsection{Recommended service invocation timing constraints}
+
+It is recommended to abort a service transfer transmission if it cannot be completed in 1 second.
+It is recommended to stop waiting for a service response if it could not be received in the same amount of time;
+upon reaching this condition, the service request operation should be considered unsuccessful.
+
+If the server uses a significant part of the timeout period to process the request,
+the client might drop the request before receiving the response.
+It is recommended to ensure that the server will be able to process any request in less than 0.5 seconds.
+
 \subsection{Coordinate frames}
 
 UAVCAN follows the conventions that are widely accepted in relevant applications.

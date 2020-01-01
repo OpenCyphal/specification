@@ -91,6 +91,10 @@ The elements comprising the metadata are reviewed below.
 
 Transfers are distinguished between \emph{message transfers} and \emph{service transfers} depending on the kind
 of the carried DSDL object.
+Service transfers are further differentiated between \emph{service request transfers},
+which are sent from the invoking node -- \emph{client node} -- to the node that provides the service --
+\emph{server node}, and \emph{service response transfers},
+which are sent from the server node to the client node upon handling the request.
 
 A transfer is manifested on the transport network as one or more \emph{transport frames}.
 A transport frame is an atomic entity carrying the entire transfer payload or a fraction thereof
@@ -145,6 +149,12 @@ data than a predicted minimum.
 
 A transfer whose payload exceeds the capacity of the transport frame is manifested on the transport network
 as a set of multiple transport frames; such transfers are referred to as \emph{multi-frame transfers}.
+Implementations shall minimize the number of transport frames constituting a multi-frame transfer by ensuring that
+their payload capacity is not underutilized.
+Implementations should minimize the delay between transmission of transport frames that belong to the same transfer.
+Transport frames of a multi-frame transfer shall be transmitted following the order of the
+transfer payload fragments they contain.
+
 A transfer whose payload does not exceed the capacity of the transport frame shall be manifested on the transport
 network as a single transport frame\footnote{%
     In other words, multi-frame transfers are prohibited for payloads that can be transferred
@@ -307,7 +317,9 @@ A \emph{unicast transfer} is a transfer that is addressed to a specific single n
     Whose existence and availability is optional.
 }; which node should process a unicast transfer is decided by the sending node.
 
-An \emph{anonymous transfer} is a transfer that does not have a specific source.
+A node that does not have a node-ID is referred to as \emph{anonymous node}.
+Such nodes are unable to emit transfers other than \emph{anonymous transfers}.
+An anonymous transfer is a transfer that does not have a specific source.
 Anonymous transfers have the following limitations\footnote{%
     Anonymous transfers are intended primarily for the facilitation of the optional plug-and-play feature
     (section \ref{sec:application_level_functions})
@@ -476,14 +488,12 @@ Transports where such events are expected to take place during operation are sai
 Transports where the maximum value of the transfer-ID is high enough to be unreachable under all conceivable
 practical circumstances are said to have \emph{monotonic transfer-ID}.
 
-\subsection{Message transfers}
-
-
-\subsection{Service transfers}
-
-
 \subsection{Redundant transports}
 
 Heterogeneous redundancy.
 
 Cyclic transfer-ID -- same overflow period. Monotonic transfer-ID.
+
+\subsection{Transmission}
+
+\subsection{Reception}
