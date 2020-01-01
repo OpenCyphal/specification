@@ -490,9 +490,72 @@ practical circumstances are said to have \emph{monotonic transfer-ID}.
 
 \subsection{Redundant transports}
 
-Heterogeneous redundancy.
+UAVCAN supports modular transport redundancy for the benefit of a certain class of safety-critical applications.
+A modular redundant transport interconnects nodes belonging to the same network (all or their subset)
+via more than one transport network,
+where each transport network is capable of independent operation.
 
-Cyclic transfer-ID -- same overflow period. Monotonic transfer-ID.
+Redundant transports are designed for increased fault tolerance, not for load sharing.
+
+\begin{remark}
+    Networks containing nodes with different reliability requirements may benefit from
+    nonuniform redundant transport configurations, where non-critical nodes are interconnected
+    using a lower number of transports than critical nodes.
+    However, designers should recognize that nonuniform redundancy may complicate the analysis of the network.
+\end{remark}
+
+% The following fragment deals with heterogeneous transports.
+% Its inclusion in the body of the document does not make sense until the UDP/IP and Serial transports
+% (and/or other transports) are formally specified. When they are, this fragment will be uncommented.
+\begin{comment}
+A \emph{heterogeneous redundant transport} is a redundant transport configuration where nodes are
+interconnected using different concrete transport implementations.
+Heterogeneous transports may facilitate higher fault tolerance provided that the failure modes of involved transports
+are sufficiently dissimilar\footnote{%
+    Consider a heterogeneous configuration combining wired and wireless transports.
+    See also ``Wireless Avionics Intra-Communications'' (WAIC).
+}.
+A heterogeneous redundant transport shall meet \emph{either} of the following requirements:
+\begin{itemize}
+    \item All of the involved transports shall use monotonic transfer-ID\footnote{%
+        Section \ref{sec:transport_transfer_id}.
+    }.
+    \item All of the involved transports shall use cyclic transfer-ID with identical value ranges.
+\end{itemize}
+
+\begin{remark}[breakable]
+    Transports with monotonic transfer-ID have a higher metadata overhead per frame due to the requirement
+    to accommodate a sufficiently wide integer field for the transfer-ID value.
+    Their advantage is that transfer-ID values of all transports in a redundant group
+    are guaranteed to remain in-phase as long as the node is running.
+    The importance of this guarantee can be demonstrated with the following counterexample
+    of two transports leveraging different transfer-ID ranges for the same session,
+    where the unambiguous mapping between their transfer-ID values is lost after the first overflow
+    (figure \ref{fig:transport_cyclic_transfer_id_redundant}).
+
+    % Plot[{
+    %   Mod[x, 40],
+    %   Mod[x, 32]
+    %  },
+    %  {x, 0, 150},
+    %  PlotLegends -> {"[0,40]", "[0,32]"},
+    %  GridLines -> {{}, {32, 40}},
+    %  AxesLabel -> {"Count", "Transfer-ID"},
+    %  Epilog -> {
+    %    Text["Epoch 0", {20, 35}],
+    %    Text["Epoch 1", {60, 35}],
+    %    Text["Epoch 2", {100, 35}],
+    %    Text["Epoch 3", {140, 35}]
+    %   }
+    %  ]
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.6\textwidth]{transport_layer/cyclic_transfer_id_redundant_transport}
+        \caption{Issues with cyclic transfer-ID in heterogeneous redundant transports.}
+        \label{fig:transport_cyclic_transfer_id_redundant}
+    \end{figure}
+\end{remark}
+\end{comment}
 
 \subsection{Transmission}
 
