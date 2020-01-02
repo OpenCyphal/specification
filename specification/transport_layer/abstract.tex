@@ -487,6 +487,38 @@ Transports where such events are expected to take place during operation are sai
 Transports where the maximum value of the transfer-ID is high enough to be unreachable under all conceivable
 practical circumstances are said to have \emph{monotonic transfer-ID}.
 
+\emph{Transfer-ID difference} for a pair of transfer-ID values $a$ and $b$ is defined
+for monotonic transfer-ID as their arithmetic difference $a-b$.
+For a cyclic transfer-ID, the difference is defined as the number of increment operations that need to be applied
+to $b$ so that $a = b^\prime{}$.
+
+\begin{remark}
+    A C++ implementation of the cyclic transfer-ID difference operator is provided here.
+    \begin{minted}{cpp}
+        #include <cstdint>
+        /**
+         * UAVCAN cyclic transfer-ID difference computation algorithm implemented in C++.
+         * License: CC0, no copyright reserved.
+         * @param a         Left-hand operand (minuend).
+         * @param b         Right-hand operand (subtrahend).
+         * @param modulo    The number of distinct transfer-ID values, or the maximum value plus one.
+         * @returns         The number of increment operations separating b from a.
+         */
+        [[nodiscard]]
+        constexpr std::uint8_t computeCyclicTransferIDDifference(const std::uint8_t a,
+                                                                 const std::uint8_t b,
+                                                                 const std::uint8_t modulo)
+        {
+            std::int16_t d = static_cast<std::int16_t>(a) - static_cast<std::int16_t>(b);
+            if (d < 0)
+            {
+                d += static_cast<std::int16_t>(modulo);
+            }
+            return static_cast<std::uint8_t>(d);
+        }
+    \end{minted}
+\end{remark}
+
 \subsection{Redundant transports}
 
 UAVCAN supports transport redundancy for the benefit of a certain class of safety-critical applications.
@@ -574,7 +606,7 @@ under the same transfer-ID value\footnote{%
     by this transport layer specification;
     no special activities are needed there to accommodate this feature.
 }.
-This tactic is referred to as \emph{deterministic data loss mitigation}\footnote{
+This tactic is referred to as \emph{deterministic data loss mitigation}\footnote{%
     Discussed in
     \url{https://forum.uavcan.org/t/idempotent-interfaces-and-deterministic-data-loss-mitigation/643}.
 }.
@@ -598,5 +630,9 @@ the identity of the transport instance that carries the transfer\footnote{%
 }.
 
 \subsection{Transfer reception}
+
+
+
+\subsubsection{Anonymous transfers}
 
 
