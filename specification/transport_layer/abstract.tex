@@ -489,14 +489,14 @@ practical circumstances are said to have \emph{monotonic transfer-ID}.
 
 \subsection{Redundant transports}
 
-UAVCAN supports modular transport redundancy for the benefit of a certain class of safety-critical applications.
-A modular redundant transport interconnects nodes belonging to the same network (all or their subset)
+UAVCAN supports transport redundancy for the benefit of a certain class of safety-critical applications.
+A redundant transport interconnects nodes belonging to the same network (all or their subset)
 via more than one transport network.
 A set of such transport networks that together form a redundant transport is referred to as a
 \emph{redundant transport group}.
 
 Each member of a redundant transport group shall be capable of independent operation
-such that the level of service of the resulting modular redundant transport remains constant
+such that the level of service of the resulting redundant transport remains constant
 as long as at least one member of the redundant group remains functional\footnote{%
     Redundant transports are designed for increased fault tolerance, not for load sharing.
 }.
@@ -512,6 +512,8 @@ as long as at least one member of the redundant group remains functional\footnot
 % Its inclusion in the body of the document does not make sense until the UDP/IP and Serial transports
 % (and/or other transports) are formally specified. When they are, this fragment will be uncommented.
 \begin{comment}
+\subsubsection{Heterogeneous redundant transports}
+
 A \emph{heterogeneous redundant transport} is a redundant transport configuration where nodes are
 interconnected using different concrete transport implementations.
 Heterogeneous transports may facilitate higher fault tolerance provided that the failure modes of involved transports
@@ -567,7 +569,11 @@ A heterogeneous redundant transport shall meet \emph{either} of the following re
 
 Performance of transport networks where the probability of a successful transfer delivery
 does not meet design requirements can be adjusted by repeating relevant outgoing transfers
-under the same transfer-ID value.
+under the same transfer-ID value\footnote{%
+    Removal of intentionally duplicated transfers on the receiving side is natively guaranteed
+    by this transport layer specification;
+    no special activities are needed there to accommodate this feature.
+}.
 This tactic is referred to as \emph{deterministic data loss mitigation}\footnote{
     Discussed in
     \url{https://forum.uavcan.org/t/idempotent-interfaces-and-deterministic-data-loss-mitigation/643}.
@@ -582,7 +588,8 @@ available redundant transports simultaneously\footnote{%
 }.
 It is recognized that perfectly simultaneous transmission may not be possible due to different
 utilization rates of the redundant transports, different phasing of their traffic, and/or application constraints,
-in which case implementations shall strive to minimize the temporal skew.
+in which case implementations should strive to minimize the temporal skew as long as that
+does not increase the latency.
 
 An exception to the above rule applies if the payload of the transfer is a function of
 the identity of the transport instance that carries the transfer\footnote{%
