@@ -129,7 +129,7 @@ of a DSDL object of a particular type.
 Consequently, an implementation that is interested in receiving data objects of a particular type
 can statically determine the maximum length of the transfer payload.
 
-Implementations shall handle incoming transfers containing a larger amount of payload data than expected.
+Implementations should handle incoming transfers containing a larger amount of payload data than expected.
 In the event of such extra payload being received, a compliant implementation should
 discard the excessive (unexpected) data at the end of the received payload\footnote{%
     Such occurrence is not indicative of a problem so it should not be reported as such.
@@ -556,9 +556,12 @@ are sufficiently dissimilar\footnote{%
 A heterogeneous redundant transport shall meet \emph{either} of the following requirements:
 \begin{itemize}
     \item All of the involved transports shall use monotonic transfer-ID\footnote{%
-        Section \ref{sec:transport_transfer_id}.
-    }.
+              Section \ref{sec:transport_transfer_id}.
+          }.
+          In this case, the resulting redundant transport is said to be a monotonic transfer-ID transport as well.
+
     \item All of the involved transports shall use cyclic transfer-ID with identical value ranges.
+          In this case, the resulting redundant transport is said to be a cyclic transfer-ID transport as well.
 \end{itemize}
 
 \begin{remark}[breakable]
@@ -631,8 +634,56 @@ the identity of the transport instance that carries the transfer\footnote{%
 
 \subsection{Transfer reception}
 
+\subsubsection{Definitions}
 
+\emph{Transfer reassembly} is the real-time process of reconstruction of the transfer payload and its metadata from
+a sequence of relevant transport frames.
 
-\subsubsection{Anonymous transfers}
+\emph{Transfer-ID timeout} is a time interval that is 2 (two) seconds long.
+The semantics of this entity are explained below.
+Implementations are allowed to redefine this value provided that such redefinition is explicitly documented.
 
+\emph{Transport frame reception timestamp} specifies the moment of time when the frame is received by a node.
+\emph{Transfer reception timestamp} is the reception timestamp of the earliest received frame of the transfer.
 
+An \emph{ordered transfer sequence} is a sequence of transfers whose temporal order is
+covariant with their transfer-ID values.
+
+\subsubsection{Behaviors}
+
+For a given session specifier, every unique transfer
+(differentiated from other transfers in the same session by its transfer-ID)
+shall be received at most once\footnote{%
+    In other words, intentional and unintentional duplicates shall be removed.
+    Intentional duplications are introduced by the deterministic data loss mitigation measure or redundant transports.
+    Unintentional duplications may be introduced by various artifacts of the transport network.
+}.
+
+For a given session specifier, a successfully reassembled transfer that is temporally separated from
+any other successfully reassembled transfer under the same session specifier by more than the transfer-ID timeout
+is considered unique regardless of its transfer-ID value.
+
+Implementations are recommended, but not required, to support reassembly of
+multi-frame transfers where the temporal ordering of the transport frames is distorted\footnote{%
+    For a certain category of transport implementations, reassembly of multi-frame transfers from an
+    unordered transport frame sequence increases the probability of successful delivery if
+    transport frames are intentionally duplicated.
+    Such intentional duplication occurs in redundant transports and if deterministic data loss mitigation is used.
+    The reason is that the loss of a single transport frame is observed by the receiving node as its relocation
+    from its original position in the sequence to the position of its duplicate.
+}.
+
+Reassembled transfers shall form an ordered transfer sequence.
+
+For a cyclic transfer-ID redundant transport whose redundant group contains $n$ transports,
+if up to $n-1$ transports in the redundant group lose the ability to exchange transport frames between nodes,
+the transfer reassembly process shall be able to restore nominal functionality
+in an amount of time that does not exceed the transfer-ID timeout.
+
+For a monotonic transfer-ID redundant transport whose redundant group contains $n$ transports,
+if up to $n-1$ transports in the redundant group lose the ability to exchange transport frames between nodes,
+the performance of the transfer reassembly process shall not be affected.
+
+If supported by the concrete transport layer implementation,
+reassembly of anonymous transfers shall be implemented by unconditional acceptance of their transport frames.
+Requirements pertaining to ordering and uniqueness do not apply.
