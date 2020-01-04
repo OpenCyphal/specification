@@ -1,3 +1,704 @@
-\section{CAN bus transport}
+\section{UAVCAN/CAN transport specification}
 
+This section specifies a concrete transport based on CAN 2.0B (ISO 11898).
+Throughout this section, ``CAN'' implies both Classic CAN 2.0 and CAN FD, unless specifically noted otherwise.
+CAN FD should be considered the primary transport protocol.
 
+UAVCAN/CAN utilizes only extended CAN frames with 29-bit identifiers.
+UAVCAN/CAN can share the same bus with other high-level CAN bus protocols based on
+standard (non-extended) CAN 2.0A frames with 11-bit identifiers.
+However, future revisions of UAVCAN/CAN may utilize 11-bit identifiers as well so backward compatibility
+with other protocols is not guaranteed.
+
+\subsection{General principles}
+
+A CAN frame is a transport frame.
+The 29-bit ID field of a CAN frame encodes the
+session specifier\footnote{Section \ref{sec:transport_session_specifier}.}
+of the transfer it belongs to and its priority.
+The CAN data field contains the transfer payload (or, in the case of multi-frame transfers, a fraction thereof),
+along with the transfer-ID field and other transport-specific metadata.
+
+Payload of multi-frame transfers is extended with a transfer CRC which is specified below.
+Transport frames that form a multi-frame transfer are equipped with a \emph{toggle bit}
+which alternates its state every frame for deduplication purposes.
+
+\subsubsection{CAN transfer CRC}\label{sec:transport_can_transfer_crc}
+
+The purpose of the CAN transfer CRC is to validate the correctness of a multi-frame transfer reassembly.
+As such, it is not used with single-frame transfers.
+
+The transfer CRC is computed over the entire payload of the multi-frame transfer
+plus the trailing zero padding bytes, if any.
+
+The resulting CRC value is appended to the transfer in the \emph{big-endian byte order} (most significant byte first),
+in order to take advantage of the CRC residue check intrinsic to the used CRC function.
+
+The CRC function is a standard \verb|CRC-16/CCITT-FALSE|:
+initial value $\mathrm{FFFF}_{16}$, polynomial $\mathrm{1021}_{16}$,
+not reversed, no output XOR, zero residue.
+The value for an input sequence $\left(49, 50, \ldots, 56, 57\right)$ is $\mathrm{29B1}_{16}$.
+The following code snippet provides a basic implementation of the transfer CRC algorithm in C++
+(LUT-based alternatives exist).
+
+\begin{minted}{cpp}
+#include <cstdint>
+#include <cstddef>
+
+/// UAVCAN/CAN transfer CRC function implementation. License: CC0, no copyright reserved.
+class CANTransferCRC
+{
+    std::uint16_t value_ = 0xFFFFU;
+
+public:
+    void add(const std::uint8_t byte)
+    {
+        value_ ^= static_cast<std::uint16_t>(byte) << 8U;
+        for (std::uint8_t bit = 8; bit > 0; --bit)
+        {
+            if ((value_ & 0x8000U) != 0)
+            {
+                value_ = (value_ << 1U) ^ 0x1021U;
+            }
+            else
+            {
+                value_ = value_ << 1U;
+            }
+        }
+    }
+
+    void add(const std::uint8_t* bytes, std::size_t length)
+    {
+        while (length-- > 0)
+        {
+            add(*bytes++);
+        }
+    }
+
+    [[nodiscard]] std::uint16_t get() const { return value_; }
+};
+\end{minted}
+
+\subsection{CAN ID structure}
+
+UAVCAN utilizes two different CAN ID formats for message transfers and service transfers.
+The structure is summarized on the figure~\ref{fig:can_id_structure}.
+
+The fields are described in detail in the following sections.
+The tables \ref{table:can_id_fields_message_transfer} and \ref{table:can_id_fields_service_transfer}
+summarize the purpose of the fields and their permitted values
+for message transfers and service transfers, respectively.
+
+% Please do not remove the hard placement specifier [H], it is needed to keep elements ordered.
+\begin{figure}[H]
+    \centering
+    \resizebox{\textwidth}{!}{
+        \footnotesize
+        \begin{tabular}{|l|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|} \hline
+            %
+            % Message transfer
+            %
+            \multirow{2}{*}{\textbf{Message}} &
+            \multicolumn{4}{c|}{Service, not message} &
+            \multicolumn{3}{c|}{Anonymous} &
+            \multicolumn{14}{c|}{\multirow{2}{*}{Subject-ID}} &
+            \multicolumn{1}{c|}{\multirow{2}{*}{R}} &
+            \multicolumn{7}{c|}{\multirow{2}{*}{Source node-ID}}
+            \\\cline{2-4} \cline{7-8}
+
+            &
+            \multicolumn{3}{c|}{Priority}
+            &
+            &
+            &
+            R &
+            \multicolumn{15}{c|}{} &
+            &
+            \multicolumn{7}{c|}{}
+            \\
+
+            \textbf{Values} &
+            \multicolumn{3}{c|}{$[0, 7]$} &
+            $0$ &
+            $\mathbb{B}$ &
+            $0$ &
+            \multicolumn{1}{c}{} &
+            \multicolumn{14}{c|}{$[0, 32767]$} &
+            $0$ &
+            \multicolumn{7}{c|}{$[0, 127]$}
+            \\\hline
+
+            \textbf{CAN ID bit} &
+            28 & 27 & 26 & 25 & 24 & 23 & 22 & 21 & 20 & 19 & 18 & 17 & 16 & 15 &
+            14 & 13 & 12 & 11 & 10 &  9 &  8 &  7 &  6 &  5 &  4 &  3 &  2 &  1 &  0
+            \\\hline
+
+            \textbf{CAN ID byte} &
+            \multicolumn{5}{c|}{3} & \multicolumn{8}{c|}{2} & \multicolumn{8}{c|}{1} & \multicolumn{8}{c|}{0}
+            \\\hline
+
+            \multicolumn{30}{c}{} \\ \hline % Table separator
+
+            %
+            % Service transfer
+            %
+            \multirow{2}{*}{\textbf{Service}} &
+            \multicolumn{4}{c|}{Service, not message} &
+            \multicolumn{5}{c|}{Request, not response} &
+            \multicolumn{6}{c|}{} &
+            \multicolumn{7}{c|}{\multirow{2}{*}{Destination node-ID}} &
+            \multicolumn{7}{c|}{\multirow{2}{*}{Source node-ID}}
+            \\\cline{2-4} \cline{7-10}
+
+            &
+            \multicolumn{3}{c|}{Priority} &
+            &
+            &
+            R &
+            \multicolumn{9}{c|}{Service-ID} &
+            \multicolumn{7}{c|}{} &
+            \multicolumn{7}{c|}{}
+            \\
+
+            \textbf{Values} &
+            \multicolumn{3}{c|}{$[0, 7]$} &
+            $1$ &
+            $\mathbb{B}$ &
+            $0$ &
+            \multicolumn{9}{c|}{$[0, 511]$} &
+            \multicolumn{7}{c|}{$[0, 127]$} &
+            \multicolumn{7}{c|}{$[0, 127]$}
+            \\\hline
+
+            \textbf{CAN ID bit} &
+            28 & 27 & 26 & 25 & 24 & 23 & 22 & 21 & 20 & 19 & 18 & 17 & 16 & 15 &
+            14 & 13 & 12 & 11 & 10 &  9 &  8 &  7 &  6 &  5 &  4 &  3 &  2 &  1 &  0
+            \\\hline
+
+            \textbf{CAN ID byte} &
+            \multicolumn{5}{c|}{3} & \multicolumn{8}{c|}{2} & \multicolumn{8}{c|}{1} & \multicolumn{8}{c|}{0}
+            \\\hline
+        \end{tabular}
+    }
+    \caption{CAN ID structure}\label{fig:can_id_structure}
+\end{figure}
+
+\begin{UAVCANSimpleTable}{CAN ID fields for message transfers}{|l l l X|}
+    \label{table:can_id_fields_message_transfer}
+    Field               & Width & Permitted values  & Description \\
+
+    Transfer priority   & 3     & $[0, 7]$ (any)    & Section \ref{sec:transfer_prioritization}. \\
+
+    Service not message & 1     & $0$               & Always zero for message transfers. \\
+
+    Anonymous           & 1     & $\{0, 1\}$ (any)  & Zero for regular (non-anonymous) message transfers.
+                                                      One for anonymous transfers. \\
+
+    Reserved bit 23     & 1     & $0$               & Ignore frame (or use according to a newer specification)
+                                                      if this field has a different value. \\
+
+    Subject-ID          & 15    & $[0, 32767]$ (any) & Subject identifier of the current message.
+                                                       The most significant bit is always zero. \\
+
+    Reserved bit 7      & 1     & $0$               & Ignore frame (or use according to a newer specification)
+                                                      if this field has a different value. \\
+
+    Source node-ID      & 7     & $[0, 127]$ (any)  & Node-ID of the origin.
+                                                      For anonymous transfers, this field contains a pseudo-ID instead,
+                                                      as described in section \ref{sec:can_source_node_pseudo_id}. \\
+\end{UAVCANSimpleTable}
+
+\begin{UAVCANSimpleTable}{CAN ID fields for service transfers}{|l l l X|}
+    \label{table:can_id_fields_service_transfer}
+    Field               & Width & Permitted values  & Description \\
+
+    Transfer priority   & 3     & $[0, 7]$ (any)    & Section \ref{sec:transfer_prioritization}. \\
+
+    Service not message & 1     & $1$               & Always one for service transfers. \\
+
+    Request not response& 1     & $\{0, 1\}$ (any)  & 1 for service request, 0 for service response. \\
+
+    Reserved bit 23     & 1     & $0$               & Ignore frame (or use according to a newer specification)
+                                                      if this field has a different value. \\
+
+    Service-ID          & 9     & $[0, 511]$ (any)  & Service-ID of the encoded service object
+                                                      (request or response). \\
+
+    Destination node-ID & 7     & $[0, 127]$ (any)  & Node-ID of the destination
+                                                      (i.e., server for requests, client for responses).
+                                                      Shall not equal the source node-ID. \\
+
+    Source node-ID      & 7     & $[0, 127]$ (any)  & Node-ID of the origin
+                                                      (i.e., client for requests, server for responses).
+                                                      Shall not equal the destination node-ID. \\
+\end{UAVCANSimpleTable}
+
+\subsubsection{Transfer priority}
+
+Valid values for priority range from 0 to 7, inclusively,
+where 0 corresponds to the highest priority, and 7 corresponds to the lowest priority.
+
+In multi-frame transfers, the value of the priority field must be identical for all frames of the transfer.
+
+When multiple transfers of different types with the same priority contest for bus access,
+the following precedence is ensured (from higher priority to lower priority):
+
+\begin{samepage}
+\begin{enumerate}
+    \item Message transfers.
+    \item Anonymous (message) transfers.
+    \item Service response transfers.
+    \item Service request transfers.
+\end{enumerate}
+\end{samepage}
+
+Message transfers take precedence over service transfers because message publication is the primary method of
+communication in UAVCAN networks.
+Service responses take precedence over service requests in order to make service invocations more atomic
+and reduce the number of pending states in the system.
+
+Within the same type and the same priority level,
+transfers are prioritized according to the port-ID\footnote{Subject-ID or service-ID.}:
+transfers with lower port-ID values preempt those with higher port-ID values.
+
+\begin{remark}
+    Mnemonics for transfer priority levels are provided in section \ref{sec:transfer_prioritization},
+    and their mapping to the priority field for CAN bus is shown in the table \ref{table:can_id_priority_field}.
+
+    \begin{UAVCANSimpleTable}{CAN transfer priority level mapping}{|l X|}
+        \label{table:can_id_priority_field}
+        Priority field value & Mnemonic name \\
+        0 & Exceptional \\
+        1 & Immediate \\
+        2 & Fast \\
+        3 & High \\
+        4 & Nominal \\
+        5 & Low \\
+        6 & Slow \\
+        7 & Optional \\
+    \end{UAVCANSimpleTable}
+\end{remark}
+
+\subsubsection{Source node-ID field in anonymous transfers}\label{sec:can_source_node_pseudo_id}
+
+CAN bus does not allow different nodes to transmit CAN frames with different data field values under the same CAN ID.
+Owing to the fact that the CAN ID includes the node-ID value of the transmitting node,
+this restriction does not affect regular UAVCAN transfers.
+However, anonymous transfers would violate this restriction because they don't have a unique node-ID.
+
+In order to work around this problem,
+UAVCAN requires that the source node-ID field of anonymous transfers\footnote{Source node identifier
+is not specified for anonymous transfers; see table \ref{table:common_transfer_properties}.}
+is initialized with a pseudorandom \emph{pseudo-ID value},
+and defines special logic for handling CAN bus errors during transmission of anonymous transport frames.
+
+The source of the pseudorandom data used for the pseudo-ID must aim to produce different values for different payloads.
+A possible way of initializing the source node pseudo-ID value is to apply the transfer CRC function
+(as defined in the section \ref{sec:transfer_crc})
+to the payload of the anonymous message, and then use the seven least significant bits of the result.
+Nodes that adopt this approach will be using the same pseudo-ID value for identical messages,
+which is acceptable since this will not trigger an error on the bus.
+
+Since the pseudo-ID is only seven bits long (128 possible values),
+a collision where multiple nodes emit CAN frames with different data but the same CAN ID is likely to happen
+despite the randomization measures described earlier.
+Therefore, the protocol must account for possible errors on the CAN bus triggered by CAN ID collisions.
+In order to comply with this requirement,
+UAVCAN requires all nodes to immediately abort transmission of all anonymous transfers once an error on
+the CAN bus is detected\footnote{I.e., if the CAN controller uses automatic retransmission,
+it should be disabled for anonymous frames.}.
+This measure allows the protocol to prevent the bus deadlock that may occur if the automatic
+retransmission on bus error is not suppressed.
+Some method of media access control\footnote{%
+    E.g., CSMA/CD (carrier-sense multiple access with collision detection).
+    Additional bus access control logic is needed at the application level because
+    the possibility of identifier collisions in anonymous frames undermines the access control logic implemented
+    in CAN bus controller hardware.
+}
+should be used at the application level for further conflict resolution\footnote{%
+    The described principles make anonymous transfers highly non-deterministic and inefficient.
+    This is considered acceptable because the scope of anonymous transfers is limited to a very narrow set of use
+    cases which tolerate their downsides. The UAVCAN specification employs anonymous transfers only for the
+    plug-and-play feature defined in section \ref{sec:application_level_functions}.
+    Deterministic applications are advised to avoid reliance on anonymous transfers completely.
+}.
+
+Nodes that receive anonymous transfers must ignore their source node identifiers.
+
+\subsection{CAN frame data}
+
+The CAN frame data field may contain the following segments, in the listed order:
+\begin{samepage}
+\begin{enumerate}
+    \item The useful payload (serialized object). This segment may be empty.
+    \item Possible zero padding bytes.
+          Padding bytes may be necessary if the transport layer does not provide byte-level
+          granularity of the data field length (e.g., CAN FD).
+    \item The last frame of multi-frame transfers always contains the transfer CRC (section \ref{sec:transfer_crc}).
+    \item The last byte of the data field always contains the \emph{tail byte}.
+\end{enumerate}
+\end{samepage}
+The segments are documented below in this section.
+
+\subsubsection{Tail byte}
+
+UAVCAN adds one byte of overhead to every CAN frame regardless of the type of the transfer.
+The extra byte contains certain metadata for the needs of the transport layer.
+It is named the \emph{tail byte}, and as the name suggests, it is always situated
+at the very last byte of the data field of every CAN frame.
+The tail byte contains four fields: \emph{start of transfer}, \emph{end of transfer},
+\emph{toggle bit}, and the transfer-ID (described earlier in the section \ref{sec:transfer_id}).
+The placement of the fields and their usage for single-frame and multi-frame transfers
+are documented in the table \ref{table:can_tail_byte}.
+
+% Please do not remove the hard placement specifier [H], it is needed to keep tables ordered.
+\begin{table}[H]\caption{Tail byte structure}\label{table:can_tail_byte}
+\begin{tabu}{|c|l|X[2]|X[3]|}
+    \hline
+    \rowfont{\bfseries}
+    Bit & Field & Single-frame transfers & Multi-frame transfers \\
+    \hline
+
+    7   & Start of transfer & Always 1  & First frame: 1, otherwise 0. \\\hline
+    6   & End of transfer   & Always 1  & Last frame: 1, otherwise 0. \\\hline
+    5   & Toggle bit        & Always 1  & First frame: 1, then alternates; section \ref{sec:toggle_bit}. \\\hline
+
+    4   &               & \multicolumn{2}{c|}{} \\
+    3   &               & \multicolumn{2}{c|}{Modulo 32 (range [0, 31])} \\
+    2   & Transfer-ID   & \multicolumn{2}{c|}{section \ref{sec:transfer_id}} \\
+    1   &               & \multicolumn{2}{c|}{} \\
+    0   &               & \multicolumn{2}{c|}{\footnotesize{(least significant bit)}} \\
+    \hline
+\end{tabu}
+\end{table}
+
+The transfer-ID field is populated according to the specification provided in the section \ref{sec:transfer_id}.
+The usage of this field is independent of the type of the transfer.
+
+For single-frame transfers, the fields start-of-transfer, end-of-transfer, and the toggle bit
+are all set to~1.
+
+For multi-frame transfers, the fields start-of-transfer and end-of-transfer
+are used to state the boundaries of the current transfer as described in the table.
+The transfer-ID value is identical for all frames of a multi-frame transfer.
+
+The toggle bit, as described in the section \ref{sec:toggle_bit}, serves
+two main purposes: CAN frame deduplication and protocol version detection.
+
+\subsubsection{Padding bytes}
+
+Certain transports (such as CAN FD) may not provide byte-level granularity of the CAN data field length.
+In that case, the useful payload is to be padded with the minimal number of zero padding bytes required
+to bring the total length of the CAN data field to a value that can satisfy the length granularity constraints.
+
+Usage of padding bytes implies that when a serialized message is being deserialized by a receiving node,
+the byte sequence used for deserialization may be longer than the actual byte sequence generated by the
+emitting node during serialization.
+
+\subsubsection{Single-frame transfers}
+
+For single-frame transfers, the data field of the CAN frame contains two or three segments:
+the useful payload (which is the serialized object, may be empty), possible padding bytes,
+and the tail byte (the last byte of the data field).
+
+The resulting data field segmentation is shown in the table \ref{table:can_data_segments_single_frame}.
+
+\begin{table}[H]\caption{CAN frame data segments for single-frame transfers}
+\label{table:can_data_segments_single_frame}
+\begin{tabu}{|l l X|}
+    \hline
+    \rowfont{\bfseries}
+    Offset                  & Length                     & Segment \\\hline
+    $0$                     & $L_\text{payload}\geq{}0$  & Useful payload (serialized object). \\\hline
+    $L_\text{payload}$      & $L_\text{padding}\geq{}0$  & Zero padding bytes (if necessary). \\\hline
+    $L_\text{payload} + L_\text{padding}$ & $1$          & Tail byte. \\\hline
+\end{tabu}
+\end{table}
+
+\subsubsection{Multi-frame transfers}
+
+For multi-frame transfers, all frames except the last one contain only a fragment
+of the useful payload and the tail byte.
+Notice that the padding bytes are not used in multi-frame transfers, excepting the last frame;
+instead of padding, every frame except the last one must use the number of payload bytes that
+satisfies the length granularity constraints.
+
+The useful payload is fragmented in the forward order: the first CAN frame of a multi-frame transfer
+contains the beginning of the payload (the first fragment),
+the following frames contain the subsequent fragments of the useful payload.
+The last CAN frame of a multi-frame transfer contains the last fragment, unless
+the last fragment was fully accommodated by the second-to-last CAN frame of the transfer.
+In the latter case, the last CAN frame will contain only the metadata,
+as specified below in this section.
+
+Each CAN frame of a multi-frame transfer except the last one
+is recommended to use the maximum CAN data length permitted by the transport.
+This is not a hard requirement;
+some systems that utilize CAN FD may opt for shorter CAN frames in order to reduce the worst case
+preemption latency, as explained in section \ref{sec:transport_multi_frame_transfers}.
+Therefore, UAVCAN implementations must be able to correctly process incoming multi-frame transfers with
+arbitrary CAN frame data lengths.
+
+The resulting data field segmentation for all frames of a multi-frame transfer except the last one is
+shown in the table \ref{table:can_data_segments_multi_frame_not_last}.
+
+\begin{table}[H]\caption{CAN frame data segments for multi-frame transfers (except the last CAN frame of the transfer)}
+\label{table:can_data_segments_multi_frame_not_last}
+\begin{tabu}{|l l X|}
+    \hline
+    \rowfont{\bfseries}
+    Offset                  & Length                & Segment \\\hline
+    $0$                     & $L_\text{payload}>0$  & A fragment of the useful payload (serialized object).
+                                                      This segment occupies the entirety of the CAN data field
+                                                      except the last byte, which is used by the tail byte.
+                                                      No padding is allowed. \\\hline
+    $L_\text{payload}$      & $1$                   & Tail byte. \\\hline
+\end{tabu}
+\end{table}
+
+The last CAN frame of a multi-frame transfer contains one or two additional segments:
+the padding bytes (if necessary) and the transfer CRC.
+The padding rules are identical to those of single-frame transfers.
+The transfer CRC is to be allocated in the big-endian byte order\footnote{Most significant byte first.
+This byte order is used to allow faster CRC residue checks; more info in section \ref{sec:transfer_crc}.}
+immediately before the tail byte.
+The resulting data field segmentation is shown in the table \ref{table:can_data_segments_multi_frame_last}.
+
+\begin{table}[H]\caption{CAN frame data segments for multi-frame transfers (the last CAN frame of the transfer)}
+\label{table:can_data_segments_multi_frame_last}
+\begin{tabu}{|l l X|}
+    \hline
+    \rowfont{\bfseries}
+    Offset                  & Length                     & Segment \\\hline
+    $0$                     & $L_\text{payload}\geq{}0$  & The last fragment of the useful payload
+                                                           (serialized object). \\\hline
+    $L_\text{payload}$      & $L_\text{padding}\geq{}0$  & Zero padding bytes (if necessary). \\\hline
+
+    \multirow{2}{*}{$L_\text{payload} + L_\text{padding}$} & \multirow{2}{*}{$2$} &
+                                                           Transfer CRC, high byte.\\
+                            &                            & Transfer CRC, low byte.\\\hline
+
+    $L_\text{payload} + L_\text{padding} + 2$ & $1$        & Tail byte. \\\hline
+\end{tabu}
+\end{table}
+
+\subsection{Software design considerations}
+
+\subsubsection{Ordered transmission}
+
+Multi-frame transfers use identical CAN ID for all frames of the transfer,
+and UAVCAN requires that all frames of a multi-frame transfer should be transmitted in the correct order.
+Therefore, the CAN controller driver software must ensure that CAN frames with identical CAN ID values
+must be transmitted in their order of appearance in the transmission queue.
+Some CAN controllers will not meet this requirement by default,
+so the designer must take special care to ensure the correct behavior, and apply workarounds if necessary.
+
+\subsubsection{Transmission timestamping}
+
+Certain advanced features of UAVCAN may require the driver to timestamp outgoing transport frames, e.g.,
+the time synchronization feature.
+
+\begin{remark}[breakable]
+    A sensible approach to transmission timestamping is built around the concept of \emph{loop-back frames},
+    which is described here.
+
+    If the application needs to timestamp an outgoing frame, it sets a special flag -- the \emph{loop-back flag} --
+    on the frame before sending it to the driver.
+    The driver would then automatically re-enqueue this frame back into the reception queue once it is transmitted
+    (keeping the loop-back flag set so that the application is able to distinguish the loop-back
+    frame from regular received traffic).
+    The timestamp of the loop-backed frame would be of the moment when it was delivered to the bus.
+
+    The advantage of the loop-back based approach is that it relies on the same interface between
+    the application and the driver that is used for regular communications.
+    No complex and dangerous callbacks or write-backs from interrupt handlers are involved.
+\end{remark}
+
+\subsubsection{Inner priority inversion}
+
+Implementations should take necessary precautions against the problem of inner priority inversion.
+The following non-normative section provides an overview of the inner priority inversion problem and
+suggests a possible solution.
+
+\begin{remark}[breakable]
+    Suppose the application needs to emit a frame with the CAN ID $X$.
+    The frame is submitted to the CAN controller's registers and the transmission is started.
+    Suppose that afterwards it turned out that there is a new frame with the CAN ID $(X-1)$ that needs to be sent,
+    too, but the previous frame $X$ is in the way, and it is blocking the transmission of the new frame.
+    This may turn into a problem if the lower-priority frame is losing arbitration on the bus due
+    to the traffic on the bus having higher priority than the current frame,
+    but lower priority than the next frame that is waiting in the queue.
+
+    A naive solution to this is to continuously check whether the priority of the frame that is currently being
+    transmitted by the CAN controller is lower than the priority of the next frame in the queue, and if it is,
+    abort transmission of the current frame, move it back to the transmission queue,
+    and begin transmission of the new one instead.
+    This approach, however, has a hidden race condition:
+    the old frame may be aborted at the moment when it has already been received by remote nodes,
+    which means that the next time it is re-transmitted, the remote nodes will see it duplicated.
+    Additionally, this approach increases the complexity of the driver and can possibly affect
+    its throughput and latency.
+
+    Most CAN controllers offer a proper solution to the problem:
+    they have multiple transmission mailboxes (usually at least 3),
+    and the controller always chooses for transmission the mailbox which contains the highest priority frame.
+    This provides the application with a possibility to avoid the inner priority inversion problem:
+    whenever a new transmission is initiated, the application should check whether the priority of the next frame
+    is higher than any of the other frames that are already awaiting transmission.
+    If there is at least one higher-priority frame pending,
+    the application doesn't move the new one to the controller's transmission mailboxes,
+    it remains in the queue.
+    Otherwise, if the new frame has a higher priority level than all of the pending frames,
+    it is pushed to the controller's transmission mailboxes and removed from the queue.
+    In the latter case, if a lower-priority frame loses arbitration,
+    the controller would postpone its transmission and try transmitting the higher-priority one instead.
+    That resolves the problem.
+
+    There is an interesting extreme case, however.
+    Imagine a controller equipped with $N$ transmission mailboxes.
+    Suppose the application needs to emit $N$ frames in the increasing order of priority,
+    which leads to all of the transmission mailboxes of the controller being occupied.
+    Now, if all of the conditions below are satisfied, the system ends up with a priority inversion condition
+    nevertheless, despite the measures described above:
+
+    \begin{itemize}
+        \item The highest-priority pending CAN frame cannot be transmitted due to the bus being saturated
+        with a higher-priority traffic.
+        \item The application needs to emit a new frame which has a higher priority than that which saturates the bus.
+    \end{itemize}
+
+    If both hold, a priority inversion is afoot because there is no free transmission mailbox to
+    inject the new higher-priority frame into.
+    The scenario is extremely unlikely, however;
+    it is also possible to construct the application in a way that would preclude the problem,
+    e.g., by limiting the number of simultaneously used distinct CAN ID values.
+
+    The following pseudocode demonstrates the principles explained above:
+
+    \begin{samepage}
+    \begin{minted}{cpp}
+    // Returns the index of the TX mailbox that can be used for the transmission of the newFrame
+    // If none are available, returns -1.
+    getFreeMailboxIndex(newFrame)
+    {
+        chosen_mailbox = -1     // By default, assume that no mailboxes are available
+
+        for i = 0...NumberOfTxMailboxes
+        {
+            if isTxMailboxFree(i)
+            {
+                chosen_mailbox = i
+                // Note: cannot break here, must check all other mailboxes as well.
+            }
+            else
+            {
+                if not isFramePriorityHigher(newFrame, getFrameFromTxMailbox(i))
+                {
+                    chosen_mailbox = -1
+                    break   // Denied - must wait until this mailbox has finished transmitting
+                }
+            }
+        }
+
+        return chosen_mailbox
+    }
+    \end{minted}
+    \end{samepage}
+\end{remark}
+
+\subsubsection{Automatic hardware acceptance filter configuration}
+
+Most CAN controllers are equipped with hardware acceptance filters.
+Hardware acceptance filters reduce the application workload by ignoring irrelevant CAN frames on the bus
+by comparing their ID values against the set of relevant ID values configured by the application.
+
+\begin{remark}[breakable]
+    There exist two common approaches to CAN hardware filtering:
+    list-based and mask-based.
+    In the case of the list-based approach, every CAN frame detected on the bus is compared
+    against the set of reference CAN ID values provided by the application;
+    only those frames that are found in the reference set are accepted.
+    Due to the complex structure of the CAN ID field used by UAVCAN,
+    usage of the list-based filtering method with this protocol is impractical.
+
+    Most CAN controller vendors implement mask-based filters,
+    where the behavior of each filter is defined by two parameters: the mask $M$ and the reference ID $R$.
+    Then, such filter accepts only those CAN frames for which the following bitwise logical condition holds
+    true\footnote{Notation: $\land$ -- bitwise logical AND, $\oplus$ -- bitwise logical XOR,
+    $\neg$ -- bitwise logical NOT.}:
+    $$((X \land M) \oplus R) \leftrightarrow 0$$
+    where $X$ is the CAN ID value of the evaluated frame.
+
+    Complex UAVCAN applications are often required to operate with more distinct transfers than there are
+    acceptance filters available in the hardware.
+    That creates the challenge of finding the optimal configuration of the available filters that meets the
+    following criteria:
+    \begin{itemize}
+        \item All CAN frames needed by the application are accepted.
+        \item The number of irrelevant frames (i.e., not used by the application) accepted from the bus is minimized.
+    \end{itemize}
+
+    The optimal configuration is a function of the number of available hardware filters,
+    the set of distinct transfers needed by the application,
+    and the expected frequency of occurrence of all possible distinct transfers on the bus.
+    The latter is important because if there are to be irrelevant transfers,
+    it makes sense to optimize the configuration so that the acceptance of less common irrelevant transfers
+    is preferred over the more common irrelevant transfers, as that reduces the processing load on the application.
+
+    The optimal configuration depends on the properties of the network the node is connected to.
+    In the absence of the information about the network,
+    or if the properties of the network are expected to change frequently,
+    it is possible to resort to a quasi-optimal configuration which assumes that
+    the occurrence of all possible irrelevant transfers is equally probable.
+    As such, the quasi-optimal configuration is a function of only the number of available hardware filters
+    and the set of distinct transfers needed by the application.
+
+    The quasi-optimal configuration can be easily found automatically.
+    Certain implementations of the UAVCAN protocol stack include this functionality,
+    allowing the application to easily adjust the configuration of the hardware acceptance filters
+    using a very simple API.
+
+    A quasi-optimal hardware acceptance filter configuration algorithm is described below.
+    The approach was first proposed by P. Kirienko and I. Sheremet in 2015.
+
+    First, the bitwise \emph{filter merge} operation is defined on filter configurations $A$ and $B$.
+    The set of CAN frames accepted by the merged filter configuration is a superset of
+    those accepted by $A$ and $B$.
+    The definition is as follows:
+    \begin{equation*}
+    \begin{split}
+        m_M(R_A, R_B, M_A, M_B) & = M_A \land M_B \land \neg (R_A \oplus R_B) \\
+        m_R(R_A, R_B, M_A, M_B) & = R_A \land m_M(R_A, R_B, M_A, M_B)
+    \end{split}
+    \end{equation*}
+
+    The \emph{filter rank} is a function of the mask of the filter.
+    The rank of a filter is a unitless quantity that defines in relative terms how selective the filter
+    configuration is.
+    The rank of a filter is proportional to the likelihood that the filter will reject a random CAN ID.
+    In the context of hardware filtering, this quantity is conveniently representable via the number of bits set in
+    the filter mask parameter:
+    \begin{equation*}
+    r(M) =
+    \begin{cases}
+        0                                   &\mid M < 1 \\
+        r(\lfloor\frac{M}{2}\rfloor)        &\mid M \bmod 2 = 0 \\
+        r(\lfloor\frac{M}{2}\rfloor) + 1    &\mid M \bmod 2 \neq 0 \\
+    \end{cases}
+    \end{equation*}
+
+    Having the low-level operations defined, we can proceed to define the whole algorithm.
+    First, construct the initial set of CAN acceptance filter configurations
+    according to the requirements of the application.
+    Then, as long as the number of configurations in the set exceeds the number of available
+    hardware acceptance filters, repeat the following:
+    \begin{enumerate}
+        \item Find the pair $A$, $B$ of configurations in the set for which $r(m_M(R_A, R_B, M_A, M_B))$ is maximized.
+        \item Remove $A$ and $B$ from the set of configurations.
+        \item Add a new configuration $X$ to the set of configurations, where
+        $M_X = m_M(R_A, R_B, M_A, M_B)$, and $R_X = m_R(R_A, R_B, M_A, M_B)$.
+    \end{enumerate}
+
+    The algorithm reduces the number of filter configurations by one at each iteration,
+    until the number of available hardware filters is sufficient to accommodate the whole set of configurations.
+\end{remark}
