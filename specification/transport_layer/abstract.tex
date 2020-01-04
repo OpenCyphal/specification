@@ -8,8 +8,8 @@ The function of the transport layer is to facilitate exchange of serialized repr
 
 This section introduces an abstract implementation-agnostic model of the UAVCAN transport layer.
 The core relations are depicted on figure \ref{fig:transport_layer_model}.
-Some of the concepts introduced at this level may not be manifested in the design of concrete transport layer
-implementations; despite that, they are convenient for an abstract discussion.
+Some of the concepts introduced at this level may not be manifested in the design of concrete transports;
+despite that, they are convenient for an abstract discussion.
 
 % Please do not remove the hard placement specifier [H], it is needed to keep elements ordered.
 \begin{figure}[H]
@@ -99,12 +99,12 @@ which are sent from the server node to the client node upon handling the request
 A transfer is manifested on the transport network as one or more \emph{transport frames}.
 A transport frame is an atomic entity carrying the entire transfer payload or a fraction thereof
 with the associated transfer metadata --
-possibly extended with additional elements specific to the concrete transport layer implementation --
+possibly extended with additional elements specific to the concrete transport --
 over the transport network.
 The exact definition of a transport frame and the mapping of the abstract transport model onto it
-are dependent on the transport layer implementation\footnote{
-    For example, the CAN bus transport layer implementation (introduced later) defines a particular CAN frame format.
-    Frames that follow the format are UAVCAN transport frames of the CAN bus transport.
+are specific to concrete transports\footnote{
+    For example, UAVCAN/CAN (introduced later) defines a particular CAN frame format.
+    Frames that follow the format are UAVCAN transport frames of UAVCAN/CAN.
 }.
 
 \subsubsection{Transfer payload}\label{sec:transport_transfer_payload}
@@ -112,16 +112,16 @@ are dependent on the transport layer implementation\footnote{
 The transfer payload contains the serialized representation of the carried
 DSDL object\footnote{Chapter \ref{sec:dsdl}.}.
 
-Concrete transport layer implementations may extend the payload with a \emph{transfer CRC}
--- an additional metadata field used for validating its integrity.
-The details of its implementation are dictated by the concrete transport layer specification.
-
-Concrete transport layer implementations may extend the payload with zero-valued \emph{padding bytes} at the end
+Concrete transports may extend the payload with zero-valued \emph{padding bytes} at the end
 to meet the transport-specific data granularity constraints.
 Usage of non-zero-valued padding bytes is prohibited for all implementations\footnote{%
     Non-zero padding bytes are disallowed because they would interfere with the implicit zero extension rule
     (section \ref{sec:dsdl_data_serialization}).
 }.
+
+Concrete transports may extend the payload with a \emph{transfer CRC}
+-- an additional metadata field used for validating its integrity.
+The details of its implementation are dictated by the concrete transport specification.
 
 The deterministic nature of UAVCAN in general and DSDL in particular allows implementations to statically determine
 the maximum amount of memory that is required to contain the serialized representation
@@ -137,7 +137,7 @@ discard the excessive (unexpected) data at the end of the received payload\footn
 The transfer CRC, if applicable, shall be validated regardless of the presence of the extra payload in the transfer.
 
 A \emph{transport-layer maximum transmission unit} (MTU) is the maximum amount of data with the associated metadata
-that can be transmitted per transport frame for a particular transport layer implementation.
+that can be transmitted per transport frame for a particular concrete transport.
 All nodes connected to a given transport network should share the same transport-layer MTU setting\footnote{%
     Failure to follow this rule may render nodes unable to communicate if a transmitting node emits larger transport
     frames than the receiving node is able to accept.
@@ -185,8 +185,7 @@ network as a single transport frame\footnote{%
 \begin{remark}[breakable]
     The requirement to discard the excessive payload data at the end of the transfer is motivated by
     the necessity to allow extensibility of data type definitions, as described in chapter \ref{sec:dsdl}.
-    Additionally, excessive payload data may contain zero padding bytes if required by the particular
-    transport layer implementation.
+    Additionally, excessive payload data may contain zero padding bytes if required by the concrete transport.
 
     Let node $A$ publish an object of the following type over the subject $x$:
 
@@ -222,7 +221,7 @@ network as a single transport frame\footnote{%
         uint16 foo
     \end{minted}
 
-    Suppose that the transport layer at hand requires padding to 4 bytes, which is done with $55_{16}$
+    Suppose that the concrete transport at hand requires padding to 4 bytes, which is done with $55_{16}$
     (intentionally non-compliant for the sake of this example).
     Suppose that the published value is $1234_{16}$,
     so the resulting serialized representation is $\left[34_{16}, 12_{16}, 55_{16}, 55_{16}\right]$.
@@ -245,7 +244,7 @@ network as a single transport frame\footnote{%
 
 Transfers are prioritized by means of the \emph{transfer priority} parameter,
 which allows at least 8 (eight) distinct priority levels.
-Concrete transport implementations may support more than eight priority levels.
+Concrete transports may support more than eight priority levels.
 
 Transmission of transport frames shall be ordered so that frames of higher priority are transmitted first.
 It follows that higher-priority transfers may preempt transmission of lower-priority transfers.
@@ -329,7 +328,7 @@ Anonymous transfers have the following limitations\footnote{%
 \begin{itemize}
     \item An anonymous transfer can be only a message transfer.
     \item An anonymous transfer can be only a single-frame transfer.
-    \item Concrete transport layer implementations may introduce arbitrary additional restrictions
+    \item Concrete transports may introduce arbitrary additional restrictions
           on anonymous transfers or omit their support completely.
 \end{itemize}
 
@@ -411,7 +410,7 @@ between nodes.
         A node cannot receive transfers from itself, hence minus one.
     }.
     If the number of nodes in the network cannot be reliably known in advance (which is the case in most applications),
-    it can be considered to equal the maximum number of nodes permitted by the concrete transport layer\footnote{%
+    it can be considered to equal the maximum number of nodes permitted by the concrete transport\footnote{%
         E.g., 128 nodes for the CAN bus transport.
     }.
     The total number of distinct sessions that can be observed by a node is a product of the number
@@ -448,8 +447,7 @@ This parameter is crucial for many aspects of UAVCAN communication\footnote{%
 
     \item[Transfer deduplication] -- the transfer-ID allows receiving nodes to detect and eliminate duplicated
     transfers.
-    Transfer duplication may occur either spuriously as an artifact of a concrete
-    transport layer implementation\footnote{%
+    Transfer duplication may occur either spuriously as an artifact of a concrete transport\footnote{%
         For example, in CAN bus, a frame that appears valid to the receiver may under certain (rare) conditions
         appear invalid to the transmitter, triggering the latter to retransmit the frame,
         in which case it will be duplicated on the side of the receiver.
@@ -485,7 +483,7 @@ destruction of transfer-ID counter states is prohibited\footnote{%
     aperiodic/ad-hoc transfers.
 }.
 
-When the transfer-ID counter reaches the maximum value defined for the concrete transport layer implementation,
+When the transfer-ID counter reaches the maximum value defined for the concrete transport,
 the next increment resets its value to zero.
 Transports where such events are expected to take place during operation are said to have \emph{cyclic transfer-ID}.
 Transports where the maximum value of the transfer-ID is high enough to be unreachable under all conceivable
@@ -551,7 +549,7 @@ as long as at least one member of the redundant group remains functional\footnot
 \subsubsection{Heterogeneous redundant transports}
 
 A \emph{heterogeneous redundant transport} is a redundant transport configuration where nodes are
-interconnected using different concrete transport implementations.
+interconnected using different concrete transports.
 Heterogeneous transports may facilitate higher fault tolerance provided that the failure modes of involved transports
 are sufficiently dissimilar\footnote{%
     Consider a heterogeneous configuration combining wired and wireless transports.
@@ -720,12 +718,12 @@ the performance of the transfer reassembly process shall not be affected.
     unlike with the case of cyclic transfer-ID.
 \end{remark}
 
-If supported by the concrete transport layer implementation,
+If supported by the concrete transport,
 reassembly of anonymous transfers shall be implemented by unconditional acceptance of their transport frames.
 Requirements pertaining to ordering and uniqueness do not apply.
 
 \begin{remark}
-    Regardless of the concrete transport layer in use and its capabilities,
+    Regardless of the concrete transport in use and its capabilities,
     UAVCAN provides the following guarantees (excluding anonymous transfers):
 
     \begin{itemize}
