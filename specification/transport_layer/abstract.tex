@@ -357,7 +357,11 @@ and an additional binary parameter that segregates service requests from service
 
 The \emph{session specifier} is a combination of the data specifier and the route specifier.
 Its function is to uniquely identify a category of transfers by the semantics of exchanged data and
-the agents participating in its exchange while abstracting over individual transfers and their concrete data.
+the agents participating in its exchange while abstracting over individual transfers and their concrete data\footnote{%
+    Due to the fact that anonymous transfers lack information about their origin,
+    all anonymous transfers that share the same data specifier and destination
+    are grouped under the same session specifier.
+}.
 
 The term \emph{session} used here denotes the node's local representation of a logical communication
 channel that it is a member of.
@@ -663,15 +667,27 @@ For a given session specifier, a successfully reassembled transfer that is tempo
 any other successfully reassembled transfer under the same session specifier by more than the transfer-ID timeout
 is considered unique regardless of its transfer-ID value.
 
+\begin{remark}
+    Low transfer-ID timeout values increase the risk of undetected transfer duplication when such transfers
+    are significantly delayed due to network congestion,
+    which is possible with very low-priority transfers when the network load is high.
+
+    High transfer-ID timeout values increase the risk of an undetected transfer loss
+    when a remote node suffers a loss of state (e.g., due to a software reset).
+\end{remark}
+
 Implementations are recommended, but not required, to support reassembly of
-multi-frame transfers where the temporal ordering of the transport frames is distorted\footnote{%
+multi-frame transfers where the temporal ordering of the transport frames is distorted.
+
+\begin{remark}
     For a certain category of transport implementations, reassembly of multi-frame transfers from an
     unordered transport frame sequence increases the probability of successful delivery if
     transport frames are intentionally duplicated.
+
     Such intentional duplication occurs in redundant transports and if deterministic data loss mitigation is used.
     The reason is that the loss of a single transport frame is observed by the receiving node as its relocation
     from its original position in the sequence to the position of its duplicate.
-}.
+\end{remark}
 
 Reassembled transfers shall form an ordered transfer sequence.
 
@@ -680,10 +696,46 @@ if up to $n-1$ transports in the redundant group lose the ability to exchange tr
 the transfer reassembly process shall be able to restore nominal functionality
 in an amount of time that does not exceed the transfer-ID timeout.
 
+\begin{remark}
+    Cyclic transfer-ID transport implementations are recommended to insert a delay before performing
+    an automatic fail-over.
+    As indicated in the normative description, the delay may be arbitrary as long as it does not exceed the
+    transfer-ID timeout value.
+
+    The fail-over delay allows implementations to uphold the transfer uniqueness requirement when the phasing of
+    traffic on different transports within the redundant group differs by more than the transfer-ID overflow period.
+\end{remark}
+
 For a monotonic transfer-ID redundant transport whose redundant group contains $n$ transports,
 if up to $n-1$ transports in the redundant group lose the ability to exchange transport frames between nodes,
 the performance of the transfer reassembly process shall not be affected.
 
+\begin{remark}
+    Monotonic transfer-ID transport implementations are recommended to always accept the first transfer
+    to arrive regardless of which transport within the redundant group it was delivered over.
+
+    This behavior ensures that the total latency of a redundant transport equals the latency of the best-performing
+    transport within the redundant group (i.e., the total latency equals the latency of the fastest transport).
+    Since a monotonic transfer-ID does not overflow, there is no risk of failing to uphold the uniqueness guarantee
+    unlike with the case of cyclic transfer-ID.
+\end{remark}
+
 If supported by the concrete transport layer implementation,
 reassembly of anonymous transfers shall be implemented by unconditional acceptance of their transport frames.
 Requirements pertaining to ordering and uniqueness do not apply.
+
+\begin{remark}
+    Regardless of the concrete transport layer in use and its capabilities,
+    UAVCAN provides the following guarantees (excluding anonymous transfers):
+
+    \begin{itemize}
+        \item Removal of duplicates. If a transfer is delivered, it is guaranteed that it is delivered once,
+              even if intentionally duplicated by the origin.
+        \item Correct ordering. Received transfers are ordered according to their transfer-ID values.
+        \item Deterministic automatic fail-over in the event of a failure of a transport (or several)
+              in a redundant group.
+    \end{itemize}
+
+    For anonymous transfers, ordering and uniqueness are impossible to enforce
+    because anonymous transfers that originate from different nodes may share the same session specifier.
+\end{remark}
