@@ -1,92 +1,58 @@
-\section{UAVCAN/CAN transport specification}
+\section{UAVCAN/CAN transport}\label{sec:transport_can}
+
+\hyphenation{UAVCAN/CAN}  % Disable hyphenation.
 
 This section specifies a concrete transport based on CAN 2.0B (ISO 11898).
 Throughout this section, ``CAN'' implies both Classic CAN 2.0 and CAN FD, unless specifically noted otherwise.
 CAN FD should be considered the primary transport protocol.
 
-UAVCAN/CAN utilizes only extended CAN frames with 29-bit identifiers.
-UAVCAN/CAN can share the same bus with other high-level CAN bus protocols based on
-standard (non-extended) CAN 2.0A frames with 11-bit identifiers.
-However, future revisions of UAVCAN/CAN may utilize 11-bit identifiers as well so backward compatibility
-with other protocols is not guaranteed.
+\begin{UAVCANSimpleTable}{UAVCAN/CAN transport capabilities}{|l X l|}
+    \label{table:transport_can_capabilities}
+    Parameter & Value & References \\
 
-\subsection{General principles}
+    Maximum node-ID value &
+    127 (7 bits wide). &
+    \ref{sec:basic_concepts} \\
 
-A CAN frame is a transport frame.
-The 29-bit ID field of a CAN frame encodes the
-session specifier\footnote{Section \ref{sec:transport_session_specifier}.}
-of the transfer it belongs to and its priority.
-The CAN data field contains the transfer payload (or, in the case of multi-frame transfers, a fraction thereof),
-along with the transfer-ID field and other transport-specific metadata.
+    Transfer-ID mode &
+    Cyclic, modulo 32. &
+    \ref{sec:transport_transfer_id} \\
 
-Payload of multi-frame transfers is extended with a transfer CRC which is specified below.
-Transport frames that form a multi-frame transfer are equipped with a \emph{toggle bit}
-which alternates its state every frame for deduplication purposes.
+    Number of transfer priority levels &
+    8 (no additional levels). &
+    \ref{sec:transport_transfer_priority} \\
 
-\subsubsection{CAN transfer CRC}\label{sec:transport_can_transfer_crc}
+    Largest single-frame transfer payload &
+    Classic CAN -- 7~bytes, CAN FD -- up to 63~bytes. &
+    \ref{sec:transport_transfer_payload} \\
 
-The purpose of the CAN transfer CRC is to validate the correctness of a multi-frame transfer reassembly.
-As such, it is not used with single-frame transfers.
+    Anonymous transfers &
+    Supported with non-deterministic collision resolution policy. &
+    \ref{sec:transport_route_specifier} \\
+\end{UAVCANSimpleTable}
 
-The transfer CRC is computed over the entire payload of the multi-frame transfer
-plus the trailing zero padding bytes, if any.
+\subsection{CAN ID field}
 
-The resulting CRC value is appended to the transfer in the \emph{big-endian byte order} (most significant byte first),
-in order to take advantage of the CRC residue check intrinsic to the used CRC function.
+UAVCAN/CAN transport frames are CAN 2.0B frames.
+The 29-bit CAN ID encodes the session specifier\footnote{Section \ref{sec:transport_session_specifier}.}
+of the transfer it belongs to along with its priority.
+The CAN data field of every frame contains the transfer payload
+(or, in the case of multi-frame transfers, a fraction thereof), the transfer-ID, and other metadata.
 
-The CRC function is a standard \verb|CRC-16/CCITT-FALSE|:
-initial value $\mathrm{FFFF}_{16}$, polynomial $\mathrm{1021}_{16}$,
-not reversed, no output XOR, zero residue.
-The value for an input sequence $\left(49, 50, \ldots, 56, 57\right)$ is $\mathrm{29B1}_{16}$.
-The following code snippet provides a basic implementation of the transfer CRC algorithm in C++
-(LUT-based alternatives exist).
+UAVCAN/CAN can share the same bus with other high-level CAN bus protocols provided that they
+do not make use of CAN 2.0B frames\footnote{For example, CANOpen or CANaerospace.}.
+However, future revisions of UAVCAN/CAN may utilize CAN 2.0A as well,
+so backward compatibility with other high-level CAN bus protocols is not guaranteed.
 
-\begin{minted}{cpp}
-#include <cstdint>
-#include <cstddef>
+UAVCAN/CAN can share the same bus with UAVCAN/CAN v0 -- the earlier experimental revision of the protocol
+(not recommended for new designs).
+The protocol version can be determined at runtime on a per-frame basis as described
+in section~\ref{sec:transport_can_toggle_bit}.
 
-/// UAVCAN/CAN transfer CRC function implementation. License: CC0, no copyright reserved.
-class CANTransferCRC
-{
-    std::uint16_t value_ = 0xFFFFU;
-
-public:
-    void add(const std::uint8_t byte)
-    {
-        value_ ^= static_cast<std::uint16_t>(byte) << 8U;
-        for (std::uint8_t bit = 8; bit > 0; --bit)
-        {
-            if ((value_ & 0x8000U) != 0)
-            {
-                value_ = (value_ << 1U) ^ 0x1021U;
-            }
-            else
-            {
-                value_ = value_ << 1U;
-            }
-        }
-    }
-
-    void add(const std::uint8_t* bytes, std::size_t length)
-    {
-        while (length-- > 0)
-        {
-            add(*bytes++);
-        }
-    }
-
-    [[nodiscard]] std::uint16_t get() const { return value_; }
-};
-\end{minted}
-
-\subsection{CAN ID structure}
-
-UAVCAN utilizes two different CAN ID formats for message transfers and service transfers.
-The structure is summarized on the figure~\ref{fig:can_id_structure}.
-
-The fields are described in detail in the following sections.
-The tables \ref{table:can_id_fields_message_transfer} and \ref{table:can_id_fields_service_transfer}
-summarize the purpose of the fields and their permitted values
+UAVCAN/CAN utilizes two different CAN ID bit layouts for message transfers and service transfers.
+The bit layouts are summarized on figure~\ref{fig:can_id_structure}.
+Tables \ref{table:can_id_fields_message_transfer} and \ref{table:can_id_fields_service_transfer}
+summarize the purpose of each field and their permitted values
 for message transfers and service transfers, respectively.
 
 % Please do not remove the hard placement specifier [H], it is needed to keep elements ordered.
@@ -180,152 +146,145 @@ for message transfers and service transfers, respectively.
             \\\hline
         \end{tabular}
     }
-    \caption{CAN ID structure}\label{fig:can_id_structure}
+    \caption{CAN ID bit layout}\label{fig:can_id_structure}
 \end{figure}
 
 \begin{UAVCANSimpleTable}{CAN ID fields for message transfers}{|l l l X|}
     \label{table:can_id_fields_message_transfer}
-    Field               & Width & Permitted values  & Description \\
+    Field               & Width & Valid values  & Description \\
 
-    Transfer priority   & 3     & $[0, 7]$ (any)    & Section \ref{sec:transfer_prioritization}. \\
+    Transfer priority   & 3     & $[0, 7]$ (any)    & Section \ref{sec:transport_transfer_priority}. \\
 
     Service not message & 1     & $0$               & Always zero for message transfers. \\
 
-    Anonymous           & 1     & $\{0, 1\}$ (any)  & Zero for regular (non-anonymous) message transfers.
-                                                      One for anonymous transfers. \\
+    Anonymous           & 1     & $\{0, 1\}$ (any)  & Zero for regular message transfers,
+                                                      one for anonymous transfers. \\
 
-    Reserved bit 23     & 1     & $0$               & Ignore frame (or use according to a newer specification)
-                                                      if this field has a different value. \\
+    Reserved bit 23     & 1     & $0$               & Discard frame if this field has a different value. \\
 
-    Subject-ID          & 15    & $[0, 32767]$ (any) & Subject identifier of the current message.
-                                                       The most significant bit is always zero. \\
+    Subject-ID          & 15    & $[0, 32767]$ (any) & Subject-ID of the current message transfer. \\
 
-    Reserved bit 7      & 1     & $0$               & Ignore frame (or use according to a newer specification)
-                                                      if this field has a different value. \\
+    Reserved bit 7      & 1     & $0$               & Discard frame if this field has a different value. \\
 
     Source node-ID      & 7     & $[0, 127]$ (any)  & Node-ID of the origin.
                                                       For anonymous transfers, this field contains a pseudo-ID instead,
-                                                      as described in section \ref{sec:can_source_node_pseudo_id}. \\
+                                                      as described in section
+                                                      \ref{sec:transport_can_source_node_pseudo_id}. \\
 \end{UAVCANSimpleTable}
 
 \begin{UAVCANSimpleTable}{CAN ID fields for service transfers}{|l l l X|}
     \label{table:can_id_fields_service_transfer}
-    Field               & Width & Permitted values  & Description \\
+    Field               & Width & Valid values  & Description \\
 
-    Transfer priority   & 3     & $[0, 7]$ (any)    & Section \ref{sec:transfer_prioritization}. \\
+    Transfer priority   & 3     & $[0, 7]$ (any)    & Section \ref{sec:transport_transfer_priority}. \\
 
     Service not message & 1     & $1$               & Always one for service transfers. \\
 
-    Request not response& 1     & $\{0, 1\}$ (any)  & 1 for service request, 0 for service response. \\
+    Request not response& 1     & $\{0, 1\}$ (any)  & One for service request, zero for service response. \\
 
-    Reserved bit 23     & 1     & $0$               & Ignore frame (or use according to a newer specification)
-                                                      if this field has a different value. \\
+    Reserved bit 23     & 1     & $0$               & Discard frame if this field has a different value. \\
 
     Service-ID          & 9     & $[0, 511]$ (any)  & Service-ID of the encoded service object
                                                       (request or response). \\
 
-    Destination node-ID & 7     & $[0, 127]$ (any)  & Node-ID of the destination
-                                                      (i.e., server for requests, client for responses).
-                                                      Shall not equal the source node-ID. \\
+    Destination node-ID & 7     & $[0, 127]$ (any)  & Node-ID of the destination:
+                                                      server if request, client if response. \\
 
-    Source node-ID      & 7     & $[0, 127]$ (any)  & Node-ID of the origin
-                                                      (i.e., client for requests, server for responses).
-                                                      Shall not equal the destination node-ID. \\
+    Source node-ID      & 7     & $[0, 127]$ (any)  & Node-ID of the origin:
+                                                      client if request, server if response. \\
 \end{UAVCANSimpleTable}
 
 \subsubsection{Transfer priority}
 
-Valid values for priority range from 0 to 7, inclusively,
-where 0 corresponds to the highest priority, and 7 corresponds to the lowest priority.
+Valid values for transfer priority range from 0 to 7, inclusively,
+where 0 corresponds to the highest priority, and 7 corresponds to the lowest priority
+(according to the CAN bus arbitration policy).
 
-In multi-frame transfers, the value of the priority field must be identical for all frames of the transfer.
+In multi-frame transfers, the value of the priority field shall be identical for all frames of the transfer.
 
-When multiple transfers of different types with the same priority contest for bus access,
-the following precedence is ensured (from higher priority to lower priority):
+\begin{remark}[breakable]
+    When multiple transfers of different types with the same priority contest for bus access,
+    the following precedence is ensured (from higher priority to lower priority):
 
-\begin{samepage}
-\begin{enumerate}
-    \item Message transfers.
-    \item Anonymous (message) transfers.
-    \item Service response transfers.
-    \item Service request transfers.
-\end{enumerate}
-\end{samepage}
+    \begin{enumerate}
+        \item Message transfers (the primary method of data exchange in UAVCAN networks).
+        \item Anonymous (message) transfers.
+        \item Service response transfers (preempt requests).
+        \item Service request transfers (responses take precedence over requests to make service calls more atomic
+              and reduce the number of pending states in the system).
+    \end{enumerate}
 
-Message transfers take precedence over service transfers because message publication is the primary method of
-communication in UAVCAN networks.
-Service responses take precedence over service requests in order to make service invocations more atomic
-and reduce the number of pending states in the system.
+    Mnemonics for transfer priority levels are provided in section \ref{sec:transport_transfer_priority},
+    and their mapping to the UAVCAN/CAN priority field is as follows:
 
-Within the same type and the same priority level,
-transfers are prioritized according to the port-ID\footnote{Subject-ID or service-ID.}:
-transfers with lower port-ID values preempt those with higher port-ID values.
+    \begin{UAVCANCompactTable}{|l X|}
+        Priority field value    & Mnemonic name \\
+        0                       & Exceptional   \\
+        1                       & Immediate     \\
+        2                       & Fast          \\
+        3                       & High          \\
+        4                       & Nominal       \\
+        5                       & Low           \\
+        6                       & Slow          \\
+        7                       & Optional      \\
+    \end{UAVCANCompactTable}
 
-\begin{remark}
-    Mnemonics for transfer priority levels are provided in section \ref{sec:transfer_prioritization},
-    and their mapping to the priority field for CAN bus is shown in the table \ref{table:can_id_priority_field}.
-
-    \begin{UAVCANSimpleTable}{CAN transfer priority level mapping}{|l X|}
-        \label{table:can_id_priority_field}
-        Priority field value & Mnemonic name \\
-        0 & Exceptional \\
-        1 & Immediate \\
-        2 & Fast \\
-        3 & High \\
-        4 & Nominal \\
-        5 & Low \\
-        6 & Slow \\
-        7 & Optional \\
-    \end{UAVCANSimpleTable}
+    Since the value of transfer priority is required to be the same for all frames in a transfer,
+    it follows that the value of the CAN ID is guaranteed to be the same for all CAN frames of the transfer.
+    Given a constant transfer priority value, all CAN frames under a given session specifier will be equal.
 \end{remark}
 
-\subsubsection{Source node-ID field in anonymous transfers}\label{sec:can_source_node_pseudo_id}
+\subsubsection{Source node-ID field in anonymous transfers}\label{sec:transport_can_source_node_pseudo_id}
 
-CAN bus does not allow different nodes to transmit CAN frames with different data field values under the same CAN ID.
-Owing to the fact that the CAN ID includes the node-ID value of the transmitting node,
-this restriction does not affect regular UAVCAN transfers.
-However, anonymous transfers would violate this restriction because they don't have a unique node-ID.
+The source node-ID field of anonymous transfers shall be initialized with a pseudorandom \emph{pseudo-ID} value.
+The source of the pseudorandom data used for the pseudo-ID must aim to produce different values
+for different CAN frame data field values.
 
-In order to work around this problem,
-UAVCAN requires that the source node-ID field of anonymous transfers\footnote{Source node identifier
-is not specified for anonymous transfers; see table \ref{table:common_transfer_properties}.}
-is initialized with a pseudorandom \emph{pseudo-ID value},
-and defines special logic for handling CAN bus errors during transmission of anonymous transport frames.
+A node transmitting an anonymous transfer shall abort its transmission and discard it upon detection of a bus error.
+Some method of media access control should be used at the application level for further conflict resolution.
 
-The source of the pseudorandom data used for the pseudo-ID must aim to produce different values for different payloads.
-A possible way of initializing the source node pseudo-ID value is to apply the transfer CRC function
-(as defined in the section \ref{sec:transfer_crc})
-to the payload of the anonymous message, and then use the seven least significant bits of the result.
-Nodes that adopt this approach will be using the same pseudo-ID value for identical messages,
-which is acceptable since this will not trigger an error on the bus.
+\begin{remark}[breakable]
+    CAN bus does not allow different nodes to transmit CAN frames with different data under the same CAN ID value.
+    Owing to the fact that the CAN ID includes the node-ID of the transmitting node,
+    this restriction does not affect non-anonymous transfers.
+    However, anonymous transfers would violate this restriction because their source node-ID is not defined,
+    hence the additional measures described in this section.
 
-Since the pseudo-ID is only seven bits long (128 possible values),
-a collision where multiple nodes emit CAN frames with different data but the same CAN ID is likely to happen
-despite the randomization measures described earlier.
-Therefore, the protocol must account for possible errors on the CAN bus triggered by CAN ID collisions.
-In order to comply with this requirement,
-UAVCAN requires all nodes to immediately abort transmission of all anonymous transfers once an error on
-the CAN bus is detected\footnote{I.e., if the CAN controller uses automatic retransmission,
-it should be disabled for anonymous frames.}.
-This measure allows the protocol to prevent the bus deadlock that may occur if the automatic
-retransmission on bus error is not suppressed.
-Some method of media access control\footnote{%
-    E.g., CSMA/CD (carrier-sense multiple access with collision detection).
+    A possible way of initializing the source node pseudo-ID value is to compute the arithmetic sum
+    of all bytes of the transfer payload, taking the least significant bits of the result as the pseudo-ID
+    (usage of stronger hashes is encouraged).
+    Implementations that adopt this approach will be using the same pseudo-ID value for identical transfer payloads,
+    which is acceptable since this will not trigger an error on the bus.
+
+    Because the set of possible pseudo-ID values is small,
+    a collision where multiple nodes emit CAN frames with different data but the same CAN ID is likely to happen
+    despite the randomization measures described here.
+    Therefore, if anonymous transfers are used,
+    implementations shall account for possible errors on the CAN bus triggered by CAN ID collisions.
+
+    Automatic retransmission should be disabled for anonymous transfers (like in TTCAN).
+    This measure allows the protocol to prevent temporary disruptions that may occur if the automatic
+    retransmission on bus error is not suppressed.
+
     Additional bus access control logic is needed at the application level because
     the possibility of identifier collisions in anonymous frames undermines the access control logic implemented
     in CAN bus controller hardware.
-}
-should be used at the application level for further conflict resolution\footnote{%
+
     The described principles make anonymous transfers highly non-deterministic and inefficient.
     This is considered acceptable because the scope of anonymous transfers is limited to a very narrow set of use
     cases which tolerate their downsides. The UAVCAN specification employs anonymous transfers only for the
     plug-and-play feature defined in section \ref{sec:application_level_functions}.
     Deterministic applications are advised to avoid reliance on anonymous transfers completely.
-}.
 
-Nodes that receive anonymous transfers must ignore their source node identifiers.
+    None of the above considerations affect nodes that do not transmit anonymous transfers.
+\end{remark}
 
-\subsection{CAN frame data}
+\subsection{CAN data field}
+
+Payload of multi-frame transfers is extended with a transfer CRC for validating the correctness of reassembly.
+Transport frames that form a multi-frame transfer are equipped with a \emph{toggle bit}
+which alternates its state every frame within the transfer for deduplication purposes.
+The initial state of the toggle bit is used for protocol version detection.
 
 The CAN frame data field may contain the following segments, in the listed order:
 \begin{samepage}
@@ -481,6 +440,56 @@ The resulting data field segmentation is shown in the table \ref{table:can_data_
     $L_\text{payload} + L_\text{padding} + 2$ & $1$        & Tail byte. \\\hline
 \end{tabu}
 \end{table}
+
+The transfer CRC is computed over the entire payload of the multi-frame transfer
+plus the trailing zero padding bytes, if any.
+The resulting CRC value is appended to the transfer in the \emph{big-endian byte order} (most significant byte first),
+in order to take advantage of the CRC residue check intrinsic to the used CRC function.
+
+The CRC function is a standard \verb|CRC-16/CCITT-FALSE|:
+initial value $\mathrm{FFFF}_{16}$, polynomial $\mathrm{1021}_{16}$,
+not reversed, no output XOR, zero residue.
+The value for an input sequence $\left(49, 50, \ldots, 56, 57\right)$ is $\mathrm{29B1}_{16}$.
+The following code snippet provides a basic implementation of the transfer CRC algorithm in C++
+(LUT-based alternatives exist).
+
+\begin{minted}{cpp}
+#include <cstdint>
+#include <cstddef>
+
+/// UAVCAN/CAN transfer CRC function implementation. License: CC0, no copyright reserved.
+class CANTransferCRC
+{
+    std::uint16_t value_ = 0xFFFFU;
+
+public:
+    void add(const std::uint8_t byte)
+    {
+        value_ ^= static_cast<std::uint16_t>(byte) << 8U;
+        for (std::uint8_t bit = 8; bit > 0; --bit)
+        {
+            if ((value_ & 0x8000U) != 0)
+            {
+                value_ = (value_ << 1U) ^ 0x1021U;
+            }
+            else
+            {
+                value_ = value_ << 1U;
+            }
+        }
+    }
+
+    void add(const std::uint8_t* bytes, std::size_t length)
+    {
+        while (length-- > 0)
+        {
+            add(*bytes++);
+        }
+    }
+
+    [[nodiscard]] std::uint16_t get() const { return value_; }
+};
+\end{minted}
 
 \subsection{Software design considerations}
 

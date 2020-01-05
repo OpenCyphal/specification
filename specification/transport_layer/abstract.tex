@@ -314,7 +314,8 @@ the decision of whether to process a broadcast transfer is delegated to receivin
 }.
 A \emph{unicast transfer} is a transfer that is addressed to a specific single node\footnote{%
     Whose existence and availability is optional.
-}; which node should process a unicast transfer is decided by the sending node.
+} whose node-ID is not the same as that of the origin;
+which node should process a unicast transfer is decided by the sending node.
 
 A node that does not have a node-ID is referred to as \emph{anonymous node}.
 Such nodes are unable to emit transfers other than \emph{anonymous transfers}.
@@ -485,7 +486,8 @@ destruction of transfer-ID counter states is prohibited\footnote{%
 
 When the transfer-ID counter reaches the maximum value defined for the concrete transport,
 the next increment resets its value to zero.
-Transports where such events are expected to take place during operation are said to have \emph{cyclic transfer-ID}.
+Transports where such events are expected to take place during operation are said to have \emph{cyclic transfer-ID};
+the number of unique transfer-ID values is referred to as \emph{transfer-ID modulo}.
 Transports where the maximum value of the transfer-ID is high enough to be unreachable under all conceivable
 practical circumstances are said to have \emph{monotonic transfer-ID}.
 
