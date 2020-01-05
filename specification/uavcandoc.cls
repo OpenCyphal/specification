@@ -291,6 +291,10 @@ autogobble
     \NoLeftSkip
     \begin{minipage}{\textwidth}  % Minipage is needed to prevent page breaks after the caption
         \begin{ThreePartTable}
+            % If hypcap is enabled, the package "caption" yields a warning saying that the option will be ignored,
+            % ostensibly because we don't have the hypcap package loaded (we don't need this behavior).
+            % RTFM https://www.texlive.info/CTAN/macros/latex/contrib/caption/caption-rus.pdf.
+            \captionsetup{hypcap=false}
             % https://tex.stackexchange.com/questions/3243/why-should-a-table-caption-be-placed-above-the-table
             \captionof{table}{#1}
 }{
