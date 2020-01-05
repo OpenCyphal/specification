@@ -281,23 +281,67 @@ Some method of media access control should be used at the application level for 
 
 \subsection{CAN data field}
 
-Payload of multi-frame transfers is extended with a transfer CRC for validating the correctness of reassembly.
+\subsubsection{Transfer CRC}
+
+Payload of multi-frame transfers is extended with a transfer CRC for validating the correctness of their reassembly.
+
+The transfer CRC is computed over the entire payload of the multi-frame transfer
+plus the trailing padding bytes, if any.
+The resulting CRC value is appended to the transfer in the \emph{big-endian byte order}
+(most significant byte first)\footnote{%
+    The order is big endian to take advantage of the CRC residue check intrinsic to the used CRC function.
+}.
+
+The CRC function is the standard \verb|CRC-16/CCITT-FALSE|:
+initial value $\mathrm{FFFF}_{16}$, polynomial $\mathrm{1021}_{16}$,
+not reversed, no output XOR, zero residue.
+The value for an input sequence $\left(49, 50, \ldots, 56, 57\right)$ is $\mathrm{29B1}_{16}$.
+The following code snippet provides a basic implementation of the transfer CRC algorithm in C++
+(LUT-based alternatives exist).
+
+\begin{minted}{cpp}
+#include <cstdint>
+#include <cstddef>
+
+/// UAVCAN/CAN transfer CRC function implementation. License: CC0, no copyright reserved.
+class CANTransferCRC
+{
+    std::uint16_t value_ = 0xFFFFU;
+
+public:
+    void add(const std::uint8_t byte)
+    {
+        value_ ^= static_cast<std::uint16_t>(byte) << 8U;
+        for (std::uint8_t bit = 8; bit > 0; --bit)
+        {
+            if ((value_ & 0x8000U) != 0)
+            {
+                value_ = (value_ << 1U) ^ 0x1021U;
+            }
+            else
+            {
+                value_ = value_ << 1U;
+            }
+        }
+    }
+
+    void add(const std::uint8_t* bytes, std::size_t length)
+    {
+        while (length-- > 0)
+        {
+            add(*bytes++);
+        }
+    }
+
+    [[nodiscard]] std::uint16_t get() const { return value_; }
+};
+\end{minted}
+
+\subsubsection{Toggle bit}
+
 Transport frames that form a multi-frame transfer are equipped with a \emph{toggle bit}
 which alternates its state every frame within the transfer for deduplication purposes.
 The initial state of the toggle bit is used for protocol version detection.
-
-The CAN frame data field may contain the following segments, in the listed order:
-\begin{samepage}
-\begin{enumerate}
-    \item The useful payload (serialized object). This segment may be empty.
-    \item Possible zero padding bytes.
-          Padding bytes may be necessary if the transport layer does not provide byte-level
-          granularity of the data field length (e.g., CAN FD).
-    \item The last frame of multi-frame transfers always contains the transfer CRC (section \ref{sec:transfer_crc}).
-    \item The last byte of the data field always contains the \emph{tail byte}.
-\end{enumerate}
-\end{samepage}
-The segments are documented below in this section.
 
 \subsubsection{Tail byte}
 
@@ -441,55 +485,99 @@ The resulting data field segmentation is shown in the table \ref{table:can_data_
 \end{tabu}
 \end{table}
 
-The transfer CRC is computed over the entire payload of the multi-frame transfer
-plus the trailing zero padding bytes, if any.
-The resulting CRC value is appended to the transfer in the \emph{big-endian byte order} (most significant byte first),
-in order to take advantage of the CRC residue check intrinsic to the used CRC function.
+\subsection{Examples}
 
-The CRC function is a standard \verb|CRC-16/CCITT-FALSE|:
-initial value $\mathrm{FFFF}_{16}$, polynomial $\mathrm{1021}_{16}$,
-not reversed, no output XOR, zero residue.
-The value for an input sequence $\left(49, 50, \ldots, 56, 57\right)$ is $\mathrm{29B1}_{16}$.
-The following code snippet provides a basic implementation of the transfer CRC algorithm in C++
-(LUT-based alternatives exist).
+\begin{remark}[breakable]
+    Heartbeat from node-ID 42, nominal priority level,
+    uptime starting from 0 and then incrementing by one every transfer,
+    vendor-specific status code 3471:
 
-\begin{minted}{cpp}
-#include <cstdint>
-#include <cstddef>
+    \begin{UAVCANCompactTable}{|l l|}
+        CAN ID (hex)      & CAN data (hex)          \\
+        \texttt{107D552A} & \texttt{00 00 00 00 04 78 68 E0} \\
+        \texttt{107D552A} & \texttt{01 00 00 00 04 78 68 E1} \\
+        \texttt{107D552A} & \texttt{02 00 00 00 04 78 68 E2} \\
+        \texttt{107D552A} & \texttt{03 00 00 00 04 78 68 E3} \\
+    \end{UAVCANCompactTable}
 
-/// UAVCAN/CAN transfer CRC function implementation. License: CC0, no copyright reserved.
-class CANTransferCRC
-{
-    std::uint16_t value_ = 0xFFFFU;
+    \verb|uavcan.primitive.String.1.0| under subject-ID 4919 ($1337_{16}$) published by an anonymous node,
+    the string is ``\verb|Hello world!|'' (ASCII); one byte of zero padding can be seen between
+    the payload and the tail byte:
 
-public:
-    void add(const std::uint8_t byte)
-    {
-        value_ ^= static_cast<std::uint16_t>(byte) << 8U;
-        for (std::uint8_t bit = 8; bit > 0; --bit)
-        {
-            if ((value_ & 0x8000U) != 0)
-            {
-                value_ = (value_ << 1U) ^ 0x1021U;
-            }
-            else
-            {
-                value_ = value_ << 1U;
-            }
-        }
-    }
+    \begin{UAVCANCompactTable}{|l l|}
+        CAN ID (hex)      & CAN data (hex)                                           \\
+        \texttt{11133775} & \texttt{00 18 48 65 6C 6C 6F 20 77 6F 72 6C 64 21 00 E0} \\
+        \texttt{11133775} & \texttt{00 18 48 65 6C 6C 6F 20 77 6F 72 6C 64 21 00 E1} \\
+        \texttt{11133775} & \texttt{00 18 48 65 6C 6C 6F 20 77 6F 72 6C 64 21 00 E2} \\
+        \texttt{11133775} & \texttt{00 18 48 65 6C 6C 6F 20 77 6F 72 6C 64 21 00 E3} \\
+    \end{UAVCANCompactTable}
 
-    void add(const std::uint8_t* bytes, std::size_t length)
-    {
-        while (length-- > 0)
-        {
-            add(*bytes++);
-        }
-    }
+    Node info request from node 123 to node 42 via Classic CAN, then response;
+    notice how the transfer CRC is scattered across two frames:
 
-    [[nodiscard]] std::uint16_t get() const { return value_; }
-};
-\end{minted}
+    \begin{UAVCANCompactTable}{|l l l X|}
+        CAN ID (hex)      & CAN data (hex)                                  & ASCII             & Comment \\
+
+        \texttt{136B957B} & \texttt{E1}                                     & \texttt{.}        &
+        The request contains no payload. \\
+
+        \texttt{126BBDAA} & \texttt{01 00 00 00 01 00 00 A1}                & \texttt{........} &
+        Start of response, toggle bit is set. \\
+
+        \texttt{126BBDAA} & \texttt{00 00 00 00 00 00 00 01}                & \texttt{........} &
+        Toggle bit is cleared. \\
+
+        \texttt{126BBDAA} & \texttt{00 00 00 00 00 00 00 21}                & \texttt{.......!} &
+        Toggle bit is set. \\
+
+        \texttt{126BBDAA} & \texttt{00 00 00 00 00 00 00 01}                & \texttt{........} &
+        Etc. \\
+
+        \texttt{126BBDAA} & \texttt{00 00 \underline{24} 6F 72 67 2E 21}    & \texttt{..\underline{\$}org.!} &
+        Array (string) length prefix. \\
+
+        \texttt{126BBDAA} & \texttt{75 61 76 63 61 6E 2E 01}                & \texttt{uavcan..} &
+        \\
+
+        \texttt{126BBDAA} & \texttt{70 79 75 61 76 63 61 21}                & \texttt{pyuavca!} &
+        \\
+
+        \texttt{126BBDAA} & \texttt{6E 2E 64 65 6D 6F 2E 01}                & \texttt{n.demo..} &
+        \\
+
+        \texttt{126BBDAA} & \texttt{62 61 73 69 63 5F 75 21}                & \texttt{basic\_u!} &
+        \\
+
+        \texttt{126BBDAA} & \texttt{73 61 67 65 00 00 \underline{9A} 01}    & \texttt{sage..\underline{.}.} &
+        Transfer CRC, MSB. \\
+
+        \texttt{126BBDAA} & \texttt{\underline{E7} 61}                      & \texttt{\underline{.}a}       &
+        Transfer CRC, LSB. \\
+    \end{UAVCANCompactTable}
+
+    \verb|uavcan.primitive.array.Natural8.1.0| under subject-ID 4919 ($1337_{16}$) published by node 59,
+    the array contains an arithmetic sequence $\left(0, 1, 2, \ldots{}, 89, 90, 91\right)$;
+    the transport MTU is 64 bytes:
+
+    \begin{UAVCANCompactTable}{|l X[2] X|}
+        CAN ID (hex)      & CAN data (hex) & Comment \\
+        \texttt{1013373B} &
+        \texttt{%
+            00 B8 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F 10 11 12 13 14 15 16 17 18 19 1A 1B 1C 1D 1E 1F 20
+            21 22 23 24 25 26 27 28 29 2A 2B 2C 2D 2E 2F 30 31 32 33 34 35 36 37 38 39 3A 3B 3C A0
+        } &
+        First frame: 1.~payload (array length prefix is 92); 2.~tail byte. \\
+
+        \texttt{1013373B} &
+        \texttt{%
+            3D 3E 3F 40 41 42 43 44 45 46 47 48 49 4A 4B 4C 4D 4E 4F 50 51 52 53 54 55 56 57 58 59 5A 5B
+            \underline{00} \underline{00} \underline{00} \underline{00} \underline{00} \underline{00} \underline{00}
+            \underline{00} \underline{00} \underline{00} \underline{00} \underline{00} \underline{00} \underline{00}
+            \textbf{C0} \textbf{48} 40
+        } &
+        Last frame: 1.~payload; 2.~padding (underlined); 3.~transfer CRC (bold); 4.~tail byte. \\
+    \end{UAVCANCompactTable}
+\end{remark}
 
 \subsection{Software design considerations}
 
