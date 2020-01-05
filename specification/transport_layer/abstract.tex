@@ -738,4 +738,14 @@ Requirements pertaining to ordering and uniqueness do not apply.
 
     For anonymous transfers, ordering and uniqueness are impossible to enforce
     because anonymous transfers that originate from different nodes may share the same session specifier.
+
+    Reassembly of transfers from redundant interfaces may be implemented either on the per-transport-frame level
+    or on the per-transfer level.
+    The former amounts to receiving individual transport frames from redundant interfaces
+    which are then used for reassembly; it can be seen that this method requires that all transports in the
+    redundant group use identical application-level MTU (i.e., same number of transfer payload bytes per frame).
+    The latter can be implemented by treating each transport in the redundant group separately,
+    so that each runs an independent transfer reassembly process, whose outputs are then deduplicated
+    on the per-transfer level; this method may be more computationally complex but it provides greater flexibility.
+    A detailed discussion is omitted because it is outside of the scope of this specification.
 \end{remark}

@@ -281,24 +281,112 @@ Some method of media access control should be used at the application level for 
 
 \subsection{CAN data field}
 
-\subsubsection{Transfer CRC}
+\subsubsection{Layout}
+
+UAVCAN/CAN utilizes a fixed layout of the CAN data field:
+the last byte of the CAN data field contains the metadata, it is referred to as the \emph{tail byte}.
+The preceding bytes of the data field contain the transfer payload,
+which may be extended with padding bytes and transfer CRC.
+
+A CAN frame whose data field contains less than one byte is not a valid UAVCAN/CAN frame.
+
+The bit layout of the tail byte is shown in table \ref{table:transport_can_tail_byte}.
+
+% Please do not remove the hard placement specifier [H], it is needed to keep tables ordered.
+\begin{table}[H]\caption{Tail byte structure}\label{table:transport_can_tail_byte}
+    \begin{tabu}{| c l | X[c2] X[c3] |}
+        \hline
+        \rowfont{\bfseries}
+        Bit & Field & Single-frame transfers & Multi-frame transfers \\
+        \hline
+        7   & \textbf{Start of transfer}& Always 1  & First frame: 1, otherwise 0. \\\hline
+        6   & \textbf{End of transfer}  & Always 1  & Last frame: 1, otherwise 0. \\\hline
+        5   & \textbf{Toggle bit}       & Always 1  & First frame: 1, then alternates;
+                                                      section \ref{sec:transport_can_toggle_bit}. \\\hline
+        4   &                           & \multicolumn{2}{c|}{} \\
+        3   &                           & \multicolumn{2}{c|}{Modulo 32 (range [0, 31])} \\
+        2   & \textbf{Transfer-ID}      & \multicolumn{2}{c|}{section \ref{sec:transport_transfer_id}} \\
+        1   &                           & \multicolumn{2}{c|}{} \\
+        0   &                           & \multicolumn{2}{c|}{\footnotesize{(least significant bit)}} \\
+        \hline
+    \end{tabu}
+\end{table}
+
+\subsubsection{Toggle bit}\label{sec:transport_can_toggle_bit}
+
+Transport frames that form a multi-frame transfer are equipped with a \emph{toggle bit}
+which alternates its state every frame within the transfer for frame deduplication purposes\footnote{%
+    A frame that appears valid to the receiving node may under certain conditions appear invalid to the transmitter,
+    triggering the latter to retransmit the frame, in which case it will be duplicated on the side of the receiver.
+}.
+
+\begin{remark}[breakable]
+    The toggle bit can be used to facilitate operation of heterogeneous deployments where the experimental
+    UAVCAN/CAN v0 shares the same CAN bus with the current version of the standard.
+
+    Whenever a new transfer is initiated, the original state of the toggle bit reflects the protocol version.
+    Implementations that need to support simultaneous operation of two versions of the protocol can record
+    the state of the toggle bit when the ``start of transfer'' bit is set, and keep this information
+    indexed by the value of the CAN ID field (all frames of a transfer are guaranteed to share the same CAN ID).
+    The resulting mapping from CAN ID to the protocol version can be used to route incoming frames to the
+    implementation of the appropriate version of the protocol.
+
+    \begin{UAVCANSimpleTable}{Protocol version detection based on the toggle bit}{|l l X|}
+        Start of transfer   & Toggle bit    & Protocol version \\
+        1                   & 0             & UAVCAN v0 (experimental version). \\
+        1                   & 1             & UAVCAN v1 (this version). \\
+        0                   & x             & Keep the state of the toggle bit from the first frame of the transfer
+                                              to detect protocol version for multi-frame transfers. \\
+    \end{UAVCANSimpleTable}
+\end{remark}
+
+\subsubsection{Transfer payload decomposition}
+
+The transport-layer MTU of Classic CAN-based implementations shall be 8 bytes (the maximum).
+The transport-layer MTU of CAN FD-based implementations should be 64 bytes (the maximum).
+
+CAN FD does not guarantee byte-level granularity of the CAN data field length.
+If the desired length of the CAN data field cannot be represented due to the granularity constraints,
+zero padding bytes are used.
+
+In single-frame transfers, padding bytes are inserted between the end of the payload and the tail byte.
+
+In multi-frame transfers, the transfer payload is appended with trailing zero padding bytes
+followed by the transfer CRC (section \ref{sec:transport_can_transfer_crc}).
+All transport frames of a multi-frame transfer except the last one shall fully utilize the available
+data field capacity; hence, padding is unnecessary there.
+The number of padding bytes is computed so that the length granularity constraints
+for the last frame of the transfer are satisfied.
+
+\begin{remark}
+    Usage of padding bytes implies that when a serialized message is being deserialized by a receiving node,
+    the byte sequence used for deserialization may be longer than the actual byte sequence generated by the
+    emitting node during serialization.
+    This behavior is compatible with the DSDL specification.
+
+    The weak MTU requirement for CAN FD is designed to avoid compatibility issues.
+\end{remark}
+
+\subsubsection{Transfer CRC}\label{sec:transport_can_transfer_crc}
 
 Payload of multi-frame transfers is extended with a transfer CRC for validating the correctness of their reassembly.
+Transfer CRC is not used with single-frame transfers.
 
 The transfer CRC is computed over the entire payload of the multi-frame transfer
 plus the trailing padding bytes, if any.
-The resulting CRC value is appended to the transfer in the \emph{big-endian byte order}
-(most significant byte first)\footnote{%
-    The order is big endian to take advantage of the CRC residue check intrinsic to the used CRC function.
+The resulting CRC value is appended to the transfer payload after the padding bytes (if any)
+in the \emph{big-endian byte order} (most significant byte first)\footnote{%
+    This is the native byte order for this CRC function.
 }.
 
-The CRC function is the standard \verb|CRC-16/CCITT-FALSE|:
+The CRC function is the standard CRC-16-CCITT:
 initial value $\mathrm{FFFF}_{16}$, polynomial $\mathrm{1021}_{16}$,
-not reversed, no output XOR, zero residue.
+not reversed, no output XOR, big endian.
 The value for an input sequence $\left(49, 50, \ldots, 56, 57\right)$ is $\mathrm{29B1}_{16}$.
 The following code snippet provides a basic implementation of the transfer CRC algorithm in C++
 (LUT-based alternatives exist).
 
+\begin{samepage}
 \begin{minted}{cpp}
 #include <cstdint>
 #include <cstddef>
@@ -336,154 +424,7 @@ public:
     [[nodiscard]] std::uint16_t get() const { return value_; }
 };
 \end{minted}
-
-\subsubsection{Toggle bit}
-
-Transport frames that form a multi-frame transfer are equipped with a \emph{toggle bit}
-which alternates its state every frame within the transfer for deduplication purposes.
-The initial state of the toggle bit is used for protocol version detection.
-
-\subsubsection{Tail byte}
-
-UAVCAN adds one byte of overhead to every CAN frame regardless of the type of the transfer.
-The extra byte contains certain metadata for the needs of the transport layer.
-It is named the \emph{tail byte}, and as the name suggests, it is always situated
-at the very last byte of the data field of every CAN frame.
-The tail byte contains four fields: \emph{start of transfer}, \emph{end of transfer},
-\emph{toggle bit}, and the transfer-ID (described earlier in the section \ref{sec:transfer_id}).
-The placement of the fields and their usage for single-frame and multi-frame transfers
-are documented in the table \ref{table:can_tail_byte}.
-
-% Please do not remove the hard placement specifier [H], it is needed to keep tables ordered.
-\begin{table}[H]\caption{Tail byte structure}\label{table:can_tail_byte}
-\begin{tabu}{|c|l|X[2]|X[3]|}
-    \hline
-    \rowfont{\bfseries}
-    Bit & Field & Single-frame transfers & Multi-frame transfers \\
-    \hline
-
-    7   & Start of transfer & Always 1  & First frame: 1, otherwise 0. \\\hline
-    6   & End of transfer   & Always 1  & Last frame: 1, otherwise 0. \\\hline
-    5   & Toggle bit        & Always 1  & First frame: 1, then alternates; section \ref{sec:toggle_bit}. \\\hline
-
-    4   &               & \multicolumn{2}{c|}{} \\
-    3   &               & \multicolumn{2}{c|}{Modulo 32 (range [0, 31])} \\
-    2   & Transfer-ID   & \multicolumn{2}{c|}{section \ref{sec:transfer_id}} \\
-    1   &               & \multicolumn{2}{c|}{} \\
-    0   &               & \multicolumn{2}{c|}{\footnotesize{(least significant bit)}} \\
-    \hline
-\end{tabu}
-\end{table}
-
-The transfer-ID field is populated according to the specification provided in the section \ref{sec:transfer_id}.
-The usage of this field is independent of the type of the transfer.
-
-For single-frame transfers, the fields start-of-transfer, end-of-transfer, and the toggle bit
-are all set to~1.
-
-For multi-frame transfers, the fields start-of-transfer and end-of-transfer
-are used to state the boundaries of the current transfer as described in the table.
-The transfer-ID value is identical for all frames of a multi-frame transfer.
-
-The toggle bit, as described in the section \ref{sec:toggle_bit}, serves
-two main purposes: CAN frame deduplication and protocol version detection.
-
-\subsubsection{Padding bytes}
-
-Certain transports (such as CAN FD) may not provide byte-level granularity of the CAN data field length.
-In that case, the useful payload is to be padded with the minimal number of zero padding bytes required
-to bring the total length of the CAN data field to a value that can satisfy the length granularity constraints.
-
-Usage of padding bytes implies that when a serialized message is being deserialized by a receiving node,
-the byte sequence used for deserialization may be longer than the actual byte sequence generated by the
-emitting node during serialization.
-
-\subsubsection{Single-frame transfers}
-
-For single-frame transfers, the data field of the CAN frame contains two or three segments:
-the useful payload (which is the serialized object, may be empty), possible padding bytes,
-and the tail byte (the last byte of the data field).
-
-The resulting data field segmentation is shown in the table \ref{table:can_data_segments_single_frame}.
-
-\begin{table}[H]\caption{CAN frame data segments for single-frame transfers}
-\label{table:can_data_segments_single_frame}
-\begin{tabu}{|l l X|}
-    \hline
-    \rowfont{\bfseries}
-    Offset                  & Length                     & Segment \\\hline
-    $0$                     & $L_\text{payload}\geq{}0$  & Useful payload (serialized object). \\\hline
-    $L_\text{payload}$      & $L_\text{padding}\geq{}0$  & Zero padding bytes (if necessary). \\\hline
-    $L_\text{payload} + L_\text{padding}$ & $1$          & Tail byte. \\\hline
-\end{tabu}
-\end{table}
-
-\subsubsection{Multi-frame transfers}
-
-For multi-frame transfers, all frames except the last one contain only a fragment
-of the useful payload and the tail byte.
-Notice that the padding bytes are not used in multi-frame transfers, excepting the last frame;
-instead of padding, every frame except the last one must use the number of payload bytes that
-satisfies the length granularity constraints.
-
-The useful payload is fragmented in the forward order: the first CAN frame of a multi-frame transfer
-contains the beginning of the payload (the first fragment),
-the following frames contain the subsequent fragments of the useful payload.
-The last CAN frame of a multi-frame transfer contains the last fragment, unless
-the last fragment was fully accommodated by the second-to-last CAN frame of the transfer.
-In the latter case, the last CAN frame will contain only the metadata,
-as specified below in this section.
-
-Each CAN frame of a multi-frame transfer except the last one
-is recommended to use the maximum CAN data length permitted by the transport.
-This is not a hard requirement;
-some systems that utilize CAN FD may opt for shorter CAN frames in order to reduce the worst case
-preemption latency, as explained in section \ref{sec:transport_multi_frame_transfers}.
-Therefore, UAVCAN implementations must be able to correctly process incoming multi-frame transfers with
-arbitrary CAN frame data lengths.
-
-The resulting data field segmentation for all frames of a multi-frame transfer except the last one is
-shown in the table \ref{table:can_data_segments_multi_frame_not_last}.
-
-\begin{table}[H]\caption{CAN frame data segments for multi-frame transfers (except the last CAN frame of the transfer)}
-\label{table:can_data_segments_multi_frame_not_last}
-\begin{tabu}{|l l X|}
-    \hline
-    \rowfont{\bfseries}
-    Offset                  & Length                & Segment \\\hline
-    $0$                     & $L_\text{payload}>0$  & A fragment of the useful payload (serialized object).
-                                                      This segment occupies the entirety of the CAN data field
-                                                      except the last byte, which is used by the tail byte.
-                                                      No padding is allowed. \\\hline
-    $L_\text{payload}$      & $1$                   & Tail byte. \\\hline
-\end{tabu}
-\end{table}
-
-The last CAN frame of a multi-frame transfer contains one or two additional segments:
-the padding bytes (if necessary) and the transfer CRC.
-The padding rules are identical to those of single-frame transfers.
-The transfer CRC is to be allocated in the big-endian byte order\footnote{Most significant byte first.
-This byte order is used to allow faster CRC residue checks; more info in section \ref{sec:transfer_crc}.}
-immediately before the tail byte.
-The resulting data field segmentation is shown in the table \ref{table:can_data_segments_multi_frame_last}.
-
-\begin{table}[H]\caption{CAN frame data segments for multi-frame transfers (the last CAN frame of the transfer)}
-\label{table:can_data_segments_multi_frame_last}
-\begin{tabu}{|l l X|}
-    \hline
-    \rowfont{\bfseries}
-    Offset                  & Length                     & Segment \\\hline
-    $0$                     & $L_\text{payload}\geq{}0$  & The last fragment of the useful payload
-                                                           (serialized object). \\\hline
-    $L_\text{payload}$      & $L_\text{padding}\geq{}0$  & Zero padding bytes (if necessary). \\\hline
-
-    \multirow{2}{*}{$L_\text{payload} + L_\text{padding}$} & \multirow{2}{*}{$2$} &
-                                                           Transfer CRC, high byte.\\
-                            &                            & Transfer CRC, low byte.\\\hline
-
-    $L_\text{payload} + L_\text{padding} + 2$ & $1$        & Tail byte. \\\hline
-\end{tabu}
-\end{table}
+\end{samepage}
 
 \subsection{Examples}
 
@@ -583,19 +524,17 @@ The resulting data field segmentation is shown in the table \ref{table:can_data_
 
 \subsubsection{Ordered transmission}
 
-Multi-frame transfers use identical CAN ID for all frames of the transfer,
-and UAVCAN requires that all frames of a multi-frame transfer should be transmitted in the correct order.
-Therefore, the CAN controller driver software must ensure that CAN frames with identical CAN ID values
-must be transmitted in their order of appearance in the transmission queue.
-Some CAN controllers will not meet this requirement by default,
-so the designer must take special care to ensure the correct behavior, and apply workarounds if necessary.
+The CAN controller driver software shall guarantee that CAN frames with identical CAN ID values
+will be transmitted in their order of appearance in the transmission queue\footnote{%
+    This is because multi-frame transfers use identical CAN ID for all frames of the transfer,
+    and UAVCAN requires that all frames of a multi-frame transfer shall be transmitted in the correct order.
+}.
 
 \subsubsection{Transmission timestamping}
 
-Certain advanced features of UAVCAN may require the driver to timestamp outgoing transport frames, e.g.,
-the time synchronization feature.
-
 \begin{remark}[breakable]
+    Certain application-level functions of UAVCAN may require the driver to timestamp outgoing transport frames,
+    e.g., the time synchronization function.
     A sensible approach to transmission timestamping is built around the concept of \emph{loop-back frames},
     which is described here.
 
@@ -614,8 +553,6 @@ the time synchronization feature.
 \subsubsection{Inner priority inversion}
 
 Implementations should take necessary precautions against the problem of inner priority inversion.
-The following non-normative section provides an overview of the inner priority inversion problem and
-suggests a possible solution.
 
 \begin{remark}[breakable]
     Suppose the application needs to emit a frame with the CAN ID $X$.
@@ -636,7 +573,7 @@ suggests a possible solution.
     Additionally, this approach increases the complexity of the driver and can possibly affect
     its throughput and latency.
 
-    Most CAN controllers offer a proper solution to the problem:
+    Most CAN controllers offer a robust solution to the problem:
     they have multiple transmission mailboxes (usually at least 3),
     and the controller always chooses for transmission the mailbox which contains the highest priority frame.
     This provides the application with a possibility to avoid the inner priority inversion problem:
@@ -705,11 +642,11 @@ suggests a possible solution.
 
 \subsubsection{Automatic hardware acceptance filter configuration}
 
-Most CAN controllers are equipped with hardware acceptance filters.
-Hardware acceptance filters reduce the application workload by ignoring irrelevant CAN frames on the bus
-by comparing their ID values against the set of relevant ID values configured by the application.
-
 \begin{remark}[breakable]
+    Most CAN controllers are equipped with hardware acceptance filters.
+    Hardware acceptance filters reduce the application workload by ignoring irrelevant CAN frames on the bus
+    by comparing their ID values against the set of relevant ID values configured by the application.
+
     There exist two common approaches to CAN hardware filtering:
     list-based and mask-based.
     In the case of the list-based approach, every CAN frame detected on the bus is compared
@@ -774,7 +711,7 @@ by comparing their ID values against the set of relevant ID values configured by
     configuration is.
     The rank of a filter is proportional to the likelihood that the filter will reject a random CAN ID.
     In the context of hardware filtering, this quantity is conveniently representable via the number of bits set in
-    the filter mask parameter:
+    the filter mask parameter (also known as \emph{population count}):
     \begin{equation*}
     r(M) =
     \begin{cases}
