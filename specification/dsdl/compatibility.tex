@@ -217,15 +217,14 @@ The minor versions may differ, which is acceptable due to the major version comp
         float16 internal_temperature    # [kelvin]
         float16 coolant_temperature     # [kelvin]
 
-        # Status flags in the lower bits
         uint8 FLAG_COOLING_SYSTEM_A_ACTIVE = 1
         uint8 FLAG_COOLING_SYSTEM_B_ACTIVE = 2
-        # Error flags in the higher bits
+        # Status flags in the lower bits.
         uint8 FLAG_PSU_MALFUNCTION = 32
         uint8 FLAG_OVERHEATING     = 64
         uint8 FLAG_CRYOBOX_BREACH  = 128
-        # Storage for the above defined flags (this is not the recommended practice)
-        uint8 flags
+        # Error flags in the higher bits.
+        uint8 flags  # Storage for the above defined flags (this is not the recommended practice).
     \end{minted}
 
     The definition is then deployed to the first prototype for initial laboratory testing.
@@ -249,15 +248,14 @@ The minor versions may differ, which is acceptable due to the major version comp
         saturated float32 power_consumption_1     # [watt] likewise for PSU 1
         saturated float32 power_consumption_2     # [watt] likewise for PSU 2
 
-        # Status flags in the lower bits
         uint8 FLAG_COOLING_SYSTEM_B_ACTIVE = 1
         uint8 FLAG_COOLING_SYSTEM_A_ACTIVE = 2
-        # Error flags in the higher bits
+        # Status flags in the lower bits.
         uint8 FLAG_PSU_MALFUNCTION = 32
         uint8 FLAG_OVERHEATING     = 64
         uint8 FLAG_CRYOBOX_BREACH  = 128
-        # Storage for the above defined flags (this is not the recommended practice)
-        uint8 flags
+        # Error flags in the higher bits.
+        uint8 flags  # Storage for the above defined flags (this is not the recommended practice).
     \end{minted}
 
     The last definition is deemed sufficient and is deployed to the production system
@@ -277,16 +275,16 @@ The minor versions may differ, which is acceptable due to the major version comp
 
         float32[3] power_consumption    # [watt] Power consumption by the PSU
 
-        # Error flags (this is the recommended practice)
         bool flag_cryobox_breach
         bool flag_overheating
         bool flag_psu_malfunction
+        # Error flags (this is the recommended practice).
 
         void3   # Reserved for other flags
 
-        # Status flags (this is the recommended practice)
         bool flag_cooling_system_a_active
         bool flag_cooling_system_b_active
+        # Status flags (this is the recommended practice).
     \end{minted}
 
     Since the definitions v1.0 and v1.1 are semantically compatible,
@@ -306,14 +304,10 @@ The minor versions may differ, which is acceptable due to the major version comp
 
         float32[3] power_consumption    # [watt] Power consumption by the PSU
 
-        # Error flags (this is the recommended practice)
         bool flag_cryobox_breach
         bool flag_overheating
         bool flag_psu_malfunction
-
-        void3   # Reserved for other flags
-
-        # Status flags (this is the recommended practice)
+        void3
         bool flag_cooling_system_a_active
         bool flag_cooling_system_b_active
     \end{minted}
@@ -332,21 +326,17 @@ The minor versions may differ, which is acceptable due to the major version comp
 
         float32[3] power_consumption    # [watt] Power consumption by the PSU
 
-        # Error flags (this is the recommended practice)
         bool flag_cryobox_breach
         bool flag_overheating
         bool flag_psu_malfunction
-
-        void3   # Reserved for other flags
-
-        # Status flags (this is the recommended practice)
+        void3
         bool flag_cooling_system_a_active
         bool flag_cooling_system_b_active
 
-        # Coolant pump fields (extension over v2.0; implicit truncation/extension rules apply)
-        # If zero, assume that the values are unavailable.
         float32 rotor_angular_velocity  # [radian/second] (usage of RPM would be non-compliant)
         float32 volumetric_flow_rate    # [meter^3/second]
+        # Coolant pump fields (extension over v2.0; implicit truncation/extension rules apply)
+        # If zero, assume that the values are unavailable.
     \end{minted}
 
     It is also possible to add an optional field at the end wrapped into a variable-length

@@ -198,12 +198,12 @@ and $\prod$ is the Cartesian product operator.
         uint8[<4] c
         @assert _offset_ == 2 + {24,  32,  40,  48}
         void6
+        @assert _offset_ % 8 == {0}
         # One of the main usages for _offset_ is statically proving that the following field is byte-aligned
         # for all possible valid serialized representations of the preceding fields. It is done by computing
         # a remainder as shown below. If the field is aligned, the remainder set will equal {0}. If the
         # remainder set contains other elements, the field may be misaligned under some circumstances.
         # If the remainder set does not contain zero, the field is never aligned.
-        @assert _offset_ % 8 == {0}
         uint8 well_aligned   # Proven to be byte-aligned.
     \end{minted}
 \end{remark}

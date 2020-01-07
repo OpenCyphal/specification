@@ -249,12 +249,12 @@ Instead, the explicitly typed alternatives defined in the standard DSDL namespac
 
 \begin{remark}
     \begin{minted}{python}
-        # Kinetic energy of four bodies.
         float32[4] kinetic_energy                           # [joule] Not recommended.
         uavcan.si.unit.energy.Scalar.1.0[4] kinetic_energy  # This is the recommended practice.
+        # Kinetic energy of four bodies.
 
-        # 3D velocity vector.
         float32[3] velocity                                 # [meter/second] Not recommended.
         uavcan.si.unit.velocity.Vector3.1.0                 # This is the recommended practice.
+        # 3D velocity vector.
     \end{minted}
 \end{remark}

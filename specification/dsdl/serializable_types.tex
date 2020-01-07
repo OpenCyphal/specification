@@ -269,9 +269,9 @@ The available attributes and their semantics are documented in the section \ref{
 \begin{remark}
     \begin{minted}{python}
         uint64 MY_CONSTANT = vendor.MessageType.1.0.OTHER_CONSTANT
-        # The following is valid if the referring definition and the referred definition
-        # are located inside the root namespace "vendor":
         uint64 MY_CONSTANT = MessageType.1.0.OTHER_CONSTANT
+        # The above is valid if the referring definition and the referred definition
+        # are located inside the root namespace "vendor".
         @print MessageType.1.0
     \end{minted}
 \end{remark}
