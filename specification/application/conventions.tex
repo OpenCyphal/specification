@@ -1,4 +1,4 @@
-\section{Application-level conventions}\label{sec:application_level_conventions}
+\section{Application-level conventions}\label{sec:application_conventions}
 
 This section describes a set of high-level conventions designed to enhance compatibility
 of applications leveraging UAVCAN.
@@ -7,7 +7,7 @@ however, every deviation should be justified and documented.
 
 \subsection{Node identifier distribution}
 
-An overview of related concepts is provided in chapter \ref{sec:basic_concepts}.
+An overview of related concepts is provided in chapter \ref{sec:basic}.
 
 Valid values of node-ID range from 0 up to a transport-specific upper boundary
 which is guaranteed to be above 127 for any transport.
@@ -52,15 +52,15 @@ If application-specific coordinate systems are introduced, they should be right-
     \centering
     % The source image is released under CC0, public domain, no attribution required:
     % https://commons.wikimedia.org/wiki/File:ECEF_ENU_Longitude_Latitude_relationships.svg
-	\includegraphics[width=0.45\textwidth]{application_layer/NED_ECEF}
+	\includegraphics[width=0.45\textwidth]{application/NED_ECEF}
     % The source image is released under CC0, public domain, no attribution required:
     % https://pixabay.com/en/airplane-plane-aircraft-propeller-40374/
     % The final image is drawn by me. The source Inkscape SVG file is located in the same directory.
-    \includegraphics[width=0.45\textwidth]{application_layer/aircraft_principal_axes}
+    \includegraphics[width=0.45\textwidth]{application/aircraft_principal_axes}
     North-East-Down (NED) frame and body frame conventions. All systems are right-handed.
     \caption{
         Coordinate frame conventions.
-        \label{fig:application_coordinate_frame_conventions}
+        \label{fig:application_conventions_coordinate_frame}
     }
 \end{figure}
 
@@ -68,11 +68,11 @@ If application-specific coordinate systems are introduced, they should be right-
 
 For world fixed frames, the \emph{North-East-Down} (NED) right-handed notation is preferred.
 \begin{samepage}
-\begin{description}
-    \item[X] --- northward;
-    \item[Y] --- eastward;
-    \item[Z] --- down.
-\end{description}
+    \begin{description}
+        \item[X] --- northward;
+        \item[Y] --- eastward;
+        \item[Z] --- down.
+    \end{description}
 \end{samepage}
 
 \subsubsection{Body frame}
@@ -80,11 +80,11 @@ For world fixed frames, the \emph{North-East-Down} (NED) right-handed notation i
 In relation to a body, the convention is as defined below, right-handed.
 This convention is widely used in aeronautic applications.
 \begin{samepage}
-\begin{description}
-    \item[X] --- forward;
-    \item[Y] --- right;
-    \item[Z] --- down.
-\end{description}
+    \begin{description}
+        \item[X] --- forward;
+        \item[Y] --- right;
+        \item[Z] --- down.
+    \end{description}
 \end{samepage}
 
 \subsubsection{Optical frame}
@@ -92,11 +92,11 @@ This convention is widely used in aeronautic applications.
 In the case of cameras, the right-handed convention specified below is preferred.
 It is widely used in various applications involving computer vision systems.
 \begin{samepage}
-\begin{description}
-    \item[X] --- right;
-    \item[Y] --- down;
-    \item[Z] --- towards the scene along the optical axis.
-\end{description}
+    \begin{description}
+        \item[X] --- right;
+        \item[Y] --- down;
+        \item[Z] --- towards the scene along the optical axis.
+    \end{description}
 \end{samepage}
 
 \subsection{Rotation representation}
@@ -245,7 +245,7 @@ Irrespective of the suffix, it is recommended to always specify units for every 
 It is recommended to avoid reliance on raw scalar types (such as \verb|float32|)
 when defining fields containing physical quantities.
 Instead, the explicitly typed alternatives defined in the standard DSDL namespace
-\DSDLReference{uavcan.si.unit} (also see section \ref{sec:application_si}) should be used.
+\DSDLReference{uavcan.si.unit} (also see section \ref{sec:application_functions_si}) should be used.
 
 \begin{remark}
     \begin{minted}{python}

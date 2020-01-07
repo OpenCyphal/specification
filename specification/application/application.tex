@@ -1,4 +1,4 @@
-\chapter{Application layer}\label{sec:application_layer}
+\chapter{Application layer}\label{sec:application}
 
 Previous chapters of this specification define a set of basic concepts that are the foundation of the protocol:
 they allow one to define data types and exchange data objects over the bus in a robust and deterministic manner.
@@ -11,17 +11,17 @@ ground for any sensible aerospace or robotic system.
 UAVCAN favors no particular domain or kind of system among targeted applications.
 
 \begin{itemize}
-    \item Section \ref{sec:application_level_requirements} contains a set of mandatory rules that shall be
+    \item Section \ref{sec:application_requirements} contains a set of mandatory rules that shall be
     followed by all UAVCAN implementations.
 
-    \item Section \ref{sec:application_level_conventions} contains a set of conventions and recommendations that
+    \item Section \ref{sec:application_conventions} contains a set of conventions and recommendations that
     are not mandatory to follow. Every deviation, however, should be justified and well-documented.
 
-    \item Section \ref{sec:application_level_functions} contains a full list of high-level functions defined on
+    \item Section \ref{sec:application_functions} contains a full list of high-level functions defined on
     top of UAVCAN. Formal specification of such functions is provided in the DSDL data type definition files that
-    those functions are based on (see chapter \ref{sec:list_of_standard_data_types}).
+    those functions are based on (see chapter \ref{sec:sdt}).
 \end{itemize}
 
-\clearpage\input{application_layer/requirements.tex}
-\clearpage\input{application_layer/conventions.tex}
-\clearpage\input{application_layer/functions.tex}
+\clearpage\input{application/requirements.tex}
+\clearpage\input{application/conventions.tex}
+\clearpage\input{application/functions.tex}

@@ -1,9 +1,9 @@
-\section{Application-level functions}\label{sec:application_level_functions}
+\section{Application-level functions}\label{sec:application_functions}
 
 This section documents the high-level functionality defined by UAVCAN.
 The common high-level functions defined by the specification span across different application domains.
 All of the functions defined in this section are optional (not mandatory to implement),
-except for the node heartbeat feature (section \ref{sec:application_node_heartbeat}),
+except for the node heartbeat feature (section \ref{sec:application_functions_heartbeat}),
 which is mandatory for all UAVCAN nodes.
 
 The detailed specifications for each function are provided in the DSDL comments of the data type definitions
@@ -14,9 +14,9 @@ they are built upon, whereas this section serves as a high-level overview and in
 UAVCAN does not require that nodes undergo any specific initialization upon connection to the bus ---
 a node is free to begin functioning immediately once it is powered up.
 The operating mode of the node (such as initialization, normal operation, maintenance, and so on)
-is to be reflected via the mandatory heartbeat message described in section \ref{sec:application_node_heartbeat}.
+is to be reflected via the mandatory heartbeat message described in section \ref{sec:application_functions_heartbeat}.
 
-\subsection{Node heartbeat}\label{sec:application_node_heartbeat}
+\subsection{Node heartbeat}\label{sec:application_functions_heartbeat}
 
 Every non-anonymous UAVCAN node shall report its status and presence by periodically publishing messages of type
 \DSDLReference{uavcan.node.Heartbeat} at a fixed rate specified in the message definition using the fixed subject-ID.
@@ -121,7 +121,7 @@ via these generic types without reliance on their vendor-specific types (if ther
 This is important for reusability, because some of the systems where such COTS nodes are
 to be integrated may not be able to easily support vendor-specific types.
 
-\subsubsection{SI namespace}\label{sec:application_si}
+\subsubsection{SI namespace}\label{sec:application_functions_si}
 
 The \verb|si| namespace is named after the International System of Units (SI).
 The namespace contains a collection of scalar and vector value types that describe most commonly used
@@ -174,14 +174,14 @@ their use carries the risk of creating suboptimal interfaces that are difficult 
 Normally, the use of primitive types should be limited to very basic vendor-neutral interfaces for COTS
 equipment and software, debug and diagnostic purposes, and whenever there is a need to exchange data the
 type of which cannot be determined statically.\footnote{An example of the latter use case is the register protocol
-described in section \ref{sec:application_register_interface}.}
+described in section \ref{sec:application_functions_register}.}
 
 The table \ref{table:dsdl:uavcan.primitive} provides a high-level overview of the primitive namespace.
 Please follow the references for details.
 
 \DSDL{uavcan.primitive.* --index-only}
 
-\subsection{Remote file system interface}\label{sec:application_file_system}
+\subsection{Remote file system interface}\label{sec:application_functions_file_system}
 
 The set of standard data types contains a collection of services for manipulation of remote file systems
 (namespace \DSDLReference{uavcan.file}, see the table \ref{table:dsdl:uavcan.file}).
@@ -196,7 +196,7 @@ If write operations are required, all of the defined services should be supporte
 
 \DSDL{uavcan.file.* --index-only}
 
-\subsection{Generic node commands}\label{sec:application_generic_node_commands}
+\subsection{Generic node commands}\label{sec:application_functions_generic_commands}
 
 Commonly used node-level application-agnostic auxiliary commands
 (such as: restart, power off, factory reset, emergency stop, etc.)
@@ -208,8 +208,9 @@ It is recommended to support this service in all nodes.
 \subsection{Node software update}
 
 A simple software\footnote{Or firmware -- UAVCAN does not distinguish between the two.}
-update protocol is defined on top of the remote file system interface (section \ref{sec:application_file_system})
-and the generic node commands (section \ref{sec:application_generic_node_commands}).
+update protocol is defined on top of the remote file system interface
+(section \ref{sec:application_functions_file_system})
+and the generic node commands (section \ref{sec:application_functions_generic_commands}).
 
 The software update process involves the following data types:
 
@@ -224,7 +225,7 @@ The software update protocol logic is described in detail in the documentation f
 The protocol is considered simple enough to be usable in embedded bootloaders with
 small memory-constrained microcontrollers.
 
-\subsection{Register interface}\label{sec:application_register_interface}
+\subsection{Register interface}\label{sec:application_functions_register}
 
 UAVCAN defines the concept of \emph{named register} -- a scalar, vector, or string value with an associated
 human-readable name that is stored on a UAVCAN node locally and is accessible via

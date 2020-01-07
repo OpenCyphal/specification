@@ -1,4 +1,4 @@
-\chapter{Basic concepts}\label{sec:basic_concepts}
+\chapter{Basic concepts}\label{sec:basic}
 
 \section{Main principles}
 
@@ -79,7 +79,7 @@ and an optional fixed port-ID of the data type among other less important proper
 Message data types always define exactly one data schema, whereas
 service data types contain two independent schema definitions: one for request, and the other for response.
 
-\subsubsection{Regulation}\label{sec:basic_concepts_data_type_regulation}
+\subsubsection{Regulation}\label{sec:basic_data_type_regulation}
 
 Data type definitions can be created by the UAVCAN specification maintainers or by its users,
 such as equipment vendors or application designers.
@@ -144,7 +144,7 @@ DSDL processing tools shall prohibit unregulated fixed port identifiers by defau
 unless they are explicitly configured otherwise.
 
 Each of the two sets of valid port identifiers (which are subject identifiers and service identifiers) are
-segregated into three categories (the ranges are documented in chapter \ref{sec:application_layer}):
+segregated into three categories (the ranges are documented in chapter \ref{sec:application}):
 
 \begin{itemize}
     \item Application-specific port identifiers.
@@ -185,7 +185,7 @@ Serialized message and service objects\footnote{%
     Here and elsewhere, an \emph{object} means a value that is an instance of a well-defined type.
 }
 are exchanged by means of the transport
-layer (chapter \ref{sec:transport_layer}), which implements automatic decomposition of
+layer (chapter \ref{sec:transport}), which implements automatic decomposition of
 long transfers into several transport frames\footnote{Here and
 elsewhere, a \emph{transport frame} means a block of data that can be atomically exchanged
 over the transport layer network, e.g., a CAN frame.} and reassembly from these transport frames
@@ -198,7 +198,7 @@ of any object of any data type is always known statically).
 On top of the standard data types, UAVCAN defines a set of standard high-level functions including:
 node health monitoring, node discovery, time synchronization, firmware update,
 plug-and-play node support, and more.
-For more information see chapter \ref{sec:application_layer}.
+For more information see chapter \ref{sec:application}.
 
 \begin{figure}[hbt]
     \centering
@@ -219,7 +219,7 @@ For more information see chapter \ref{sec:application_layer}.
 
         \multicolumn{6}{|c|}{Transport} \\ \hline
     \end{tabular}
-    \caption{UAVCAN architectural diagram.\label{fig:architecture}}
+    \caption{UAVCAN architectural diagram.\label{fig:basic_architecture}}
 \end{figure}
 
 \section{Message publication}
@@ -254,11 +254,11 @@ UAVCAN nodes will not have an identifier initially until they are assigned one,
 either statically (which is generally the preferred option for applications where a high degree of
 determinism and high safety assurances are required) or automatically (i.e., plug-and-play).
 Anonymous messages are particularly useful for the plug-and-play feature,
-which is explored in detail in chapter~\ref{sec:application_layer}.
+which is explored in detail in chapter~\ref{sec:application}.
 
 Anonymous messages cannot be decomposed into multiple transport frames,
 meaning that their payload capacity is limited to that of a single transport frame.
-More info is provided in chapter~\ref{sec:transport_layer}.
+More info is provided in chapter~\ref{sec:transport}.
 
 \section{Service invocation}
 

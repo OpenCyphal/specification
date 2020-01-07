@@ -2,6 +2,11 @@
 
 SRC=UAVCAN_Specification
 
+# https://tex.stackexchange.com/a/52994/132781
+export max_print_line=1000
+export error_line=254
+export half_error_line=238
+
 function once()
 {
     pdflatex -interaction=nonstopmode -file-line-error --halt-on-error --shell-escape $@

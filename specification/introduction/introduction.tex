@@ -127,23 +127,23 @@ More information is provided in chapter \ref{sec:dsdl}.
 UAVCAN supports 32768 message subject identifiers for publish/subscribe exchanges and
 512 service identifiers for remote procedure call exchanges.
 A small subset of these identifiers is reserved for the core standard and for publicly released vendor-specific types.
-More information is provided in chapter \ref{sec:application_layer}.
+More information is provided in chapter \ref{sec:application}.
 
 UAVCAN supports at least\footnote{Depending on the transport protocol.} eight distinct communication priority levels,
-defined in section \ref{sec:transfer_prioritization}.
+defined in section \ref{sec:transport_transfer_priority}.
 Within each priority level different types of transfers, messages, and services are
 prioritized in a well-defined, deterministic manner.
 
-The list of transport protocols supported by UAVCAN is provided in chapter \ref{sec:transport_layer}.
+The list of transport protocols supported by UAVCAN is provided in chapter \ref{sec:transport}.
 Non-redundant, doubly-redundant and triply-redundant transports are supported.
 More information on the physical layer and standardized physical connectivity options
-is provided in chapter \ref{sec:physical_layer}.
+is provided in chapter \ref{sec:physical}.
 Additional transport and physical layers may be added in future revisions of the protocol.
 
 \section{Public regulated data types}
 
 This section talks about general management policies.
-The related technical aspects are covered in chapters~\ref{sec:basic_concepts} and~\ref{sec:dsdl}.
+The related technical aspects are covered in chapters~\ref{sec:basic} and~\ref{sec:dsdl}.
 
 The UAVCAN maintainers are charged with maintaining and advancing the set of
 public regulated data types based on the input from adopters.
@@ -155,7 +155,7 @@ however, there is only a very small subset of required standard data types neede
 A larger set of optional data types are defined to create a standardized data exchange environment
 supporting the interoperability of COTS\footnote{Commercial off-the-shelf equipment.}
 equipment manufactured by different vendors.
-See chapter \ref{sec:application_layer} for more information.
+See chapter \ref{sec:application} for more information.
 
 Within the same major version of the specification,
 the set of public regulated data type definitions can be modified only in the following ways:

@@ -7,7 +7,7 @@ The function of the transport layer is to facilitate exchange of serialized repr
 \subsection{Transport model}\label{sec:transport_model}
 
 This section introduces an abstract implementation-agnostic model of the UAVCAN transport layer.
-The core relations are depicted on figure \ref{fig:transport_layer_model}.
+The core relations are depicted on figure \ref{fig:transport_model}.
 Some of the concepts introduced at this level may not be manifested in the design of concrete transports;
 despite that, they are convenient for an abstract discussion.
 
@@ -78,7 +78,7 @@ despite that, they are convenient for an abstract discussion.
             Message (subject) or service transfer.\\\hline
         \end{tabu}
     }
-    \caption{UAVCAN transport layer model.}\label{fig:transport_layer_model}
+    \caption{UAVCAN transport layer model.}\label{fig:transport_model}
 \end{figure}
 
 \subsubsection{Transfer}
@@ -326,7 +326,7 @@ Such nodes are unable to emit transfers other than \emph{anonymous transfers}.
 An anonymous transfer is a transfer that does not have a specific source.
 Anonymous transfers have the following limitations\footnote{%
     Anonymous transfers are intended primarily for the facilitation of the optional plug-and-play feature
-    (section \ref{sec:application_level_functions})
+    (section \ref{sec:application_functions})
     which enables fully automatic configuration of UAVCAN nodes upon their connection to the network.
     Some transports may provide native support for auto-configuration, rendering anonymous transfers unnecessary.
 }:
@@ -599,7 +599,7 @@ A heterogeneous redundant transport shall meet \emph{either} of the following re
     %  ]
     \begin{figure}[H]
         \centering
-        \includegraphics[width=0.6\textwidth]{transport_layer/cyclic_transfer_id_redundant_transport}
+        \includegraphics[width=0.6\textwidth]{transport/cyclic_transfer_id_redundant_transport}
         \caption{Issues with cyclic transfer-ID in heterogeneous redundant transports.}
         \label{fig:transport_cyclic_transfer_id_redundant}
     \end{figure}
@@ -637,7 +637,7 @@ does not increase the latency.
 An exception to the above rule applies if the payload of the transfer is a function of
 the identity of the transport instance that carries the transfer\footnote{%
     An example of such a special case is the time synchronization algorithm documented in section
-    \ref{sec:application_level_functions}.
+    \ref{sec:application_functions}.
 }.
 
 \subsection{Transfer reception}

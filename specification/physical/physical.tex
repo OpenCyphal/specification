@@ -1,4 +1,4 @@
-\chapter{Physical layer}\label{sec:physical_layer}
+\chapter{Physical layer}\label{sec:physical}
 
 This chapter contains the specification of the supported physical layers of UAVCAN,
 as well as some related hardware design recommendations.
@@ -7,10 +7,10 @@ Following the requirements and recommendations of this chapter will ensure the h
 inter-vendor compatibility and allow the developers to avoid many common design pitfalls.
 
 The sections that provide transport-specific physical layer specification
-directly correspond to those defined in the chapter \ref{sec:transport_layer}.
+directly correspond to those defined in the chapter \ref{sec:transport}.
 
 % Please keep \clearpage in front of every transport-specific specification to enforce clear separation!
-\clearpage\input{physical_layer/can/can.tex}
+\clearpage\input{physical/can/can.tex}
 
 \clearpage
 \section{Hardware design recommendations}
@@ -18,7 +18,7 @@ directly correspond to those defined in the chapter \ref{sec:transport_layer}.
 This section contains certain generic hardware design recommendations that are agnostic of a particular
 physical layer implementation.
 
-\subsection{Nonuniform transport redundancy}\label{sec:phy_nonuniform_transport_redundancy}
+\subsection{Nonuniform transport redundancy}\label{sec:physical_nonuniform_transport_redundancy}
 
 Mission critical devices and non-mission critical devices often need to co-exist within the same UAVCAN network.
 Non-mission critical devices are likely to be equipped with a non-redundant transport interface,
@@ -32,12 +32,12 @@ In that case, the following rules should be followed:
     \item Only nodes with redundant interfaces should be also connected to the non-primary transport network(s).
 \end{itemize}
 
-The figure \ref{fig:phy_nonuniform_transport_redundancy} shows a doubly redundant network as an example.
+The figure \ref{fig:physical_nonuniform_transport_redundancy} shows a doubly redundant network as an example.
 
 \begin{figure}[H]
     \centering
-	\includegraphics[width=\textwidth]{physical_layer/nonuniform_bus_redundancy}
-	\caption{Nonuniform transport redundancy.\label{fig:phy_nonuniform_transport_redundancy}}
+	\includegraphics[width=\textwidth]{physical/nonuniform_bus_redundancy}
+	\caption{Nonuniform transport redundancy.\label{fig:physical_nonuniform_transport_redundancy}}
 \end{figure}
 
 \subsection{Bus power supply}
@@ -61,8 +61,8 @@ so if one bus suffers a power failure (e.g. a short circuit) it is not propagate
 
 \begin{figure}[H]
     \centering
-	\includegraphics[width=0.6\textwidth]{physical_layer/redundant_bus_power_sink}
-	\caption{Simplified conceptual power sinking node design schematic.\label{fig:phy_redundant_bus_power_sink}}
+	\includegraphics[width=0.6\textwidth]{physical/redundant_bus_power_sink}
+	\caption{Simplified conceptual power sinking node design schematic.\label{fig:physical_redundant_bus_power_sink}}
 \end{figure}
 
 \subsubsection{Power sourcing nodes}
@@ -77,6 +77,6 @@ the remaining bus interfaces.
 
 \begin{figure}[H]
     \centering
-	\includegraphics[width=0.6\textwidth]{physical_layer/redundant_bus_power_source}
-	\caption{Simplified conceptual power sourcing node design schematic.\label{fig:phy_redundant_bus_power_source}}
+	\includegraphics[width=0.6\textwidth]{physical/redundant_bus_power_source}
+	\caption{Simplified conceptual power sourcing node design schematic.\label{fig:physical_redundant_bus_power_source}}
 \end{figure}

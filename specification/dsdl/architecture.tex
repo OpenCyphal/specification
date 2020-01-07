@@ -114,7 +114,7 @@ provided that each version is defined at most once.
 Version number sequences can be non-contiguous,
 meaning that it is allowed to skip version numbers or remove existing definitions that are neither oldest nor newest.
 
-A data type definition may have an optional fixed port-ID\footnote{Chapter \ref{sec:basic_concepts}.} value specified.
+A data type definition may have an optional fixed port-ID\footnote{Chapter \ref{sec:basic}.} value specified.
 
 The name of a data type definition file is constructed from the following entities
 joined via the ASCII dot character ``\verb|.|'' (ASCII code 46), in the specified order:
@@ -246,5 +246,5 @@ The opposite case is referred to as \emph{fixed length}.
 The data type of a serialized message or service object exchanged over the network
 is recovered from its subject-ID or service-ID, respectively,
 which is attached to the serialized object, along with other metadata, in a manner dictated by the applicable
-transport layer specification (chapter \ref{sec:transport_layer}).
+transport layer specification (chapter \ref{sec:transport}).
 For more information on port identifiers and data type mapping refer to section \ref{sec:basic_subjects_and_services}.

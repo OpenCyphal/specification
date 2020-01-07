@@ -12,7 +12,7 @@ CAN FD should be considered the primary transport protocol.
 
     Maximum node-ID value &
     127 (7 bits wide). &
-    \ref{sec:basic_concepts} \\
+    \ref{sec:basic} \\
 
     Transfer-ID mode &
     Cyclic, modulo 32. &
@@ -50,8 +50,8 @@ The protocol version can be determined at runtime on a per-frame basis as descri
 in section~\ref{sec:transport_can_toggle_bit}.
 
 UAVCAN/CAN utilizes two different CAN ID bit layouts for message transfers and service transfers.
-The bit layouts are summarized on figure~\ref{fig:can_id_structure}.
-Tables \ref{table:can_id_fields_message_transfer} and \ref{table:can_id_fields_service_transfer}
+The bit layouts are summarized on figure~\ref{fig:transport_can_id_structure}.
+Tables \ref{table:transport_can_id_fields_message_transfer} and \ref{table:transport_can_id_fields_service_transfer}
 summarize the purpose of each field and their permitted values
 for message transfers and service transfers, respectively.
 
@@ -146,11 +146,11 @@ for message transfers and service transfers, respectively.
             \\\hline
         \end{tabular}
     }
-    \caption{CAN ID bit layout}\label{fig:can_id_structure}
+    \caption{CAN ID bit layout}\label{fig:transport_can_id_structure}
 \end{figure}
 
 \begin{UAVCANSimpleTable}{CAN ID bit fields for message transfers}{|l l l X|}
-    \label{table:can_id_fields_message_transfer}
+    \label{table:transport_can_id_fields_message_transfer}
     Field               & Width & Valid values  & Description \\
 
     Transfer priority   & 3     & $[0, 7]$ (any)    & Section \ref{sec:transport_transfer_priority}. \\
@@ -173,7 +173,7 @@ for message transfers and service transfers, respectively.
 \end{UAVCANSimpleTable}
 
 \begin{UAVCANSimpleTable}{CAN ID bit fields for service transfers}{|l l l X|}
-    \label{table:can_id_fields_service_transfer}
+    \label{table:transport_can_id_fields_service_transfer}
     Field               & Width & Valid values  & Description \\
 
     Transfer priority   & 3     & $[0, 7]$ (any)    & Section \ref{sec:transport_transfer_priority}. \\
@@ -273,7 +273,7 @@ Some method of media access control should be used at the application level for 
     The described principles make anonymous transfers highly non-deterministic and inefficient.
     This is considered acceptable because the scope of anonymous transfers is limited to a very narrow set of use
     cases which tolerate their downsides. The UAVCAN specification employs anonymous transfers only for the
-    plug-and-play feature defined in section \ref{sec:application_level_functions}.
+    plug-and-play feature defined in section \ref{sec:application_functions}.
     Deterministic applications are advised to avoid reliance on anonymous transfers completely.
 
     None of the above considerations affect nodes that do not transmit anonymous transfers.
