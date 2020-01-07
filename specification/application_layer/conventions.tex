@@ -199,6 +199,8 @@ Infinite error variance means that the associated value is undefined.
 
 \subsection{Physical quantity representation}
 
+\subsubsection{Units}
+
 All units should be SI\footnote{International System of Units.} units (base or derived).
 Usage of any other units is strongly discouraged.
 
@@ -225,15 +227,34 @@ When defining data types, ``\textmu{}'' should be replaced with the lowercase La
 Irrespective of the suffix, it is recommended to always specify units for every field in the comments.
 
 \begin{remark}
-\begin{minted}{python}
-float16 temperature           # [kelvin] Suffix not needed because an unscaled SI unit is used here.
+    \begin{minted}{python}
+        float16 temperature           # [kelvin] Suffix not needed because an unscaled SI unit is used here.
 
-uint24 delay_us               # [microsecond] Scaled SI unit, suffix required. Mu replaced with "u".
-uint24 MAX_DELAY_us = 600000  # [microsecond] Notice the letter case.
+        uint24 delay_us               # [microsecond] Scaled SI unit, suffix required. Mu replaced with "u".
+        uint24 MAX_DELAY_us = 600000  # [microsecond] Notice the letter case.
 
-float32 kinetic_energy_GJ     # [gigajoule] Notice the letter case.
+        float32 kinetic_energy_GJ     # [gigajoule] Notice the letter case.
 
-float16 estimated_charge_mAh  # [milliampere hour] Scaled non-SI unit. Discouraged, use coulomb.
-float16 MAX_CHARGE_mAh = 1e4  # [milliampere hour] Notice the letter case.
-\end{minted}
+        float16 estimated_charge_mAh  # [milliampere hour] Scaled non-SI unit. Discouraged, use coulomb.
+        float16 MAX_CHARGE_mAh = 1e4  # [milliampere hour] Notice the letter case.
+    \end{minted}
+\end{remark}
+
+\subsubsection{Enhanced type safety}
+
+It is recommended to avoid reliance on raw scalar types (such as \verb|float32|)
+when defining fields containing physical quantities.
+Instead, the explicitly typed alternatives defined in the standard DSDL namespace
+\DSDLReference{uavcan.si.unit} (also see section \ref{sec:application_si}) should be used.
+
+\begin{remark}
+    \begin{minted}{python}
+        # Kinetic energy of four bodies.
+        float32[4] kinetic_energy                           # [joule] Not recommended.
+        uavcan.si.unit.energy.Scalar.1.0[4] kinetic_energy  # This is the recommended practice.
+
+        # 3D velocity vector.
+        float32[3] velocity                                 # [meter/second] Not recommended.
+        uavcan.si.unit.velocity.Vector3.1.0                 # This is the recommended practice.
+    \end{minted}
 \end{remark}
