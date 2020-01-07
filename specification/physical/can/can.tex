@@ -19,7 +19,7 @@ and not using \mbox{T-connectors}.
 \mbox{T-connectors} should be avoided because they add another point of failure,
 increase the stub length, weight, and often require more complex and expensive wiring harnesses.
 
-\begin{UAVCANSimpleTable}{Standard CAN connector types}{l l l X}\label{table:physical_can_connector_summary}
+\begin{UAVCANSimpleTable}{Standard CAN connector types}{|l l l X|}\label{table:physical_can_connector_summary}
     Connector name & Base connector type & Bus power & Known compatible standards \\
     \textbf{UAVCAN D-Sub} &
     Generic D-Subminiature DE-9 &
@@ -48,7 +48,7 @@ and \ref{fig:physical_can_uavcan_d_sub_connector_cable}.
 
 {
 \NoLeftSkip
-\begin{UAVCANCompactTable}{X X}
+\begin{UAVCANCompactTable}{|X X|}
     Advantages & Disadvantages \\
     \begin{itemize}
         \item Highest level of compatibility with the existing commercial off the shelf (COTS) hardware.
@@ -131,7 +131,7 @@ except when there are specific reasons to select another standard connector type
 
 {
 \NoLeftSkip
-\begin{UAVCANCompactTable}{X X}
+\begin{UAVCANCompactTable}{|X X|}
     Advantages & Disadvantages \\
     \begin{itemize}
         \item Compatibility with existing COTS hardware.
@@ -206,7 +206,7 @@ It is also the recommended connector for attaching external panel-mounted connec
 
 {
 \NoLeftSkip
-\begin{UAVCANCompactTable}{X X}
+\begin{UAVCANCompactTable}{|X X|}
     Advantages & Disadvantages \\
     \begin{itemize}
         \item Extremely compact, low-profile. The PCB footprint is under 9$\times$5 millimeters.
@@ -285,17 +285,13 @@ ISO 11898-2.
 The estimated bus length limits are based on the assumption that the propagation delay does not exceed 5 ns/m,
 not including additional delay times of CAN transceivers and other components.
 
-\begin{UAVCANSimpleTable}{Standard Classic CAN 2.0 PHY parameters}{|X[c] X[c] X[c] X[c] X[c]|}
-    Bit rate [kbit/s] &
-    Valid range for location of sample point [\%] &
-    Recommended location of sample point [\%] &
-    Maximum bus length [m] &
-    Maximum stub length [m] \label{table:physical_can_classic_phy_parameters} \\
-
-    1000    & 75 to 90  & 87.5  & 40    & 0.3 \\
-     500    & 85 to 90  & 87.5  & 100   & 0.3 \\
-     250    & 85 to 90  & 87.5  & 250   & 0.3 \\
-     125    & 85 to 90  & 87.5  & 500   & 0.3 \\
+\begin{UAVCANSimpleTable}{Classic CAN 2.0 physical layer parameters}{|l| X[c] X[c] X[c] X[c]|}%
+    \label{table:physical_can_classic_phy_parameters}%
+    \textbf{Bit rate [kbit/s]}                              &   1000    &   500     &   250     &   125     \\
+    \textbf{Valid range for location of sample point [\%]}  &   75--90  &   85--90  &   85--90  &   85--90  \\
+    \textbf{Recommended location of sample point [\%]}      &   87.5    &   87.5    &   87.5    &   87.5    \\
+    \textbf{Maximum bus length [m]}                         &   40      &   100     &   250     &   500     \\
+    \textbf{Maximum stub length [m]}                        &   0.3     &   0.3     &   0.3     &   0.3     \\
 \end{UAVCANSimpleTable}
 
 Designers are encouraged to implement CAN auto bit rate detection when applicable.
