@@ -156,6 +156,16 @@ upon construction of a serialized representation of an object\footnote{%
     \verb|array| contains a sequence of four zeros: $0, 0, 0, 0$.
 \end{remark}
 
+\subsubsection{Error handling}
+
+It is guaranteed by design that no error states may occur during serialization.
+
+A deserialization process may encounter a serialized representation that does not belong to the
+set of serialized representations of the data type at hand.
+In such case, the invalid serialized representation shall be discarded and the implementation
+shall explicitly report its inability to complete the deserialization process for the given input.
+It is guaranteed by design that no other error states may occur during deserialization.
+
 \subsection{Void types}\label{sec:dsdl_serialized_void}
 
 The serialized representation of a void-typed field attribute is constructed as a sequence of zero bits.
@@ -315,12 +325,10 @@ The bit length of the unsigned integer value is determined as follows:
 $$\lceil{}\log_2 (c + 1)\rceil{}$$
 where $c$ is the capacity (i.e., the maximum number of elements) of the variable-length array.
 The number of elements $n$ contained in the variable-length array is encoded
-in the serialized representation of the implicit length field%
-\footnote{%
-    Seeing as $n \leq c$ always holds, bit sequences where the implicit length field contains values
-    greater than $c$ do not belong to the set of serialized representations of the array.
-}
+in the serialized representation of the implicit length field
 as described in section \ref{sec:dsdl_serialized_unsigned_integer}.
+By definition, $n \leq c$; therefore, bit sequences where the implicit length field contains values
+greater than $c$ do not belong to the set of serialized representations of the array.
 
 The rest of the serialized representation is constructed as if the variable-length array was
 a fixed-length array of $n$ elements.
@@ -403,13 +411,11 @@ The first defined field attribute is assigned the index 0 (zero),
 the index of each following field attribute is incremented by one.
 
 The index of the field attribute whose value is currently held by the tagged union is encoded
-in the serialized representation of the implicit union tag%
-\footnote{%
-    Seeing as $i < n$ always holds, where $i$ is the index of the current field attribute,
-    bit sequences where the implicit union tag field contains values
-    that are greater than or equal $n$ do not belong to the set of serialized representations of the tagged union.
-}
-as described in section \ref{sec:dsdl_serialized_unsigned_integer}.
+in the serialized representation of the implicit union tag as described in section
+\ref{sec:dsdl_serialized_unsigned_integer}.
+By definition, $i < n$, where $i$ is the index of the current field attribute;
+therefore, bit sequences where the implicit union tag field contains values
+that are greater than or equal $n$ do not belong to the set of serialized representations of the tagged union.
 
 The serialized representation of the implicit union tag is immediately followed by
 the serialized representation of the currently selected field attribute value.
