@@ -299,7 +299,7 @@ Priority of a service response transfer should match the priority of the corresp
         these messages will eventually be sent.
 
         \item[Optional] -- These messages might never be sent (theoretically) for some possible system states.
-        The system must tolerate never exchanging optional messages in every possible state.
+        The system shall tolerate never exchanging optional messages in every possible state.
         The bus designer can ignore these messages when calculating bus load.
         This should be the priority used for diagnostic or debug messages that are not required on an
         operational system.

@@ -59,7 +59,7 @@ $\text{BADC0FFEE}_{16} = 50159747054$, $10101_2$.
 
 \begin{description}
     \item[Democratic network] --- There will be no master node.
-    All nodes in the network will have the same communication rights; there must be no single point of failure.
+    All nodes in the network will have the same communication rights; there shall be no single point of failure.
 
     \item[Facilitation of functional safety] --- A system designer relying on UAVCAN will have the necessary
     guarantees and tools at their disposal to analyze the system and ensure its correct behavior.
@@ -78,7 +78,7 @@ $\text{BADC0FFEE}_{16} = 50159747054$, $10101_2$.
     node software update, node status monitoring\footnote{Which naturally grows into a vehicle-wide
     health monitoring solution.}, network-wide time synchronization, plug-and-play node support, etc.
 
-    \item[Atomic data abstractions] --- Nodes must be provided with a simple way of exchanging large
+    \item[Atomic data abstractions] --- Nodes shall be provided with a simple way of exchanging large
     data structures that exceed the capacity of a single transport frame\footnote{A \emph{transport frame} is
     an atomic transmission unit defined by the underlying transport protocol. For example, a CAN frame.}.
     UAVCAN should perform automatic data decomposition and reassembly at the protocol level,
@@ -88,7 +88,7 @@ $\text{BADC0FFEE}_{16} = 50159747054$, $10101_2$.
     transport protocol, which will ensure high throughput and low latency, rendering the protocol well-suited
     for hard real-time applications.
 
-    \item[Support for redundant interfaces and redundant nodes] --- UAVCAN must be suitable for use in
+    \item[Support for redundant interfaces and redundant nodes] --- UAVCAN shall be suitable for use in
     applications that require modular redundancy.
 
     \item[Simple logic, low computational requirements] --- UAVCAN targets a wide variety of embedded systems,
@@ -101,7 +101,7 @@ $\text{BADC0FFEE}_{16} = 50159747054$, $10101_2$.
     in a maintainable manner while enabling simulation and functional testing.
 
     \item[Support for various transport protocols] --- UAVCAN will be usable with different transports.
-    The standard must be capable of accommodating other transport protocols in the future.
+    The standard shall be capable of accommodating other transport protocols in the future.
 
     \item[API-agnostic standard] --- Unlike some other networking standards, UAVCAN will not attempt to describe
     the application program interface (API). Any details that do not affect the behavior of an implementation

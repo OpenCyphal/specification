@@ -73,7 +73,7 @@ The name structure is illustrated on the figure \ref{fig:dsdl_data_type_name_str
     \caption{Data type name structure.\label{fig:dsdl_data_type_name_structure}}
 \end{figure}
 
-A set of full namespace names and a set of full data type names must not intersect\footnote{%
+A set of full namespace names and a set of full data type names shall not intersect\footnote{%
     For example, a namespace ``\texttt{vendor.example}'' and a data type ``\texttt{vendor.example.1.0}''
     are mutually exclusive.
     Note the data type name shown in this example violates the naming conventions
@@ -88,15 +88,15 @@ In other words, a pair of names which differ only in letter case is considered t
 A name component consists of alphanumeric ASCII characters (which are: \verb|A-Z|, \verb|a-z|, and \verb|0-9|)
 and underscore (``\verb|_|'', ASCII code 95).
 An empty string is not a valid name component.
-The first character of a name component must not be a digit.
-A name component must not match any of the reserved word patterns,
+The first character of a name component shall not be a digit.
+A name component shall not match any of the reserved word patterns,
 which are listed in the table \ref{table:dsdl_reserved_word_patterns}.
 
-The length of a full data type name must not exceed 50
+The length of a full data type name shall not exceed 50
 characters\footnote{This includes the name component separators.}.
 
 Every data type definition is assigned a major and minor version number pair.
-In order to uniquely identify a data type definition, its version numbers must be specified.
+In order to uniquely identify a data type definition, its version numbers shall be specified.
 In the following text, the term \emph{version} without a majority qualifier refers to
 a pair of major and minor version numbers.
 
@@ -108,7 +108,7 @@ A data type version where both major and minor components are zero is not allowe
 DSDL data type definitions are contained in UTF-8 encoded text files with a file name extension \verb|.uavcan|.
 
 One file defines exactly one version of a data type,
-meaning that each combination of major and minor version numbers must be unique per data type name.
+meaning that each combination of major and minor version numbers shall be unique per data type name.
 There may be an arbitrary number of versions of the same data type defined alongside each other,
 provided that each version is defined at most once.
 Version number sequences can be non-contiguous,

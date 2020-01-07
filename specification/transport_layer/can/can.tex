@@ -237,7 +237,7 @@ In multi-frame transfers, the value of the priority field shall be identical for
 \subsubsection{Source node-ID field in anonymous transfers}\label{sec:transport_can_source_node_pseudo_id}
 
 The source node-ID field of anonymous transfers shall be initialized with a pseudorandom \emph{pseudo-ID} value.
-The source of the pseudorandom data used for the pseudo-ID must aim to produce different values
+The source of the pseudorandom data used for the pseudo-ID shall aim to produce different values
 for different CAN frame data field values.
 
 A node transmitting an anonymous transfer shall abort its transmission and discard it upon detection of a bus error.
@@ -622,14 +622,14 @@ Implementations should take necessary precautions against the problem of inner p
             if isTxMailboxFree(i)
             {
                 chosen_mailbox = i
-                // Note: cannot break here, must check all other mailboxes as well.
+                // Note: cannot break here, shall check all other mailboxes as well.
             }
             else
             {
                 if not isFramePriorityHigher(newFrame, getFrameFromTxMailbox(i))
                 {
                     chosen_mailbox = -1
-                    break   // Denied - must wait until this mailbox has finished transmitting
+                    break   // Denied - shall wait until this mailbox has finished transmitting
                 }
             }
         }

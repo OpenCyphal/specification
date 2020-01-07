@@ -179,7 +179,7 @@ Variable-length arrays with unbounded maximum number of elements are not allowed
 
 Arrays are defined by adding a pair of square brackets after the array element type specification,
 where the brackets contain the \emph{array capacity expression}.
-The array capacity expression must yield a positive integer of type ``\verb|rational|'' upon its evaluation;
+The array capacity expression shall yield a positive integer of type ``\verb|rational|'' upon its evaluation;
 any other value or type renders the current DSDL definition invalid.
 
 The array capacity expression can be prefixed with the following character sequences in order to define
@@ -187,7 +187,7 @@ a variable-length array:
 \begin{itemize}
     \item ``\verb|<|'' (ASCII code 60) --- indicates that the integer value yielded by the array capacity expression
     specifies the non-inclusive upper boundary of the number of elements.
-    In this case, the integer value yielded by the array capacity expression must be greater than one.
+    In this case, the integer value yielded by the array capacity expression shall be greater than one.
 
     \item ``\verb|<=|'' (ASCII code 60 followed by 61) --- same as above, but the upper boundary is inclusive.
 \end{itemize}
@@ -198,8 +198,8 @@ If neither of the above prefixes are provided, the resultant definition is that 
 \subsubsection{Kinds}
 
 There are two kinds of composite data type definitions: message types and service types.
-All versions of a data type must be of the same kind\footnote{%
-For example, if a data type version 0.1 is of a message kind, all later versions of it must be messages, too.}.
+All versions of a data type shall be of the same kind\footnote{%
+For example, if a data type version 0.1 is of a message kind, all later versions of it shall be messages, too.}.
 
 A message data type defines one data schema.
 
@@ -252,7 +252,7 @@ Circular dependencies are not permitted.
 A circular dependency renders all of the definitions involved in the dependency loop invalid.
 
 If any of the referred definitions are marked as deprecated,
-the referring definition must be marked deprecated as well\footnote{%
+the referring definition shall be marked deprecated as well\footnote{%
 Deprecation is indicated with the help of a special directive, as explained in section \ref{sec:dsdl_directives}}.
 If a non-deprecated definition refers to a deprecated definition,
 the referring definition is malformed\footnote{%

@@ -9,7 +9,7 @@ A composite type attribute that has a value assigned at the data type definition
 a composite type attribute that does not have a value assigned at the definition time is called a
 \emph{field attribute}.
 
-The name of a composite type attribute must be unique within its data schema definition
+The name of a composite type attribute shall be unique within its data schema definition
 and it shall not match any of the reserved name patterns specified in the table
 \ref{table:dsdl_reserved_word_patterns}.
 This requirement does not apply to padding fields.
@@ -18,12 +18,12 @@ This requirement does not apply to padding fields.
 
 A field attribute represents a named dynamically assigned value of a statically defined type
 that can be exchanged over the network as a member of its containing object.
-The data type of a field attribute must be of the serializable type category
+The data type of a field attribute shall be of the serializable type category
 (section \ref{sec:dsdl_serializable_types}),
 excepting the void type category, which is not allowed.
 
 Exception applies to the special kind of field attributes --- \emph{padding fields}.
-The type of a padding field attribute must be of the void category.
+The type of a padding field attribute shall be of the void category.
 A padding field attribute may not have a name.
 
 A pair of field attributes is considered equal if, and only if, both field attributes are of the same type,
@@ -44,12 +44,12 @@ Values of constant attributes are never exchanged over the network,
 since they are assumed to be known to all involved nodes
 by virtue of them sharing the same definition of the data type.
 
-The data type of a constant attribute must be of the primitive type category
+The data type of a constant attribute shall be of the primitive type category
 (section \ref{sec:dsdl_serializable_types}).
 
 The value of the constant attribute is determined at the DSDL definition processing time by evaluating its
 \emph{initialization expression}.
-The expression must yield a compatible type upon its evaluation in order to initialize
+The expression shall yield a compatible type upon its evaluation in order to initialize
 the value of its constant attribute.
 The set of compatible types depends on the type of the initialized constant attribute,
 as specified in the table \ref{table:dsdl_constant_init_pattern}.
@@ -154,7 +154,7 @@ The value of the attribute is a function of the field attribute declarations pre
 and the category of the containing data schema definition.
 
 If the current data schema definition belongs to the tagged union category,
-the referring statement must be located after the last field attribute definition.
+the referring statement shall be located after the last field attribute definition.
 A field attribute definition following the referring statement renders the current definition invalid.
 For tagged unions, the value of the offset attribute is defined as:
 $$

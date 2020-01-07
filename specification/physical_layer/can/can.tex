@@ -71,7 +71,7 @@ and the cables are equipped with the female socket connectors on both ends
 If the device uses two parallel connectors per CAN bus interface (as recommended),
 then all of the lines of the paired connectors,
 including those that are not used by the current specification,
-must be interconnected one to one.
+shall be interconnected one to one.
 This will ensure compatibility with future revisions of the specification that make use of
 currently unused circuits of the connector.
 
@@ -87,17 +87,17 @@ The maximum recommended current draw from the bus is 0.5 A per device.
 The table \ref{table:can_uavcan_d_sub_pinout} documents the pinout specification for the
 UAVCAN D-Sub connector type.
 The provided pinout, as has been indicated above, is the de-facto industry standard for the CAN bus.
-Note that the signals ``CAN High'' and ``CAN Low'' must belong to the same twisted pair.
+Note that the signals ``CAN High'' and ``CAN Low'' shall belong to the same twisted pair.
 Usage of twisted or flat wires for all other signals remains at the discretion of the implementer.
 
 \begin{UAVCANSimpleTable}{UAVCAN D-Sub connector pinout}{|l l X|}\label{table:can_uavcan_d_sub_pinout}
     \# & Function           & Note \\
     1  &                    &  \\
     2  & CAN low            & Twisted with ``CAN high'' (pin 7). \\
-    3  & CAN ground         & Must be interconnected with ``Ground'' (pin 6) within the device. \\
+    3  & CAN ground         & Shall be interconnected with ``Ground'' (pin 6) within the device. \\
     4  &                    &  \\
     5  & CAN shield         & Optional. \\
-    6  & Ground             & Must be interconnected with ``CAN ground'' (pin 3) within the device. \\
+    6  & Ground             & Shall be interconnected with ``CAN ground'' (pin 3) within the device. \\
     7  & CAN high           & Twisted with ``CAN low'' (pin 2). \\
     8  &                    &  \\
     9  & Bus power supply   & 24 V nominal. See the power supply requirements. \\

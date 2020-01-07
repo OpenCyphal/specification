@@ -158,7 +158,7 @@ String literals are represented as instances of type ``\verb|string|'' (section 
 
 A string literal is allowed to contain an arbitrary sequence of Unicode characters,
 excepting escape sequences defined in the table \ref{table:dsdl_string_literal_escape}
-which must follow one of the specified therein forms.
+which shall follow one of the specified therein forms.
 An escape sequence begins with the ASCII backslash character ``\verb|\|''.
 
 \begin{UAVCANSimpleTable}{String literal escape sequences}{|l X|}
@@ -196,7 +196,7 @@ An escape sequence begins with the ASCII backslash character ``\verb|\|''.
 Set literals are represented as instances of type ``\verb|set|'' (section \ref{sec:dsdl_set})
 parametrized by the type of the contained elements which is determined automatically.
 
-A set literal declaration must specify at least one element,
+A set literal declaration shall specify at least one element,
 which is used to determine the element type of the set.
 
 The elements of a set literal are defined as DSDL expressions which are evaluated before a set is constructed

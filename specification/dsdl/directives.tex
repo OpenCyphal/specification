@@ -55,9 +55,9 @@ Usage of this directive is subject to the following constraints:
     \begin{minted}{python}
         @deprecated         # Applies to the entire definition
         uint8 FOO = 123
-        #@deprecated        # Would fail - must be placed before the first attribute definition
+        #@deprecated        # Would fail - shall be placed before the first attribute definition
         ---
-        #@deprecated        # Would fail - must be placed in the first data schema definition
+        #@deprecated        # Would fail - shall be placed in the first data schema definition
     \end{minted}
 
     A C++ class generated from the above definition could be annotated with the \verb|[[deprecated]]| attribute.
@@ -70,7 +70,7 @@ Usage of this directive is subject to the following constraints:
 \subsection{Assertion check}
 
 The identifier of the assertion check directive is ``\verb|assert|''.
-The assertion check directive expects an expression which must yield a value of type
+The assertion check directive expects an expression which shall yield a value of type
 ``\verb|bool|'' (section \ref{sec:dsdl_primitive_types}) upon its evaluation.
 
 If the expression yields truth, the assertion check directive has no effect.
