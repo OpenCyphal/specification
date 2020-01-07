@@ -252,6 +252,10 @@ It follows that higher-priority transfers may preempt transmission of lower-prio
 Transmission of transport frames that share the same priority level should follow the order of their appearance in
 the transmission queue.
 
+Priority of message transfers and service request transfers can be chosen freely
+according to the requirements of the application.
+Priority of a service response transfer should match the priority of the corresponding service request transfer.
+
 \begin{remark}[breakable]
     Transfer prioritization is paramount for distributed real-time applications.
 

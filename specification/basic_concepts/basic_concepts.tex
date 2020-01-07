@@ -232,19 +232,16 @@ across multiple transport frames.
 Typical use cases may include transfer of the following kinds of data (either cyclically or on an ad-hoc basis):
 sensor measurements, actuator commands, equipment status information, and more.
 
-Information contained in a published message is summarized in the table \ref{table:published_message_info}.
+Information contained in a published message is summarized in table \ref{table:basic_message}.
 
-\begin{UAVCANSimpleTable}{Published message properties}{|l X|}\label{table:published_message_info}
+\begin{UAVCANSimpleTable}{Published message properties}{|l X|}\label{table:basic_message}
     Property        & Description \\
     Payload         & The serialized message object. \\
     Subject-ID      & Numerical identifier that indicates how the information should be interpreted. \\
     Source node-ID  & The node-ID of the transmitting node (excepting anonymous messages). \\
-    Transfer-ID     & A small overflowing integer that increments with every transfer
-                      of this message type from a given node. Used for message sequence monitoring,
-                      multi-frame transfer reassembly, and elimination of transport frame duplication errors
-                      for single-frame transfers. Additionally, Transfer-ID is crucial for automatic
-                      management of redundant transport interfaces. Its properties are explained in
-                      detail in the chapter \ref{sec:transport_layer}. \\
+    Transfer-ID     & An integer value that is used for message sequence monitoring,
+                      multi-frame transfer reassembly, deduplication, automatic management of redundant transports,
+                      and other purposes. \\
 \end{UAVCANSimpleTable}
 
 \subsection{Anonymous message publication}
@@ -279,24 +276,17 @@ Typical use cases for this type of communication include:
 node configuration parameter update, firmware update, an ad-hoc action request, file transfer,
 and other functions of similar nature.
 
-Information contained in service requests and responses is summarized in the
-table \ref{table:service_req_resp_info}.
+Information contained in service requests and responses is summarized in table \ref{table:basic_service}.
+Both the request and the response contain same values for all listed fields except payload,
+where the content is application-defined.
 
-\begin{UAVCANSimpleTable}{Service request/response properties}{|l X|}\label{table:service_req_resp_info}
+\begin{UAVCANSimpleTable}{Service request/response properties}{|l X|}\label{table:basic_service}
     Property        & Description \\
     Payload         & The serialized request/response object. \\
     Service-ID      & Numerical identifier that indicates how the service should be handled. \\
     Client node-ID  & Source node-ID during request transfer, destination node-ID during response transfer. \\
     Server node-ID  & Destination node-ID during request transfer, source node-ID during response transfer. \\
-    Transfer-ID     & A small overflowing integer that increments with every call
-                      of this service type from a given node. Used for request/response matching,
-                      multi-frame transfer reassembly, and elimination of transport frame duplication errors
-                      for single-frame transfers. Additionally, Transfer-ID is crucial for automatic
-                      management of redundant transport interfaces. Its properties are explained in
-                      detail in the chapter \ref{sec:transport_layer}. \\
+    Transfer-ID     & An integer value that is used for request/response matching,
+                      multi-frame transfer reassembly, deduplication, automatic management of redundant transports,
+                      and other purposes. \\
 \end{UAVCANSimpleTable}
-
-Both the request and the response contain same values for all listed fields except payload,
-where the content is application-defined.
-Clients match responses with corresponding requests using the following fields:
-service-ID, client node-ID, server node-ID, and transfer-ID.
