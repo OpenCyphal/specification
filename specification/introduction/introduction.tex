@@ -126,20 +126,19 @@ which can be defined by the specification (such definitions are called \emph{sta
 or by others for private use or for public release
 (in which case they are said to be \emph{application-specific} or \emph{vendor-specific}; these terms are equivalent).
 There can be up to 256 major versions of a data type, and up to 256 minor versions per major version.
-More information is provided in chapter \ref{sec:dsdl}.
 
 UAVCAN supports 32768 message subject identifiers for publish/subscribe exchanges and
 512 service identifiers for remote procedure call exchanges.
-A small subset of these identifiers is reserved for the core standard and for publicly released vendor-specific types.
-More information is provided in chapter \ref{sec:application}.
+A small subset of these identifiers is reserved for the core standard and for publicly released vendor-specific types
+(chapter~\ref{sec:application}).
 
-Depending on the transport protocol, UAVCAN supports at least eight distinct communication priority levels,
-defined in section \ref{sec:transport_transfer_priority}.
+Depending on the transport protocol, UAVCAN supports at least eight distinct communication priority levels
+(section~\ref{sec:transport_transfer_priority}).
 
 The list of transport protocols supported by UAVCAN is provided in chapter \ref{sec:transport}.
 Non-redundant, doubly-redundant and triply-redundant transports are supported.
 Information on the physical layer and standardized physical connectivity options
-is provided in chapter \ref{sec:physical}.
+is provided in chapter~\ref{sec:physical}.
 Additional transport and physical layers may be added in future revisions of the protocol.
 
 Application-level capabilities of the protocol (such as time synchronization, file transfer,

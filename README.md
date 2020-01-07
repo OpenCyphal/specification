@@ -26,6 +26,8 @@ For example, instead of "you can find the data type X here", say "the data type 
 
 Follow [RFC2119](https://tools.ietf.org/rfc/rfc2119.txt).
 
+Do not put a full stop after a caption unless it contains any other punctuation or is more than one sentence long.
+
 ### Rigging
 
 In order to refer to a DSDL definition, use macro `\DSDLReference{}`.
