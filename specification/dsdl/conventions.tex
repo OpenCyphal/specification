@@ -47,7 +47,7 @@ prefixed with padding bits as necessary to retain byte alignment.
 
 Alternatively, such one-element variable-length arrays can be replaced with two-field unions,
 where the first field is empty and the second field contains the desired optional value.
-The described layout is bit-compatible and semantically compatible with the one-element array described above,
+The described layout is semantically compatible with the one-element array described above,
 provided that the field attributes are not swapped.
 
 Floating-point-typed field attributes may be assigned the value of not-a-number (NaN) per IEEE 754
@@ -78,7 +78,37 @@ even if not populated, and special case values undermine type safety.
         MaybeMyType optional_field
     \end{minted}
 
-    The shown approaches are mutually bit-compatible and semantically compatible.
+    The shown approaches are semantically compatible.
+\end{remark}
+
+\begin{remark}[breakable]
+    The implicit truncation and the implicit zero extension rules allow one to freely add such optional fields
+    at the end of a definition while retaining semantic compatibility.
+    The implicit truncation rule will render them invisible to nodes that utilize older data type definitions
+    which do not contain them, whereas nodes that utilize newer definitions will be able to correctly process
+    objects serialized using older definitions because the implicit zero extension rule guarantees
+    that the optional fields will appear unpopulated.
+
+    For example, let the following be the old message definition:
+
+    \begin{minted}{python}
+        float64 foo
+        float32 bar
+    \end{minted}
+
+    The new message definition with the new field is as follows:
+
+    \begin{minted}{python}
+        float64 foo
+        float32 bar
+        void7                           # It is recommended to ensure byte alignment.
+        MyType[<=1] my_new_field
+    \end{minted}
+
+    Suppose that one node is publishing a message using the old definition,
+    and another node is receiving it using the new definition.
+    The implicit zero extension rule guarantees that the optional field array will
+    appear empty to the receiving node because the implicit length field will be read as zero.
 \end{remark}
 
 \subsection{Bit flag representation}

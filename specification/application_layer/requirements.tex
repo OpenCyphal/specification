@@ -27,6 +27,40 @@ Unused gaps are reserved for future expansion of adjacent ranges.
     $[31744, 32767]$    & $[384, 511]$      & Standard fixed regulated identifiers. \\
 \end{UAVCANSimpleTable}
 
+\subsection{Port compatibility}
+
+% https://github.com/UAVCAN/specification/pull/64#discussion_r357771739
+
+The system integrator shall ensure that nodes participating in data exchange via a given port\footnote{%
+    I.e., subject or service.
+} use data type definitions that are sufficiently congruent so that the resulting behavior of the involved nodes
+is predictable and the possibility of unintended behaviors caused by misinterpretation of exchanged serialized
+objects is eliminated.
+
+\begin{remark}
+    Let there be type $A$:
+
+    \begin{minted}{python}
+        void1
+        # Values above 100% are not allowed.
+        uint7 demand_factor_pct  # [percent]
+    \end{minted}
+
+    And type $B$:
+
+    \begin{minted}{python}
+        # Values above 100 indicate overload.
+        uint8 demand_factor_pct  # [percent]
+    \end{minted}
+
+    The data types are not semantically compatible, but they can be used on the same subject nevertheless:
+    a subscriber expecting $B$ can accept $A$.
+    The reverse is not true, however.
+
+    This example shows that even semantically incompatible types can facilitate
+    behaviorally correct interoperability of nodes.
+\end{remark}
+
 \subsection{Standard namespace}
 
 An overview of related concepts is provided in chapter \ref{sec:dsdl}.

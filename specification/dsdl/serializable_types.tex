@@ -325,6 +325,9 @@ If $D$ is a structural subtype of $B$, then $B$ is a \emph{structural supertype}
 
 $D$ and $B$ are \emph{structurally equivalent} if $D$ is a structural subtype and a structural supertype of $B$.
 
+A \emph{type hierarchy} is an ordered set of data types such that for each pair of its members
+one type is a subtype of another, and for any member its supertypes are located on the left.
+
 \begin{remark}
     Subtyping example for structure (non-union) types. First type:
 
@@ -366,4 +369,45 @@ $D$ and $B$ are \emph{structurally equivalent} if $D$ is a structural subtype an
 
     Polymorphic relations are not defined on service types;
     however, this may change in a future revision of the standard.
+\end{remark}
+
+\begin{remark}[breakable]
+    The following example in C demonstrates the concept of polymorphic compatibility detached from DSDL.
+
+    \begin{samepage}
+        \begin{minted}{c}
+            struct base
+            {
+                int a;
+                float b;
+            };
+
+            struct derived_first
+            {
+                int a;
+                float b;
+                double c;
+            };
+
+            struct derived_second
+            {
+                int a;
+                float b;
+                short d;
+            };
+
+            float compute(struct base* value)
+            {
+                return (float)value->a + value->b;
+            }
+
+            int main()
+            {
+                struct derived_first foo  = { .a = 123, .b = -456.789F, .c = 123.456 };
+                struct derived_second bar = { .a = -123, .b = 456.789F, .d = -123 };
+                // Both derived_first and derived_second are structural subtypes of base. The program returns zero.
+                return compute(&foo) + compute(&bar);
+            }
+        \end{minted}
+    \end{samepage}
 \end{remark}

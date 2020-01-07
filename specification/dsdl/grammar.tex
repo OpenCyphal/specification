@@ -17,7 +17,7 @@ The text of the formal definition contains comments which begin with an octothor
     \label{table:dsdl_grammar_definition_notation}
     Pattern & Description \\
 
-    \texttt{"korovan"} &
+    \texttt{"text"} &
     Denotes a terminal string of ASCII characters.
     The string is case-sensitive. \\
 
@@ -26,30 +26,30 @@ The text of the formal definition contains comments which begin with an octothor
     E.g., \texttt{korovan paukan excavator} matches a sequence where the specified tokens
     appear in the defined order. \\
 
-    \texttt{korovan / paukan / excavator} &
+    \texttt{abc / ijk / xyz} &
     Alternatives.
     The leftmost matching alternative is accepted. \\
 
-    \texttt{korovan?} &
+    \texttt{abc?} &
     Optional greedy match. \\
 
-    \texttt{paukan*} &
+    \texttt{abc*} &
     Zero or more expressions, greedy match. \\
 
-    \texttt{excavator+} &
+    \texttt{abc+} &
     One or more expressions, greedy match. \\
 
-    \texttt{\textasciitilde{}r"regex-pattern"} &
+    \texttt{\textasciitilde{}r"regex"} &
     An IEEE POSIX Extended Regular Expression pattern defined between the double quotes.
     The expression operates on the ASCII character set and is always case-sensitive.
     ASCII escape sequences ``\texttt{\textbackslash{}r}'', ``\texttt{\textbackslash{}n}'', and
     ``\texttt{\textbackslash{}t}'' are used to denote ASCII carriage return (code 13),
     line feed (code 10), and tabulation (code 9) characters, respectively. \\
 
-    \texttt{\textasciitilde{}r'regex-pattern'} &
+    \texttt{\textasciitilde{}r'regex'} &
     As above, with single quotes instead of double quotes. \\
 
-    \texttt{(korovan paukan)} &
+    \texttt{(abc xyz)} &
     Parentheses are used for grouping. \\
 \end{UAVCANSimpleTable}
 
