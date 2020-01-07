@@ -264,7 +264,7 @@ and provide a framework of common basic functionality.
 
 The message type \DSDLReference{uavcan.diagnostic.Record} is designed to facilitate emission of
 human-readable diagnostic messages and event logging,
-both for the needs of real-time display\footnote{E.g., messages displayed to a human operator in real time.}
+both for the needs of real-time display\footnote{E.g., messages displayed to a human operator/pilot in real time.}
 and for long-term storage\footnote{E.g., flight data recording.}.
 
 \subsection{Plug-and-play nodes}
@@ -285,9 +285,9 @@ namespace \DSDLReference{uavcan.pnp} (where \emph{pnp} stands for ``plug-and-pla
 (see table \ref{table:dsdl:uavcan.pnp}).
 The protocol is described in the documentation for the data type \DSDLReference{uavcan.pnp.NodeIDAllocationData}.
 
-The plug-and-play node-ID allocation protocol relies on anonymous messages reviewed in the section
-\ref{sec:transport_anonymous_message_publication}.
-Remember that the plug-and-play feature is entirely optional and it is expected that some applications where a
+The plug-and-play node-ID allocation protocol relies on anonymous messages reviewed in section
+\ref{sec:transport_route_specifier}.
+Remember that the plug-and-play feature is entirely optional and it is expected that applications where a
 high degree of determinism and robustness is expected are unlikely to benefit from it.
 
 This feature derives from the work
@@ -325,3 +325,13 @@ The set of supported Internet/LAN protocols may be extended in future revisions 
 \end{remark}
 
 \DSDL{uavcan.internet.* --index-only}
+
+\subsection{Meta-transport}
+
+Data types defined in the namespace \DSDLReference{uavcan.metatransport}
+(see table \ref{table:dsdl:uavcan.metatransport})
+are designed for tunneling transport frames\footnote{Section \ref{sec:transport_model}.}
+over UAVCAN subjects,
+as well as logging UAVCAN traffic in the form of serialized UAVCAN message objects.
+
+\DSDL{uavcan.metatransport.* --index-only}
