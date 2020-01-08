@@ -6,9 +6,7 @@ Data type definitions may evolve over time as they are refined to better address
 UAVCAN defines a set of rules that allow data type designers to modify and advance their
 data type definitions while ensuring backward compatibility and functional safety.
 
-\subsection{Compatibility}
-
-\subsubsection{Semantic compatibility}\label{sec:dsdl_semantic_compatibility}
+\subsection{Semantic compatibility}\label{sec:dsdl_semantic_compatibility}
 
 A data type $A$ is \emph{semantically compatible} with a data type $B$
 if relevant behavioral properties of the application are invariant under the substitution of $A$ with $B$.
@@ -69,27 +67,6 @@ The property of semantic compatibility is commutative.
 
     Provided that the semantics of the added and omitted fields allow it,
     the nodes will be able to interoperate successfully despite using different data type definitions.
-\end{remark}
-
-\subsubsection{Variabilities}
-
-Compatibility of a set of data types is a function of their structural properties only.
-
-Whether a set of data types are compatible with each other is determined by their DSDL definitions
-and is invariant to their name, version, and/or the fixed port-ID.
-
-\begin{remark}[breakable]
-    The invariance of data type compatibility to the above properties permits free migration of
-    data types between namespaces, their renaming, re-versioning, and update of their fixed port-ID values.
-    The practical outcome is that UAVCAN interfaces codified by DSDL definitions can survive
-    major changes in the outer data type ecosystem without breakage.
-
-    For example, a vendor may publish a data type under its unregulated namespace.
-    It would be able to move this type to a public-regulated namespace of a different name
-    at a later time without breaking compatibility with existing deployments.
-    Alternatively, nodes provided by different vendors that utilize differently named data types may
-    still interoperate if such data types happen to be compatible.
-    Under this example, the duty of ensuring the compatibility lies on the system integrator.
 \end{remark}
 
 \subsection{Versioning}

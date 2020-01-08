@@ -61,6 +61,15 @@ objects is eliminated.
     behaviorally correct interoperability of nodes.
 \end{remark}
 
+\begin{remark}
+    Compatibility of subjects and services is completely independent from the names of the involved data types.
+    Data types can be moved between namespaces and freely renamed and re-versioned
+    without breaking compatibility with existing deployments.
+    Nodes provided by different vendors that utilize differently named data types may
+    still interoperate if such data types happen to be compatible.
+    The duty of ensuring the compatibility lies on the system integrator.
+\end{remark}
+
 \subsection{Standard namespace}
 
 An overview of related concepts is provided in chapter~\ref{sec:dsdl}.
