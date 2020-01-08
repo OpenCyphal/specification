@@ -60,6 +60,34 @@ For example, one could refer to a figure contained inside the chapter "Chapter" 
 The above rules are crucial to follow to keep cross-references usable.
 Without strict conventions in place, they quickly become unmanageable.
 
+### Source formatting
+
+- One level of nesting shall be indented with 4 spaces. Tabs shall not be used anywhere in the source.
+- There shall be no more than 120 characters per line.
+- There shall be exactly one blank line at the end of the file.
+- There shall be no more than one consecutive blank line.
+- There shall be at most one chapter per source file.
+- There shall be one blank line above and below a section header,
+unless the section header is at the top of the source file.
+- Multi-line content enclosed in curly braces should be indented.
+- If a list item spills on the next line, the spilled text should be indented on the same level with the first line.
+
+```tex
+\begin{itemize}
+    \item This list item is sufficiently long to exceed the limit of 120 characters per line,
+          so it has to spill onto the next line.
+          The spilled part is indented correctly.
+
+    \item Another item.
+\end{itemize}
+
+% The next line contains a comment to remove the whitespace in the beginning of the footnote.
+Regulated non-standard definitions\footnote{%
+    I.e., public definitions contributed by vendors and other users
+    of the specification, as explained in section~\ref{sec:basic_data_type_regulation}.
+} are not included in this list.
+```
+
 ## Tools
 
 ### Compiling

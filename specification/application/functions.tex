@@ -45,13 +45,13 @@ The combination of the following three services defined in the namespace \DSDLRe
 (see table~\ref{table:dsdl:uavcan.node.port}) enables a highly capable tool of network inspection and monitoring:
 \begin{itemize}
     \item \DSDLReference{uavcan.node.port.List} --- designed for obtaining the full set of subjects and services
-    implemented by the server node.
+          implemented by the server node.
 
     \item \DSDLReference{uavcan.node.port.GetInfo} --- returns the static (unchanging or infrequently changing)
-    information about the selected subject or service.
+          information about the selected subject or service.
 
     \item \DSDLReference{uavcan.node.port.GetStatistics} --- returns the transfer event counters of
-    the selected subject or service.
+          the selected subject or service.
 \end{itemize}
 
 The first service \verb|List| allows the caller to construct a list of all subjects and services used by the
@@ -173,8 +173,10 @@ their use carries the risk of creating suboptimal interfaces that are difficult 
 
 Normally, the use of primitive types should be limited to very basic vendor-neutral interfaces for COTS
 equipment and software, debug and diagnostic purposes, and whenever there is a need to exchange data the
-type of which cannot be determined statically.\footnote{An example of the latter use case is the register protocol
-described in section~\ref{sec:application_functions_register}.}
+type of which cannot be determined statically.\footnote{%
+      An example of the latter use case is the register protocol described
+      in section~\ref{sec:application_functions_register}.
+}
 
 Table~\ref{table:dsdl:uavcan.primitive} provides a high-level overview of the primitive namespace.
 Please follow the references for details.
@@ -302,15 +304,16 @@ by Diego Ongaro and John Ousterhout.
 
 Data types defined in the namespace \DSDLReference{uavcan.internet} (see table~\ref{table:dsdl:uavcan.internet})
 are designed for establishing robust direct connectivity between local UAVCAN nodes and hosts on the Internet
-or on a local area network (LAN) by means of so called \emph{modem nodes}%
-\footnote{Normally, a modem node would be implemented using on-board cellular, radio frequency,
-or satellite communication hardware.}
-(possibly redundant).
+or on a local area network (LAN) by means of so called \emph{modem nodes}\footnote{%
+      Usually such modem nodes are implemented using on-board cellular, radio frequency,
+      or satellite communication hardware.
+} (possibly redundant).
 
 This basic support for world-wide communication provided at the protocol level allows any component
 of a vehicle equipped with modem nodes to reach external resources or exchange arbitrary data globally
-without dependency on application-specific means of communication%
-\footnote{Information security and other security-related concerns are outside of the scope of this specification.}.
+without dependency on application-specific means of communication\footnote{%
+    Information security and other security-related concerns are outside of the scope of this specification.
+}.
 
 The set of supported Internet/LAN protocols may be extended in future revisions of the specification.
 

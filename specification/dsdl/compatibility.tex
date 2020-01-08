@@ -109,13 +109,14 @@ its DSDL source text, name, version numbers, fixed port-ID, and other properties
 modifications whatsoever, with the following exceptions:
 \begin{itemize}
     \item Whitespace changes of the DSDL source text are allowed,
-    excepting string literals and other semantically sensitive contexts.
+          excepting string literals and other semantically sensitive contexts.
 
     \item Comment changes of the DSDL source text are allowed as long as such changes
-    do not affect semantic compatibility of the definition.
+          do not affect semantic compatibility of the definition.
 
     \item A deprecation marker directive (section~\ref{sec:dsdl_directives}) can be added or removed\footnote{%
-    Removal is useful when a decision to deprecate a data type definition is withdrawn.}.
+              Removal is useful when a decision to deprecate a data type definition is withdrawn.
+          }.
 \end{itemize}
 Addition or removal of the fixed port identifier is not permitted after a data type definition
 of a particular version is released.
@@ -173,8 +174,9 @@ The minor version should be the newest available one under the chosen major vers
 When receiving a transfer, the node deduces which major version of the data type to use
 from its port identifier (either fixed or non-fixed).
 The minor version should be the newest available one under the deduced major version\footnote{%
-Such liberal minor version selection policy poses no compatibility risks since all definitions under the same
-major version are compatible with each other.}.
+    Such liberal minor version selection policy poses no compatibility risks since all definitions under the same
+    major version are compatible with each other.
+}.
 
 It follows from the above two rules that when a node is responding to a service request,
 the major data type version used for the response transfer shall be the same that is used for the request transfer.
@@ -317,7 +319,7 @@ The minor versions may differ, which is acceptable due to the major version comp
     \end{minted}
 
     It is also possible to add an optional field at the end wrapped into a variable-length
-    array of capacity one element, or a tagged union where the first field is empty
+    array of up to one element, or a tagged union where the first field is empty
     and the second field is the wrapped value.
     In this way, the implicit truncation/extension rules would automatically make such optional field
     appear/disappear depending on whether it is supported by the receiving node.

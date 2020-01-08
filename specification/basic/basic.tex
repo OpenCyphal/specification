@@ -7,16 +7,17 @@
 \subsubsection{Architecture}
 
 A UAVCAN network is a decentralized peer network, where each peer (node) has a unique
-numeric identifier\footnote{Here and elsewhere in this specification, \emph{ID} and \emph{identifier} are used
-interchangeably unless specifically indicated otherwise.}
---- \emph{node-ID} --- ranging from 0 up to a transport-specific upper boundary which is guaranteed to be
+numeric identifier\footnote{%
+    Here and elsewhere in this specification, \emph{ID} and \emph{identifier} are used
+    interchangeably unless specifically indicated otherwise.
+} --- \emph{node-ID} --- ranging from 0 up to a transport-specific upper boundary which is guaranteed to be
 not less than 127.
 Nodes of a UAVCAN network can communicate using the following communication methods:
 
 \begin{description}
     \item[Message publication] --- The primary method of data exchange with one-to-many publish/subscribe semantics.
     \item[Service invocation] --- The communication method for one-to-one request/response
-    interactions\footnote{Like remote procedure call (RPC).}.
+         interactions\footnote{Like remote procedure call (RPC).}.
 \end{description}
 
 For each type of communication, a predefined set of data types is used,
@@ -87,9 +88,10 @@ not included into the aforementioned set are called \emph{unregulated data type 
 Unregulated definitions that are made available for reuse by others are called
 \emph{unregulated public data type definitions};
 those that are kept closed-source for private use by their authors are called
-\emph{(unregulated) private data type definitions}\footnote{The word \emph{``unregulated''} is redundant
-because private data types cannot be regulated, by definition.
-Likewise, all regulated definitions are public, so the word \emph{``public''} can be omitted.}.
+\emph{(unregulated) private data type definitions}\footnote{%
+    The word ``unregulated'' is redundant because private data types cannot be regulated, by definition.
+    Likewise, all regulated definitions are public, so the word ``public'' can be omitted.
+}.
 
 Data type definitions authored by the specification maintainers for the purpose of supporting and advancing
 this specification are called \emph{standard data type definitions}.
@@ -117,7 +119,7 @@ systems\footnote{%
     \bfseries{Public}
     &
     Standard and contributed (e.g., vendor-specific) definitions.\newline
-    Fixed port identifiers are allowed; they are called \emph{``regulated port-ID''}.
+    Fixed port identifiers are allowed; they are called \emph{regulated port-ID}.
     &
     Definitions distributed separately from the UAVCAN specification.\newline
     Fixed port identifiers are \emph{not allowed}.
@@ -129,7 +131,7 @@ systems\footnote{%
     &
     Definitions that are not available to anyone except their authors.\newline
     Fixed port identifiers are permitted (although not recommended);
-    they are called \emph{``unregulated fixed port-ID''}.
+    they are called \emph{unregulated fixed port-ID}.
     \\
 \end{UAVCANSimpleTable}
 
@@ -141,17 +143,17 @@ segregated into three categories:
 
 \begin{itemize}
     \item Application-specific port identifiers.
-    These can be assigned by changing relevant configuration parameters of the connected nodes
-    (in which case they are called \emph{non-fixed} or runtime-assigned),
-    or at the data type definition time (in which case they are called \emph{fixed unregulated},
-    and they generally should be avoided due to the risks of collisions as explained earlier).
+          These can be assigned by changing relevant configuration parameters of the connected nodes
+          (in which case they are called \emph{non-fixed} or runtime-assigned),
+          or at the data type definition time (in which case they are called \emph{fixed unregulated},
+          and they generally should be avoided due to the risks of collisions as explained earlier).
 
     \item Regulated non-standard fixed port identifiers.
-    These are assigned by the specification maintainers for non-standard contributed
-    vendor-specific public data types.
+          These are assigned by the specification maintainers for non-standard contributed
+          vendor-specific public data types.
 
     \item Standard fixed port identifiers. These are assigned by the specification maintainers
-    for standard regulated public data types.
+          for standard regulated public data types.
 \end{itemize}
 
 Data type authors that want to release regulated data type definitions or contribute to the standard data
@@ -249,9 +251,11 @@ Anonymous messages are used to facilitate the plug-and-play feature (section~\re
 \section{Service invocation}
 
 Service invocation is a two-step data exchange operation between exactly two nodes: a client and a server.
-The steps are\footnote{The request/response semantic is facilitated by means of hardware (if available)
-or software acceptance filtering and higher-layer logic.
-No additional support or non-standard transport layer features are required.}:
+The steps are\footnote{%
+    The request/response semantic is facilitated by means of hardware (if available)
+    or software acceptance filtering and higher-layer logic.
+    No additional support or non-standard transport layer features are required.
+}:
 
 \begin{enumerate}
     \item The client sends a service request to the server.

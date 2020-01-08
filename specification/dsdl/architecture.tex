@@ -82,7 +82,8 @@ A set of full namespace names and a set of full data type names shall not inters
 
 Data type names and namespace names are case-sensitive.
 However, names that differ only in letter case are not permitted\footnote{%
-Because that may cause problems with case-insensitive file systems.}.
+    Because that may cause problems with case-insensitive file systems.
+}.
 In other words, a pair of names which differ only in letter case is considered to constitute a name collision.
 
 A name component consists of alphanumeric ASCII characters (which are: \verb|A-Z|, \verb|a-z|, and \verb|0-9|)
@@ -148,8 +149,10 @@ The name of the directory defines the name of its data type name component.
 A directory defining a namespace will always define said namespace in its entirety,
 meaning that the contents of a namespace cannot be spread across different directories sharing the same name.
 One directory cannot define more than one level of
-nesting\footnote{For example, ``\texttt{foo.bar}'' is not a valid directory name.
-The valid representation would be ``\texttt{bar}'' nested in ``\texttt{foo}''.}.
+nesting\footnote{%
+    For example, ``\texttt{foo.bar}'' is not a valid directory name.
+    The valid representation would be ``\texttt{bar}'' nested in ``\texttt{foo}''.
+}.
 
 \begin{remark}
     \begin{figure}[H]

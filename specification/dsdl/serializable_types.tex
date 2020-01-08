@@ -165,9 +165,11 @@ All values in the collection share the same type, which is referred to as \emph{
 The array element type can be any type except:
 \begin{itemize}
     \item void type;
-    \item array type\footnote{Meaning that nested arrays are not allowed;
-    however, the array element type can be a composite type which in turn may contain arrays.
-    In other words, indirect nesting of arrays is permitted.}.
+    \item array type\footnote{%
+              Meaning that nested arrays are not allowed;
+              however, the array element type can be a composite type which in turn may contain arrays.
+              In other words, indirect nesting of arrays is permitted.
+          }.
 \end{itemize}
 
 The number of elements in the array can be specified as a constant expression at the data type definition time,
@@ -199,7 +201,8 @@ If neither of the above prefixes are provided, the resultant definition is that 
 
 There are two kinds of composite data type definitions: message types and service types.
 All versions of a data type shall be of the same kind\footnote{%
-For example, if a data type version 0.1 is of a message kind, all later versions of it shall be messages, too.}.
+    For example, if a data type version 0.1 is of a message kind, all later versions of it shall be messages, too.
+}.
 
 A message data type defines one data schema.
 
@@ -219,9 +222,9 @@ major and minor version numbers separated by the namespace separator character,
 as demonstrated on figure~\ref{fig:dsdl_nested_reference}.
 
 To facilitate look-up of external dependencies,
-implementations are expected to obtain from external sources%
-\footnote{For example, from user-provided configuration options.}
-the list of directories that are the roots of namespaces containing the referred dependencies.
+implementations are expected to obtain from external sources\footnote{%
+    For example, from user-provided configuration options.
+} the list of directories that are the roots of namespaces containing the referred dependencies.
 
 \begin{figure}[H]
     $$
@@ -253,11 +256,13 @@ A circular dependency renders all of the definitions involved in the dependency 
 
 If any of the referred definitions are marked as deprecated,
 the referring definition shall be marked deprecated as well\footnote{%
-Deprecation is indicated with the help of a special directive, as explained in section~\ref{sec:dsdl_directives}}.
+    Deprecation is indicated with the help of a special directive, as explained in section~\ref{sec:dsdl_directives}.
+}.
 If a non-deprecated definition refers to a deprecated definition,
 the referring definition is malformed\footnote{%
-This tainting behavior is designed to prevent unexpected breakage of
-type hierarchies when one of the deprecated dependencies reaches its end of life.}.
+    This tainting behavior is designed to prevent unexpected breakage of
+    type hierarchies when one of the deprecated dependencies reaches its end of life.
+}.
 
 When a data type is referred to from within an expression context,
 it constitutes a literal of type ``\verb|metaserializable|'' (section~\ref{sec:dsdl_metaserializable}).
