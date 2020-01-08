@@ -1,13 +1,13 @@
 \section{Abstract concepts}
 
 The function of the transport layer is to facilitate exchange of serialized representations of DSDL objects\footnote{%
-    DSDL and data serialization are reviewed in chapter \ref{sec:dsdl}.
+    DSDL and data serialization are reviewed in chapter~\ref{sec:dsdl}.
 } between UAVCAN nodes over the \emph{transport network}.
 
 \subsection{Transport model}\label{sec:transport_model}
 
 This section introduces an abstract implementation-agnostic model of the UAVCAN transport layer.
-The core relations are depicted on figure \ref{fig:transport_model}.
+The core relations are depicted in figure~\ref{fig:transport_model}.
 Some of the concepts introduced at this level may not be manifested in the design of concrete transports;
 despite that, they are convenient for an abstract discussion.
 
@@ -110,13 +110,13 @@ are specific to concrete transports\footnote{
 \subsubsection{Transfer payload}\label{sec:transport_transfer_payload}
 
 The transfer payload contains the serialized representation of the carried
-DSDL object\footnote{Chapter \ref{sec:dsdl}.}.
+DSDL object\footnote{Chapter~\ref{sec:dsdl}.}.
 
 Concrete transports may extend the payload with zero-valued \emph{padding bytes} at the end
 to meet the transport-specific data granularity constraints.
 Usage of non-zero-valued padding bytes is prohibited for all implementations\footnote{%
     Non-zero padding bytes are disallowed because they would interfere with the implicit zero extension rule
-    (section \ref{sec:dsdl_data_serialization}).
+    (section~\ref{sec:dsdl_data_serialization}).
 }.
 
 Concrete transports may extend the payload with a \emph{transfer CRC}
@@ -143,7 +143,7 @@ All nodes connected to a given transport network should share the same transport
     frames than the receiving node is able to accept.
 }.
 
-In order to facilitate the implicit zero extension rule introduced in section \ref{sec:dsdl_data_serialization},
+In order to facilitate the implicit zero extension rule introduced in section~\ref{sec:dsdl_data_serialization},
 implementations shall not discard a transfer even if it is determined that it contains less payload
 data than a predicted minimum.
 
@@ -184,7 +184,7 @@ network as a single transport frame\footnote{%
 
 \begin{remark}[breakable]
     The requirement to discard the excessive payload data at the end of the transfer is motivated by
-    the necessity to allow extensibility of data type definitions, as described in chapter \ref{sec:dsdl}.
+    the necessity to allow extensibility of data type definitions, as described in chapter~\ref{sec:dsdl}.
     Additionally, excessive payload data may contain zero padding bytes if required by the concrete transport.
 
     Let node $A$ publish an object of the following type over the subject $x$:
@@ -326,7 +326,7 @@ Such nodes are unable to emit transfers other than \emph{anonymous transfers}.
 An anonymous transfer is a transfer that does not have a specific source.
 Anonymous transfers have the following limitations\footnote{%
     Anonymous transfers are intended primarily for the facilitation of the optional plug-and-play feature
-    (section \ref{sec:application_functions})
+    (section~\ref{sec:application_functions})
     which enables fully automatic configuration of UAVCAN nodes upon their connection to the network.
     Some transports may provide native support for auto-configuration, rendering anonymous transfers unnecessary.
 }:
@@ -458,7 +458,7 @@ This parameter is crucial for many aspects of UAVCAN communication\footnote{%
         in which case it will be duplicated on the side of the receiver.
         Sequence counting mechanisms such as transfer-ID allow implementations to circumvent this problem.
     } or deliberately as a method of deterministic data loss mitigation for unreliable links
-    (section \ref{sec:transport_deterministic_data_loss_mitigation}).
+    (section~\ref{sec:transport_deterministic_data_loss_mitigation}).
 
     \item[Multi-frame transfer reassembly] -- a transfer that is split over multiple transport frames is reassembled
     back upon reception with the help of transfer-ID: all transport frames that comprise a transfer
@@ -565,7 +565,7 @@ are sufficiently dissimilar\footnote{%
 A heterogeneous redundant transport shall meet \emph{either} of the following requirements:
 \begin{itemize}
     \item All of the involved transports shall use monotonic transfer-ID\footnote{%
-              Section \ref{sec:transport_transfer_id}.
+              Section~\ref{sec:transport_transfer_id}.
           }.
           In this case, the resulting redundant transport is said to be a monotonic transfer-ID transport as well.
 
@@ -581,7 +581,7 @@ A heterogeneous redundant transport shall meet \emph{either} of the following re
     The importance of this guarantee can be demonstrated with the following counterexample
     of two transports leveraging different transfer-ID ranges for the same session,
     where the unambiguous mapping between their transfer-ID values is lost after the first overflow
-    (figure \ref{fig:transport_cyclic_transfer_id_redundant}).
+    (figure~\ref{fig:transport_cyclic_transfer_id_redundant}).
 
     % Plot[{
     %   Mod[x, 40],
@@ -637,8 +637,8 @@ does not increase the latency.
 
 An exception to the above rule applies if the payload of the transfer is a function of
 the identity of the transport instance that carries the transfer\footnote{%
-    An example of such a special case is the time synchronization algorithm documented in section
-    \ref{sec:application_functions}.
+    An example of such a special case is the time synchronization algorithm documented
+    in section~\ref{sec:application_functions}.
 }.
 
 \subsection{Transfer reception}

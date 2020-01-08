@@ -19,7 +19,7 @@ This requirement does not apply to padding fields.
 A field attribute represents a named dynamically assigned value of a statically defined type
 that can be exchanged over the network as a member of its containing object.
 The data type of a field attribute shall be of the serializable type category
-(section \ref{sec:dsdl_serializable_types}),
+(section~\ref{sec:dsdl_serializable_types}),
 excepting the void type category, which is not allowed.
 
 Exception applies to the special kind of field attributes --- \emph{padding fields}.
@@ -45,14 +45,14 @@ since they are assumed to be known to all involved nodes
 by virtue of them sharing the same definition of the data type.
 
 The data type of a constant attribute shall be of the primitive type category
-(section \ref{sec:dsdl_serializable_types}).
+(section~\ref{sec:dsdl_serializable_types}).
 
 The value of the constant attribute is determined at the DSDL definition processing time by evaluating its
 \emph{initialization expression}.
 The expression shall yield a compatible type upon its evaluation in order to initialize
 the value of its constant attribute.
 The set of compatible types depends on the type of the initialized constant attribute,
-as specified in the table \ref{table:dsdl_constant_init_pattern}.
+as specified in table~\ref{table:dsdl_constant_init_pattern}.
 
 \begin{UAVCANSimpleTable}{Permitted constant attribute value initialization patterns}{|l | X | X[2] | X[2]|}
     \diagbox[font=\footnotesize]{Constant\\type\\category}{Expression\\type} &
@@ -98,14 +98,14 @@ the cast mode of primitive-typed constants has no observable effect.
 
 Local attributes are available at the DSDL definition processing time.
 
-As defined in the section \ref{sec:dsdl_grammar},
+As defined in section~\ref{sec:dsdl_grammar},
 a DSDL definition is an ordered collection of statements;
 a statement may contain DSDL expressions.
 An expression contained in a statement number $E$ may refer to a
 composite type attribute introduced in a statement number $A$ by its name,
 where $A < E$ and both statements belong to the same data schema definition.
 The representation of the referred attribute in the context of the referring DSDL expression
-is specified in the table \ref{table:dsdl_local_attribute_representation}.
+is specified in table~\ref{table:dsdl_local_attribute_representation}.
 
 \begin{UAVCANSimpleTable}{Local attribute representation}{|l X X|}\label{table:dsdl_local_attribute_representation}%
     Attribute category & Value type & Value \\
@@ -148,7 +148,7 @@ Its value is of type $\texttt{set}_\texttt{<rational>}$.
 
 In the following text, the term \emph{referring statement} denotes a statement
 containing an expression which refers to the offset attribute.
-The term \emph{bit length set} is defined in section \ref{sec:dsdl_bit_length_set}.
+The term \emph{bit length set} is defined in section~\ref{sec:dsdl_bit_length_set}.
 
 The value of the attribute is a function of the field attribute declarations preceding the referring statement
 and the category of the containing data schema definition.
@@ -176,7 +176,7 @@ $$
     \end{cases}
 $$
 where $n$ is the number of fields defined in statements preceding the referring statement
-(see section \ref{sec:dsdl_grammar} on statement ordering),
+(see section~\ref{sec:dsdl_grammar} on statement ordering),
 $B_i$ is the bit length set of the data type of the field number $i$,
 and $\prod$ is the Cartesian product operator.
 

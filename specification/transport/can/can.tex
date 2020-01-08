@@ -34,7 +34,7 @@ CAN FD should be considered the primary transport protocol.
 \subsection{CAN ID field}
 
 UAVCAN/CAN transport frames are CAN 2.0B frames.
-The 29-bit CAN ID encodes the session specifier\footnote{Section \ref{sec:transport_session_specifier}.}
+The 29-bit CAN ID encodes the session specifier\footnote{Section~\ref{sec:transport_session_specifier}.}
 of the transfer it belongs to along with its priority.
 The CAN data field of every frame contains the transfer payload
 (or, in the case of multi-frame transfers, a fraction thereof), the transfer-ID, and other metadata.
@@ -51,7 +51,7 @@ in section~\ref{sec:transport_can_toggle_bit}.
 
 UAVCAN/CAN utilizes two different CAN ID bit layouts for message transfers and service transfers.
 The bit layouts are summarized on figure~\ref{fig:transport_can_id_structure}.
-Tables \ref{table:transport_can_id_fields_message_transfer} and \ref{table:transport_can_id_fields_service_transfer}
+Tables~\ref{table:transport_can_id_fields_message_transfer} and~\ref{table:transport_can_id_fields_service_transfer}
 summarize the purpose of each field and their permitted values
 for message transfers and service transfers, respectively.
 
@@ -153,7 +153,7 @@ for message transfers and service transfers, respectively.
     \label{table:transport_can_id_fields_message_transfer}
     Field               & Width & Valid values  & Description \\
 
-    Transfer priority   & 3     & $[0, 7]$ (any)    & Section \ref{sec:transport_transfer_priority}. \\
+    Transfer priority   & 3     & $[0, 7]$ (any)    & Section~\ref{sec:transport_transfer_priority}. \\
 
     Service not message & 1     & $0$               & Always zero for message transfers. \\
 
@@ -168,15 +168,15 @@ for message transfers and service transfers, respectively.
 
     Source node-ID      & 7     & $[0, 127]$ (any)  & Node-ID of the origin.
                                                       For anonymous transfers, this field contains a pseudo-ID instead,
-                                                      as described in section
-                                                      \ref{sec:transport_can_source_node_pseudo_id}. \\
+                                                      as described in
+                                                      section~\ref{sec:transport_can_source_node_pseudo_id}. \\
 \end{UAVCANSimpleTable}
 
 \begin{UAVCANSimpleTable}{CAN ID bit fields for service transfers}{|l l l X|}
     \label{table:transport_can_id_fields_service_transfer}
     Field               & Width & Valid values  & Description \\
 
-    Transfer priority   & 3     & $[0, 7]$ (any)    & Section \ref{sec:transport_transfer_priority}. \\
+    Transfer priority   & 3     & $[0, 7]$ (any)    & Section~\ref{sec:transport_transfer_priority}. \\
 
     Service not message & 1     & $1$               & Always one for service transfers. \\
 
@@ -214,7 +214,7 @@ In multi-frame transfers, the value of the priority field shall be identical for
               and reduce the number of pending states in the system).
     \end{enumerate}
 
-    Mnemonics for transfer priority levels are provided in section \ref{sec:transport_transfer_priority},
+    Mnemonics for transfer priority levels are provided in section~\ref{sec:transport_transfer_priority},
     and their mapping to the UAVCAN/CAN priority field is as follows:
 
     \begin{UAVCANCompactTable}{|l X|}
@@ -273,7 +273,7 @@ Some method of media access control should be used at the application level for 
     The described principles make anonymous transfers highly non-deterministic and inefficient.
     This is considered acceptable because the scope of anonymous transfers is limited to a very narrow set of use
     cases which tolerate their downsides. The UAVCAN specification employs anonymous transfers only for the
-    plug-and-play feature defined in section \ref{sec:application_functions}.
+    plug-and-play feature defined in section~\ref{sec:application_functions}.
     Deterministic applications are advised to avoid reliance on anonymous transfers completely.
 
     None of the above considerations affect nodes that do not transmit anonymous transfers.
@@ -290,7 +290,7 @@ which may be extended with padding bytes and transfer CRC.
 
 A CAN frame whose data field contains less than one byte is not a valid UAVCAN/CAN frame.
 
-The bit layout of the tail byte is shown in table \ref{table:transport_can_tail_byte}.
+The bit layout of the tail byte is shown in table~\ref{table:transport_can_tail_byte}.
 
 % Please do not remove the hard placement specifier [H], it is needed to keep tables ordered.
 \begin{table}[H]\caption{Tail byte structure}\label{table:transport_can_tail_byte}
@@ -302,10 +302,10 @@ The bit layout of the tail byte is shown in table \ref{table:transport_can_tail_
         7   & \textbf{Start of transfer}& Always 1  & First frame: 1, otherwise 0. \\\hline
         6   & \textbf{End of transfer}  & Always 1  & Last frame: 1, otherwise 0. \\\hline
         5   & \textbf{Toggle bit}       & Always 1  & First frame: 1, then alternates;
-                                                      section \ref{sec:transport_can_toggle_bit}. \\\hline
+                                                      section~\ref{sec:transport_can_toggle_bit}. \\\hline
         4   &                           & \multicolumn{2}{c|}{} \\
         3   &                           & \multicolumn{2}{c|}{Modulo 32 (range [0, 31])} \\
-        2   & \textbf{Transfer-ID}      & \multicolumn{2}{c|}{section \ref{sec:transport_transfer_id}} \\
+        2   & \textbf{Transfer-ID}      & \multicolumn{2}{c|}{section~\ref{sec:transport_transfer_id}} \\
         1   &                           & \multicolumn{2}{c|}{} \\
         0   &                           & \multicolumn{2}{c|}{\footnotesize{(least significant bit)}} \\
         \hline
@@ -352,7 +352,7 @@ zero padding bytes are used.
 In single-frame transfers, padding bytes are inserted between the end of the payload and the tail byte.
 
 In multi-frame transfers, the transfer payload is appended with trailing zero padding bytes
-followed by the transfer CRC (section \ref{sec:transport_can_transfer_crc}).
+followed by the transfer CRC (section~\ref{sec:transport_can_transfer_crc}).
 All transport frames of a multi-frame transfer except the last one shall fully utilize the available
 data field capacity; hence, padding is unnecessary there.
 The number of padding bytes is computed so that the length granularity constraints

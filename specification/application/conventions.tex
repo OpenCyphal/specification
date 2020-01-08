@@ -7,7 +7,7 @@ however, every deviation should be justified and documented.
 
 \subsection{Node identifier distribution}
 
-An overview of related concepts is provided in chapter \ref{sec:basic}.
+An overview of related concepts is provided in chapter~\ref{sec:basic}.
 
 Valid values of node-ID range from 0 up to a transport-specific upper boundary
 which is guaranteed to be above 127 for any transport.
@@ -23,7 +23,7 @@ Generally, it is recommended to abort a message transmission if it cannot be com
 
 It is expected that high-frequency high-priority messages may opt for lower timeout values,
 whereas low-priority delayable data may opt for higher timeout values to account for network congestion.
-Refer to section \ref{sec:transport_transfer_priority} on transfer prioritization.
+Refer to section~\ref{sec:transport_transfer_priority} on transfer prioritization.
 
 \subsubsection{Recommended service invocation timing constraints}
 
@@ -242,7 +242,7 @@ Irrespective of the suffix, it is recommended to always specify units for every 
 It is recommended to avoid reliance on raw scalar types (such as \verb|float32|)
 when defining fields containing physical quantities.
 Instead, the explicitly typed alternatives defined in the standard DSDL namespace
-\DSDLReference{uavcan.si.unit} (also see section \ref{sec:application_functions_si}) should be used.
+\DSDLReference{uavcan.si.unit} (also see section~\ref{sec:application_functions_si}) should be used.
 
 \begin{remark}
     \begin{minted}{python}

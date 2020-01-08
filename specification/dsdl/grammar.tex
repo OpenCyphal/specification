@@ -10,7 +10,7 @@ The notation used in the following definition is a variant of the extended Backu
 form\footnote{This notation is a subset of the notation defined in a Python parsing library titled Parsimonious.
 Parsimonious is an MIT-licensed software product authored by Erik Rose;
 its sources are available at \url{https://github.com/erikrose/parsimonious}.}.
-The rule definition patterns are specified in the table \ref{table:dsdl_grammar_definition_notation}.
+The rule definition patterns are specified in table~\ref{table:dsdl_grammar_definition_notation}.
 The text of the formal definition contains comments which begin with an octothorp and last until the end of the line.
 
 \begin{UAVCANSimpleTable}{Notation used in the formal grammar definition}{|l X|}
@@ -128,12 +128,12 @@ as specified in this section.
 \subsubsection{Boolean literals}
 
 A boolean literal is denoted by the keyword ``\verb|true|'' or ``\verb|false|''
-represented by an instance of primitive type ``\verb|bool|'' (section \ref{sec:dsdl_primitive_types})
+represented by an instance of primitive type ``\verb|bool|'' (section~\ref{sec:dsdl_primitive_types})
 with an appropriate value.
 
 \subsubsection{Numeric literals}
 
-Integer and real literals are represented as instances of type ``\verb|rational|'' (section \ref{sec:dsdl_rational}).
+Integer and real literals are represented as instances of type ``\verb|rational|'' (section~\ref{sec:dsdl_rational}).
 
 The digit separator character ``\verb|_|'' (underscore) does not affect the interpretation of numeric literals.
 
@@ -154,10 +154,10 @@ Either the decimal point or the letter ``\verb|e|''/``\verb|E|'' with the follow
 
 \subsubsection{String literals}
 
-String literals are represented as instances of type ``\verb|string|'' (section \ref{sec:dsdl_string}).
+String literals are represented as instances of type ``\verb|string|'' (section~\ref{sec:dsdl_string}).
 
 A string literal is allowed to contain an arbitrary sequence of Unicode characters,
-excepting escape sequences defined in the table \ref{table:dsdl_string_literal_escape}
+excepting escape sequences defined in table~\ref{table:dsdl_string_literal_escape}
 which shall follow one of the specified therein forms.
 An escape sequence begins with the ASCII backslash character ``\verb|\|''.
 
@@ -193,7 +193,7 @@ An escape sequence begins with the ASCII backslash character ``\verb|\|''.
 
 \subsubsection{Set literals}
 
-Set literals are represented as instances of type ``\verb|set|'' (section \ref{sec:dsdl_set})
+Set literals are represented as instances of type ``\verb|set|'' (section~\ref{sec:dsdl_set})
 parametrized by the type of the contained elements which is determined automatically.
 
 A set literal declaration shall specify at least one element,
@@ -211,7 +211,7 @@ from the corresponding literal.
 \subsection{Reserved identifiers}\label{sec:dsdl_reserved_identifiers}
 
 DSDL identifiers and data type name components that match any of the
-case-insensitive patterns specified in the table \ref{table:dsdl_reserved_word_patterns}
+case-insensitive patterns specified in table~\ref{table:dsdl_reserved_word_patterns}
 cannot be used to name new entities.
 The semantics of such identifiers is predefined by the DSDL specification,
 and as such, they cannot be used for other purposes.

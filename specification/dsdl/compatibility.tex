@@ -264,7 +264,7 @@ The minor versions may differ, which is acceptable due to the major version comp
     Having collected empirical data from the fielded systems, the Sirius Cybernetics Corporation has
     identified a shortcoming in the v1.0 definition, which is corrected in an updated definition.
     Since the updated definition, which is shown below, is semantically compatible\footnote{%
-        The topic of data serialization is explored in detail in section \ref{sec:dsdl_data_serialization}.
+        The topic of data serialization is explored in detail in section~\ref{sec:dsdl_data_serialization}.
     } with v1.0, the major version number is kept the same and the minor version number is incremented by one:
 
     \begin{minted}{python}
@@ -347,8 +347,8 @@ The minor versions may differ, which is acceptable due to the major version comp
 
     Nodes using v1.0, v1.1, v2.0, and v2.1 definitions can coexist on the same network,
     and they can interoperate successfully as long as they all support at least v1.x or v2.x.
-    The correct version can be determined at runtime from the port identifier assignment as described in section
-    \ref{sec:basic_subjects_and_services}.
+    The correct version can be determined at runtime from the port identifier assignment as described in
+    section~\ref{sec:basic_subjects_and_services}.
 
     In general, nodes that need to maximize their compatibility are likely to employ all existing major versions of
     each used data type.
@@ -360,5 +360,5 @@ The minor versions may differ, which is acceptable due to the major version comp
 
     The examples shown above rely on the primitive scalar types for reasons of simplicity.
     Real applications should use the type-safe physical unit definitions available in the SI namespace instead.
-    This is covered in section \ref{sec:application_functions_si}.
+    This is covered in section~\ref{sec:application_functions_si}.
 \end{remark}

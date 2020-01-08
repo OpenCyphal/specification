@@ -26,7 +26,12 @@ For example, instead of "you can find the data type X here", say "the data type 
 
 Follow [RFC2119](https://tools.ietf.org/rfc/rfc2119.txt).
 
+Do not use title case. Headings and captions are to be written in regular sentence case.
+Generally, capitalized words can only be used in the beginning of a sentence and in proper names.
+
 Do not put a full stop after a caption unless it contains any other punctuation or is more than one sentence long.
+
+Always insert a non-breakable space before reference: `refer to section~\ref{sec:chapter_section}`.
 
 ### Rigging
 

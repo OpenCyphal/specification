@@ -1,6 +1,6 @@
 \section{UAVCAN/CAN}\label{sec:physical_can}
 
-This section specifies the physical layer for UAVCAN/CAN (section \ref{sec:transport_can}).
+This section specifies the physical layer for UAVCAN/CAN (section~\ref{sec:transport_can}).
 
 Here and in the following parts of this section,
 ``CAN'' implies both Classic CAN 2.0 and CAN FD, unless specifically noted otherwise.
@@ -17,7 +17,7 @@ instead of relying on T-connectors.
 T-connectors should be avoided because typically they increase the stub length, weight, and
 complexity of the wiring harnesses.
 
-Table \ref{table:physical_can_connector_summary} provides an overview of the currently defined connector types
+Table~\ref{table:physical_can_connector_summary} provides an overview of the currently defined connector types
 for UAVCAN/CAN.
 Other connector types may be added in future revisions of the specification.
 
@@ -66,7 +66,7 @@ This connector is fully compatible with CANopen and many other current specifica
 The UAVCAN D-Sub connector is based on the industry-standard \textbf{D-Sub DE-9} (9-circuit) connector type.
 Devices are equipped with the male plug connector type mounted on the panel or on the PCB,
 and the cables are equipped with the female socket connectors on both ends
-(figure \ref{fig:physical_can_uavcan_d_sub_connectors}).
+(figure~\ref{fig:physical_can_uavcan_d_sub_connectors}).
 
 If the device uses two parallel connectors per CAN bus interface (as recommended),
 then all of the lines of the paired connectors,
@@ -81,7 +81,7 @@ ISO 11898-2\footnote{Also known as \emph{high-speed CAN}.}.
 Devices that deliver power to the bus are required to provide 23.0--30.0 V on the bus power line, 24 V nominal.
 Devices that are powered from the bus should expect 18.0--30.0 V on the bus power line.
 
-Table \ref{table:physical_can_uavcan_d_sub_pinout} documents the pinout specification for the
+Table~\ref{table:physical_can_uavcan_d_sub_pinout} documents the pinout specification for the
 UAVCAN D-Sub connector type.
 Signals ``CAN High'' and ``CAN Low'' shall belong to the same twisted pair.
 Usage of twisted or flat wires for all other signals remains at the discretion of the implementer.
@@ -140,7 +140,7 @@ The UAVCAN M8 connector is based on the \textbf{circular M8 B-coded 5-circuit} c
     Do not confuse A-coded and B-coded M8 connectors -- they are not mutually compatible.
 }.
 Devices are equipped with the male plug mounted on the panel or on the PCB,
-and cables are equipped with the female socket on both ends (figure \ref{fig:physical_can_uavcan_m8_connectors}).
+and cables are equipped with the female socket on both ends (figure~\ref{fig:physical_can_uavcan_m8_connectors}).
 
 The CAN physical layer standard that should be used with this connector type is
 ISO 11898-2\footnote{Also known as \emph{high-speed CAN}.}.
@@ -148,7 +148,7 @@ ISO 11898-2\footnote{Also known as \emph{high-speed CAN}.}.
 Devices that deliver power to the bus are required to provide 23.0--30.0 V on the bus power line, 24 V nominal.
 Devices that are powered from the bus should expect 18.0--30.0 V on the bus power line.
 
-Table \ref{table:physical_can_uavcan_m8_pinout} documents the pinout specification for the UAVCAN M8 connector type.
+Table~\ref{table:physical_can_uavcan_m8_pinout} documents the pinout specification for the UAVCAN M8 connector type.
 Wires ``CAN high'' and ``CAN low'' should be a twisted pair.
 
 \begin{UAVCANSimpleTable}{UAVCAN M8 connector pinout}{|l l X|}\label{table:physical_can_uavcan_m8_pinout}
@@ -208,7 +208,7 @@ The CAN physical layer standard that can be used with this connector type is ISO
 Devices that deliver power to the bus are required to provide 4.9--5.5 V on the bus power line, 5.0 V nominal.
 Devices that are powered from the bus should expect 4.0--5.5 V on the bus power line.
 
-Table \ref{table:physical_can_uavcan_micro_pinout} documents the pinout specification for the
+Table~\ref{table:physical_can_uavcan_micro_pinout} documents the pinout specification for the
 UAVCAN Micro connector type.
 The suitable wire type is \#30 to \#26 AWG, outer insulation diameter 0.8--1.0 mm, multi-strand.
 Wires ``CAN high'' and ``CAN low'' shall form a twisted pair.
@@ -238,7 +238,7 @@ in the interest of maximizing the cross-vendor compatibility.
 
 \subsubsection{Classic CAN 2.0}
 
-Table \ref{table:physical_can_classic_phy_parameters} lists the recommended parameters of the
+Table~\ref{table:physical_can_classic_phy_parameters} lists the recommended parameters of the
 ISO 11898-2 Classic CAN 2.0 physical layer.
 The estimated bus length limits are based on the assumption that the propagation delay does not exceed 5 ns/m,
 not including additional delay times of CAN transceivers and other components.
@@ -261,7 +261,7 @@ Refer to the CiA 801 application note for the recommended practices.
     as it is guaranteed that any functioning UAVCAN network will always exchange node status messages,
     which can be expected to be published at a rate no lower than 1 Hz,
     and that contain a suitable alternating bit pattern in the CAN ID field.
-    Refer to chapter \ref{sec:application} for details.
+    Refer to chapter~\ref{sec:application} for details.
 \end{remark}
 
 \subsubsection{CAN FD}
