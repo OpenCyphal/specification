@@ -2,7 +2,7 @@
 
 \hyphenation{UAVCAN/CAN}  % Disable hyphenation.
 
-This section specifies a concrete transport based on CAN 2.0B (ISO 11898).
+This section specifies a concrete transport based on ISO 11898 CAN bus.
 Throughout this section, ``CAN'' implies both Classic CAN 2.0 and CAN FD, unless specifically noted otherwise.
 CAN FD should be considered the primary transport protocol.
 
@@ -155,7 +155,7 @@ for message transfers and service transfers, respectively.
 
     Transfer priority   & 3     & $[0, 7]$ (any)    & Section~\ref{sec:transport_transfer_priority}. \\
 
-    Service not message & 1     & $0$               & Always zero for message transfers. \\
+    Service, not message & 1    & $0$               & Always zero for message transfers. \\
 
     Anonymous           & 1     & $\{0, 1\}$ (any)  & Zero for regular message transfers,
                                                       one for anonymous transfers. \\
@@ -178,9 +178,9 @@ for message transfers and service transfers, respectively.
 
     Transfer priority   & 3     & $[0, 7]$ (any)    & Section~\ref{sec:transport_transfer_priority}. \\
 
-    Service not message & 1     & $1$               & Always one for service transfers. \\
+    Service, not message & 1    & $1$               & Always one for service transfers. \\
 
-    Request not response& 1     & $\{0, 1\}$ (any)  & One for service request, zero for service response. \\
+    Request, not response & 1   & $\{0, 1\}$ (any)  & One for service request, zero for service response. \\
 
     Reserved bit 23     & 1     & $0$               & Discard frame if this field has a different value. \\
 

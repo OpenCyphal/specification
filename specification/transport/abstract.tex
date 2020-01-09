@@ -135,6 +135,7 @@ discard the excessive (unexpected) data at the end of the received payload\footn
     Such occurrence is not indicative of a problem so it should not be reported as such.
 }.
 The transfer CRC, if applicable, shall be validated regardless of the presence of the extra payload in the transfer.
+See figure~\ref{fig:transport_payload_truncation}.
 
 A \emph{transport-layer maximum transmission unit} (MTU) is the maximum amount of data with the associated metadata
 that can be transmitted per transport frame for a particular concrete transport.
@@ -398,7 +399,7 @@ between nodes.
 \begin{remark}[breakable]
     Some implementations of the UAVCAN communication stack may contain states indexed by the session specifier.
     For example, in order to emit a transfer, the stack may need to query the appropriate transfer-ID counter
-    by the session specifier of the transfer.
+    (section~\ref{sec:transport_transfer_id}) by the session specifier of the transfer.
     Likewise, in order to process a received frame,
     the stack may need to locate the appropriate states keyed by the session specifier.
 
@@ -687,7 +688,7 @@ multi-frame transfers where the temporal ordering of the transport frames is dis
 \begin{remark}
     For a certain category of transport implementations, reassembly of multi-frame transfers from an
     unordered transport frame sequence increases the probability of successful delivery if
-    transport frames are intentionally duplicated.
+    the probability of a transport frame loss is non-zero and transport frames are intentionally duplicated.
 
     Such intentional duplication occurs in redundant transports and if deterministic data loss mitigation is used.
     The reason is that the loss of a single transport frame is observed by the receiving node as its relocation
@@ -725,7 +726,7 @@ the performance of the transfer reassembly process shall not be affected.
     unlike with the case of cyclic transfer-ID.
 \end{remark}
 
-If supported by the concrete transport,
+If anonymous transfers are supported by the concrete transport,
 reassembly of anonymous transfers shall be implemented by unconditional acceptance of their transport frames.
 Requirements pertaining to ordering and uniqueness do not apply.
 
