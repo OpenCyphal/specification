@@ -239,7 +239,8 @@ Irrespective of the suffix, it is recommended to always specify units for every 
 
 \subsubsection{Enhanced type safety}
 
-It is recommended to avoid reliance on raw scalar types (such as \verb|float32|)
+In the interest of improving type safety and reducing the possibility of a human error,
+it is recommended to avoid reliance on raw scalar types (such as \verb|float32|)
 when defining fields containing physical quantities.
 Instead, the explicitly typed alternatives defined in the standard DSDL namespace
 \DSDLReference{uavcan.si.unit} (also see section~\ref{sec:application_functions_si}) should be used.
