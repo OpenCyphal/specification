@@ -610,6 +610,26 @@ A heterogeneous redundant transport shall meet \emph{either} of the following re
 
 \subsection{Transfer transmission}
 
+\subsubsection{Transmission timeout}
+
+The transport frames of a time-sensitive transfer whose payload has lost relevance due to
+its transmission being delayed should be removed from the transmission queue\footnote{%
+    Trailing transport frames of partially transmitted multi-frame transfers should be removed as well.
+    The objective of this recommendation is to ensure that obsolete data is not transmitted
+    as it may have adverse effects on the system.
+}.
+The time interval between the point where the transfer is constructed and the point where it is considered
+to have lost relevance is referred to as \emph{transmission timeout}.
+
+% "Output port" sounds better but this term is not defined.
+The transmission timeout should be documented for each outgoing transfer port.
+
+\subsubsection{Pending service requests}
+
+In the case of cyclic transfer-ID transports (section~\ref{sec:transport_transfer_id}),
+implementations should ensure that upon a transfer-ID overflow a service client session
+does not reuse the same transfer-ID value for more than one pending request simultaneously.
+
 \subsubsection{Deterministic data loss mitigation}\label{sec:transport_deterministic_data_loss_mitigation}
 
 Performance of transport networks where the probability of a successful transfer delivery
