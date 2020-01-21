@@ -1,9 +1,9 @@
 \section{Serializable types}\label{sec:dsdl_serializable_types}
 
 Values of the serializable type category can be exchanged between nodes over the UAVCAN network.
-This is opposed to the expression types (section \ref{sec:dsdl_expression_types}),
+This is opposed to the expression types (section~\ref{sec:dsdl_expression_types}),
 instances of which can only exist while DSDL definitions are being evaluated.
-The data serialization rules are defined in the section \ref{sec:dsdl_data_serialization}.
+The data serialization rules are defined in section~\ref{sec:dsdl_data_serialization}.
 
 \subsection{Void types}
 
@@ -38,7 +38,7 @@ The hierarchy of primitive types is documented below.
     \item \textbf{Algebraic types.} Those are types for which conventional algebraic operators are defined.
     \begin{itemize}
         \item \textbf{Integer types} are used to represent signed and unsigned integer values.
-        See table \ref{table:dsd_integer_properties}.
+        See table~\ref{table:dsd_integer_properties}.
         \begin{itemize}
             \item \textbf{Signed integer types.} These are used to represent values which can be negative.
             The corresponding DSDL data type name pattern is ``\verb|int[1-9]\d*|'',
@@ -55,7 +55,7 @@ The hierarchy of primitive types is documented below.
         The underlying serialized representation follows the IEEE 754 standard.
         The corresponding DSDL data type name pattern is ``\verb~float(16|32|64)~'', where the trailing
         integer represents the type of the IEEE 754 representation.
-        See table \ref{table:dsd_floating_point_properties}.
+        See table~\ref{table:dsd_floating_point_properties}.
     \end{itemize}
 \end{itemize}
 
@@ -100,7 +100,7 @@ The following cast modes are defined:
 
 When a primitive-typed entity is assigned a value that exceeds its range,
 the resulting value is chosen according to the lossy assignment rules
-specified in the table \ref{table:dsdl_cast_mode}.
+specified in table~\ref{table:dsdl_cast_mode}.
 Cases that are marked as illegal are not permitted in DSDL definitions.
 
 \begin{UAVCANSimpleTable}{Lossy assignment rules per cast mode}{|l X X|}
@@ -131,7 +131,7 @@ and as such, they are to be implementation-defined.
 \subsubsection{Expressions}
 
 At the time of DSDL definition processing,
-values of primitive types are represented as instances of the \verb|rational| type (section \ref{sec:dsdl_rational}),
+values of primitive types are represented as instances of the \verb|rational| type (section~\ref{sec:dsdl_rational}),
 with the exception of the type \verb|bool|,
 instances of which are usable in DSDL expressions as-is.
 
@@ -165,9 +165,11 @@ All values in the collection share the same type, which is referred to as \emph{
 The array element type can be any type except:
 \begin{itemize}
     \item void type;
-    \item array type\footnote{Meaning that nested arrays are not allowed;
-    however, the array element type can be a composite type which in turn may contain arrays.
-    In other words, indirect nesting of arrays is permitted.}.
+    \item array type\footnote{%
+              Meaning that nested arrays are not allowed;
+              however, the array element type can be a composite type which in turn may contain arrays.
+              In other words, indirect nesting of arrays is permitted.
+          }.
 \end{itemize}
 
 The number of elements in the array can be specified as a constant expression at the data type definition time,
@@ -179,7 +181,7 @@ Variable-length arrays with unbounded maximum number of elements are not allowed
 
 Arrays are defined by adding a pair of square brackets after the array element type specification,
 where the brackets contain the \emph{array capacity expression}.
-The array capacity expression must yield a positive integer of type ``\verb|rational|'' upon its evaluation;
+The array capacity expression shall yield a positive integer of type ``\verb|rational|'' upon its evaluation;
 any other value or type renders the current DSDL definition invalid.
 
 The array capacity expression can be prefixed with the following character sequences in order to define
@@ -187,7 +189,7 @@ a variable-length array:
 \begin{itemize}
     \item ``\verb|<|'' (ASCII code 60) --- indicates that the integer value yielded by the array capacity expression
     specifies the non-inclusive upper boundary of the number of elements.
-    In this case, the integer value yielded by the array capacity expression must be greater than one.
+    In this case, the integer value yielded by the array capacity expression shall be greater than one.
 
     \item ``\verb|<=|'' (ASCII code 60 followed by 61) --- same as above, but the upper boundary is inclusive.
 \end{itemize}
@@ -198,8 +200,9 @@ If neither of the above prefixes are provided, the resultant definition is that 
 \subsubsection{Kinds}
 
 There are two kinds of composite data type definitions: message types and service types.
-All versions of a data type must be of the same kind\footnote{%
-For example, if a data type version 0.1 is of a message kind, all later versions of it must be messages, too.}.
+All versions of a data type shall be of the same kind\footnote{%
+    For example, if a data type version 0.1 is of a message kind, all later versions of it shall be messages, too.
+}.
 
 A message data type defines one data schema.
 
@@ -216,12 +219,12 @@ In order to refer to a composite type from another composite type definition
 (e.g., for nesting or for referring to an external constant),
 one has to specify the full data type name of the referred data type followed by its
 major and minor version numbers separated by the namespace separator character,
-as demonstrated on the figure \ref{fig:dsdl_nested_reference}.
+as demonstrated on figure~\ref{fig:dsdl_nested_reference}.
 
 To facilitate look-up of external dependencies,
-implementations are expected to obtain from external sources%
-\footnote{For example, from user-provided configuration options.}
-the list of directories that are the roots of namespaces containing the referred dependencies.
+implementations are expected to obtain from external sources\footnote{%
+    For example, from user-provided configuration options.
+} the list of directories that are the roots of namespaces containing the referred dependencies.
 
 \begin{figure}[H]
     $$
@@ -229,12 +232,12 @@ the list of directories that are the roots of namespaces containing the referred
     \texttt{\huge{.}}%
     \underbrace{\texttt{\huge{1.0}}}_{\substack{\text{version} \\ \text{numbers}}}%
     $$
-    \caption{Reference to an external composite data type definition.\label{fig:dsdl_nested_reference}}
+    \caption{Reference to an external composite data type definition\label{fig:dsdl_nested_reference}}
 \end{figure}
 
 If the referred data type and the referring data type share the same full namespace name,
 it is allowed to omit the namespace from the referred data type specification
-leaving only the short data type name, as demonstrated on the figure \ref{fig:dsdl_nested_reference_short}.
+leaving only the short data type name, as demonstrated on figure~\ref{fig:dsdl_nested_reference_short}.
 In this case, the referred data type will be looked for in the namespace of the referrer.
 Partial omission of namespace components is not permitted.
 
@@ -244,41 +247,43 @@ Partial omission of namespace components is not permitted.
     \texttt{\huge{.}}%
     \underbrace{\texttt{\huge{1.0}}}_{\substack{\text{version} \\ \text{numbers}}}%
     $$
-    \caption{Reference to an external composite data type definition located in the same namespace.
-    \label{fig:dsdl_nested_reference_short}}
+    \caption{Reference to an external composite data type definition located in the same namespace
+             \label{fig:dsdl_nested_reference_short}}
 \end{figure}
 
 Circular dependencies are not permitted.
 A circular dependency renders all of the definitions involved in the dependency loop invalid.
 
 If any of the referred definitions are marked as deprecated,
-the referring definition must be marked deprecated as well\footnote{%
-Deprecation is indicated with the help of a special directive, as explained in section \ref{sec:dsdl_directives}}.
+the referring definition shall be marked deprecated as well\footnote{%
+    Deprecation is indicated with the help of a special directive, as explained in section~\ref{sec:dsdl_directives}.
+}.
 If a non-deprecated definition refers to a deprecated definition,
 the referring definition is malformed\footnote{%
-This tainting behavior is designed to prevent unexpected breakage of
-type hierarchies when one of the deprecated dependencies reaches its end of life.}.
+    This tainting behavior is designed to prevent unexpected breakage of
+    type hierarchies when one of the deprecated dependencies reaches its end of life.
+}.
 
 When a data type is referred to from within an expression context,
-it constitutes a literal of type ``\verb|metaserializable|'' (section \ref{sec:dsdl_metaserializable}).
+it constitutes a literal of type ``\verb|metaserializable|'' (section~\ref{sec:dsdl_metaserializable}).
 If the referred data type is of the message kind,
 its attributes are accessible in the referring expression through application of the
 attribute reference operator ``\verb|.|''.
-The available attributes and their semantics are documented in the section \ref{sec:dsdl_local_attributes}.
+The available attributes and their semantics are documented in the section~\ref{sec:dsdl_local_attributes}.
 
 \begin{remark}
     \begin{minted}{python}
         uint64 MY_CONSTANT = vendor.MessageType.1.0.OTHER_CONSTANT
-        # The following is valid if the referring definition and the referred definition
-        # are located inside the root namespace "vendor":
         uint64 MY_CONSTANT = MessageType.1.0.OTHER_CONSTANT
+        # The above is valid if the referring definition and the referred definition
+        # are located inside the root namespace "vendor".
         @print MessageType.1.0
     \end{minted}
 \end{remark}
 
 \subsubsection{Unions}\label{sec:dsdl_composite_tagged_unions}
 
-Any data schema definition can be supplied with a special directive (section \ref{sec:dsdl_directives})
+Any data schema definition can be supplied with a special directive (section~\ref{sec:dsdl_directives})
 indicating that it forms a tagged union.
 
 A tagged union schema shall contain at least two field attributes.
@@ -291,11 +296,11 @@ and the value of the field attribute itself.
 
 Type polymorphism is supported in DSDL through structural subtyping.
 The following definition relies on the concept of \emph{field attribute},
-which is introduced in section \ref{sec:dsdl_attributes}.
+which is introduced in section~\ref{sec:dsdl_attributes}.
 
 Let $B$ and $D$ be DSDL message types whose data schemas define $b$ and $d$ field attributes, respectively.
 Let each field attribute be assigned a sequential index according to its position in the DSDL definition
-(see section \ref{sec:dsdl_grammar} on statement ordering).
+(see section~\ref{sec:dsdl_grammar} on statement ordering).
 
 $D$ is a \emph{structural subtype} of $B$ if all conditions are satisfied:
 \begin{itemize}
@@ -303,7 +308,7 @@ $D$ is a \emph{structural subtype} of $B$ if all conditions are satisfied:
     \item $B$ is not $D$;
     \item $b \leq d$;
     \item for each field attribute of $B$ at index $i$ there is an equal\footnote{%
-              Field attribute equality is defined in section \ref{sec:dsdl_attributes}.
+              Field attribute equality is defined in section~\ref{sec:dsdl_attributes}.
           } field attribute in $D$ at index $i$.
 \end{itemize}
 
@@ -324,6 +329,9 @@ $D$ is a structural subtype of $B$ if $b = 0$.
 If $D$ is a structural subtype of $B$, then $B$ is a \emph{structural supertype} of $D$.
 
 $D$ and $B$ are \emph{structurally equivalent} if $D$ is a structural subtype and a structural supertype of $B$.
+
+A \emph{type hierarchy} is an ordered set of data types such that for each pair of its members
+one type is a subtype of another, and for any member its supertypes are located on the left.
 
 \begin{remark}
     Subtyping example for structure (non-union) types. First type:
@@ -366,4 +374,45 @@ $D$ and $B$ are \emph{structurally equivalent} if $D$ is a structural subtype an
 
     Polymorphic relations are not defined on service types;
     however, this may change in a future revision of the standard.
+\end{remark}
+
+\begin{remark}[breakable]
+    The following example in C demonstrates the concept of polymorphic compatibility detached from DSDL.
+
+    \begin{samepage}
+        \begin{minted}{c}
+            struct base
+            {
+                int a;
+                float b;
+            };
+
+            struct derived_first
+            {
+                int a;
+                float b;
+                double c;
+            };
+
+            struct derived_second
+            {
+                int a;
+                float b;
+                short d;
+            };
+
+            float compute(struct base* value)
+            {
+                return (float)value->a + value->b;
+            }
+
+            int main()
+            {
+                struct derived_first foo  = { .a = 123, .b = -456.789F, .c = 123.456 };
+                struct derived_second bar = { .a = -123, .b = 456.789F, .d = -123 };
+                // Both derived_first and derived_second are structural subtypes of base. The program returns zero.
+                return compute(&foo) + compute(&bar);
+            }
+        \end{minted}
+    \end{samepage}
 \end{remark}

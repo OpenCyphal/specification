@@ -1,4 +1,4 @@
-\section{Application-level conventions}\label{sec:application_level_conventions}
+\section{Application-level conventions}\label{sec:application_conventions}
 
 This section describes a set of high-level conventions designed to enhance compatibility
 of applications leveraging UAVCAN.
@@ -7,13 +7,23 @@ however, every deviation should be justified and documented.
 
 \subsection{Node identifier distribution}
 
-An overview of related concepts is provided in chapter \ref{sec:basic_concepts}.
+An overview of related concepts is provided in chapter~\ref{sec:basic}.
 
 Valid values of node-ID range from 0 up to a transport-specific upper boundary
 which is guaranteed to be above 127 for any transport.
 
 The two uppermost node-ID values are reserved for diagnostic and debugging tools;
 these node-ID values should not be used in fielded systems.
+
+\subsection{Service latency}
+
+If the server uses a significant part of the timeout period to process the request,
+the client might drop the request before receiving the response.
+Servers should minimize the request processing time; that is,
+the time between reception of a service request transfer and
+the transmission of the corresponding service response transfer.
+
+The worst-case request processing time should be documented for each server-side service port.
 
 \subsection{Coordinate frames}
 
@@ -23,7 +33,7 @@ reduces the amount of computations for conversions between incompatible coordina
 representations.
 It is recognized, however, that some applications may find the advised conventions unsuitable,
 in which case deviations are permitted.
-Any such deviations must be explicitly documented.
+Any such deviations shall be explicitly documented.
 
 All coordinate systems defined in this section are right-handed.
 If application-specific coordinate systems are introduced, they should be right-handed as well.
@@ -32,52 +42,33 @@ If application-specific coordinate systems are introduced, they should be right-
     \centering
     % The source image is released under CC0, public domain, no attribution required:
     % https://commons.wikimedia.org/wiki/File:ECEF_ENU_Longitude_Latitude_relationships.svg
-	\includegraphics[width=0.45\textwidth]{application_layer/NED_ECEF}
+	\includegraphics[width=0.45\textwidth]{application/NED_ECEF}
     % The source image is released under CC0, public domain, no attribution required:
     % https://pixabay.com/en/airplane-plane-aircraft-propeller-40374/
     % The final image is drawn by me. The source Inkscape SVG file is located in the same directory.
-    \includegraphics[width=0.45\textwidth]{application_layer/aircraft_principal_axes}
+    \includegraphics[width=0.45\textwidth]{application/aircraft_principal_axes}
     North-East-Down (NED) frame and body frame conventions. All systems are right-handed.
-    \caption{
-        Coordinate frame conventions.
-        \label{fig:application_coordinate_frame_conventions}
-    }
+    \caption{Coordinate frame conventions\label{fig:application_conventions_coordinate_frame}}
 \end{figure}
 
 \subsubsection{World frame}
 
-For world fixed frames, the \emph{North-East-Down} (NED) right-handed notation is preferred.
-\begin{samepage}
-\begin{description}
-    \item[X] --- northward;
-    \item[Y] --- eastward;
-    \item[Z] --- down.
-\end{description}
-\end{samepage}
+For world fixed frames, the \emph{North-East-Down} (NED) right-handed notation is preferred:
+X -- northward, Y -- eastward, Z -- downward.
 
 \subsubsection{Body frame}
 
-In relation to a body, the convention is as defined below, right-handed.
-This convention is widely used in aeronautic applications.
-\begin{samepage}
-\begin{description}
-    \item[X] --- forward;
-    \item[Y] --- right;
-    \item[Z] --- down.
-\end{description}
-\end{samepage}
+In relation to a body, the convention is as follows, right-handed\footnote{%
+    This convention is widely used in aeronautic applications.
+}:
+X -- forward, Y -- rightward, Z -- downward.
 
 \subsubsection{Optical frame}
 
-In the case of cameras, the right-handed convention specified below is preferred.
-It is widely used in various applications involving computer vision systems.
-\begin{samepage}
-\begin{description}
-    \item[X] --- right;
-    \item[Y] --- down;
-    \item[Z] --- towards the scene along the optical axis.
-\end{description}
-\end{samepage}
+In the case of cameras, the following right-handed convention is preferred\footnote{%
+    This convention is widely used in various applications involving computer vision systems.
+}:
+X -- rightward, Y -- downward, Z -- towards the scene along the optical axis.
 
 \subsection{Rotation representation}
 
@@ -94,13 +85,13 @@ X (roll), Y (pitch), Z (yaw).
     computation complexity, and explicitness:
     \begin{itemize}
         \item Euler angles are not self-contained, requiring applications to agree on a particular
-        convention beforehand; a convention would be difficult to establish considering different
-        demands of various use cases.
+              convention beforehand; a convention would be difficult to establish considering different
+              demands of various use cases.
 
         \item Euler angles and fixed axis rotations typically cannot be used for computations directly
-        due to angular interpolation issues and singularities; thus, to make use of such
-        representations, one often has to convert them to a different form (e.g., quaternion);
-        such conversions are computationally heavy.
+              due to angular interpolation issues and singularities; thus, to make use of such
+              representations, one often has to convert them to a different form (e.g., quaternion);
+              such conversions are computationally heavy.
 
         \item Rotation matrices are highly redundant.
     \end{itemize}
@@ -179,6 +170,8 @@ Infinite error variance means that the associated value is undefined.
 
 \subsection{Physical quantity representation}
 
+\subsubsection{Units}
+
 All units should be SI\footnote{International System of Units.} units (base or derived).
 Usage of any other units is strongly discouraged.
 
@@ -205,15 +198,35 @@ When defining data types, ``\textmu{}'' should be replaced with the lowercase La
 Irrespective of the suffix, it is recommended to always specify units for every field in the comments.
 
 \begin{remark}
-\begin{minted}{python}
-float16 temperature           # [kelvin] Suffix not needed because an unscaled SI unit is used here.
+    \begin{minted}{python}
+        float16 temperature           # [kelvin] Suffix not needed because an unscaled SI unit is used here.
 
-uint24 delay_us               # [microsecond] Scaled SI unit, suffix required. Mu replaced with "u".
-uint24 MAX_DELAY_us = 600000  # [microsecond] Notice the letter case.
+        uint24 delay_us               # [microsecond] Scaled SI unit, suffix required. Mu replaced with "u".
+        uint24 MAX_DELAY_us = 600000  # [microsecond] Notice the letter case.
 
-float32 kinetic_energy_GJ     # [gigajoule] Notice the letter case.
+        float32 kinetic_energy_GJ     # [gigajoule] Notice the letter case.
 
-float16 estimated_charge_mAh  # [milliampere hour] Scaled non-SI unit. Discouraged, use coulomb.
-float16 MAX_CHARGE_mAh = 1e4  # [milliampere hour] Notice the letter case.
-\end{minted}
+        float16 estimated_charge_mAh  # [milliampere hour] Scaled non-SI unit. Discouraged, use coulomb.
+        float16 MAX_CHARGE_mAh = 1e4  # [milliampere hour] Notice the letter case.
+    \end{minted}
+\end{remark}
+
+\subsubsection{Enhanced type safety}
+
+In the interest of improving type safety and reducing the possibility of a human error,
+it is recommended to avoid reliance on raw scalar types (such as \verb|float32|)
+when defining fields containing physical quantities.
+Instead, the explicitly typed alternatives defined in the standard DSDL namespace
+\DSDLReference{uavcan.si.unit} (also see section~\ref{sec:application_functions_si}) should be used.
+
+\begin{remark}
+    \begin{minted}{python}
+        float32[4] kinetic_energy                           # [joule] Not recommended.
+        uavcan.si.unit.energy.Scalar.1.0[4] kinetic_energy  # This is the recommended practice.
+        # Kinetic energy of four bodies.
+
+        float32[3] velocity                                 # [meter/second] Not recommended.
+        uavcan.si.unit.velocity.Vector3.1.0                 # This is the recommended practice.
+        # 3D velocity vector.
+    \end{minted}
 \end{remark}

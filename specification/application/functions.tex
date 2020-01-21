@@ -1,9 +1,9 @@
-\section{Application-level functions}\label{sec:application_level_functions}
+\section{Application-level functions}\label{sec:application_functions}
 
 This section documents the high-level functionality defined by UAVCAN.
 The common high-level functions defined by the specification span across different application domains.
 All of the functions defined in this section are optional (not mandatory to implement),
-except for the node heartbeat feature (section \ref{sec:application_node_heartbeat}),
+except for the node heartbeat feature (section~\ref{sec:application_functions_heartbeat}),
 which is mandatory for all UAVCAN nodes.
 
 The detailed specifications for each function are provided in the DSDL comments of the data type definitions
@@ -14,12 +14,13 @@ they are built upon, whereas this section serves as a high-level overview and in
 UAVCAN does not require that nodes undergo any specific initialization upon connection to the bus ---
 a node is free to begin functioning immediately once it is powered up.
 The operating mode of the node (such as initialization, normal operation, maintenance, and so on)
-is to be reflected via the mandatory heartbeat message described in section \ref{sec:application_node_heartbeat}.
+is to be reflected via the mandatory heartbeat message described in section~\ref{sec:application_functions_heartbeat}.
 
-\subsection{Node heartbeat}\label{sec:application_node_heartbeat}
+\subsection{Node heartbeat}\label{sec:application_functions_heartbeat}
 
-Every UAVCAN node must report its status and presence by periodically publishing messages of type
-\DSDLReference{uavcan.node.Heartbeat} at a fixed rate specified in the message definition.
+Every non-anonymous UAVCAN node shall report its status and presence by periodically publishing messages of type
+\DSDLReference{uavcan.node.Heartbeat} at a fixed rate specified in the message definition using the fixed subject-ID.
+Anonymous nodes shall not publish to this subject.
 
 This is the only high-level protocol function that UAVCAN nodes are required to support.
 All other data types and application-level functions are optional.
@@ -41,16 +42,16 @@ since it is instrumental for network discovery, firmware update, and various mai
 \subsection{Bus data flow monitoring}
 
 The combination of the following three services defined in the namespace \DSDLReference{uavcan.node.port}
-(see table \ref{table:dsdl:uavcan.node.port}) enables a highly capable tool of network inspection and monitoring:
+(see table~\ref{table:dsdl:uavcan.node.port}) enables a highly capable tool of network inspection and monitoring:
 \begin{itemize}
     \item \DSDLReference{uavcan.node.port.List} --- designed for obtaining the full set of subjects and services
-    implemented by the server node.
+          implemented by the server node.
 
     \item \DSDLReference{uavcan.node.port.GetInfo} --- returns the static (unchanging or infrequently changing)
-    information about the selected subject or service.
+          information about the selected subject or service.
 
     \item \DSDLReference{uavcan.node.port.GetStatistics} --- returns the transfer event counters of
-    the selected subject or service.
+          the selected subject or service.
 \end{itemize}
 
 The first service \verb|List| allows the caller to construct a list of all subjects and services used by the
@@ -120,7 +121,7 @@ via these generic types without reliance on their vendor-specific types (if ther
 This is important for reusability, because some of the systems where such COTS nodes are
 to be integrated may not be able to easily support vendor-specific types.
 
-\subsubsection{SI namespace}
+\subsubsection{SI namespace}\label{sec:application_functions_si}
 
 The \verb|si| namespace is named after the International System of Units (SI).
 The namespace contains a collection of scalar and vector value types that describe most commonly used
@@ -128,13 +129,20 @@ physical quantities in SI; for example, velocity, mass, energy, angle, and time.
 The objective of these types is to permit construction of arbitrarily complex distributed control systems without
 reliance on any particular vendor-specific data types.
 
-Each message type defined in the SI namespace contains a short overflowing timestamp field of type
-\DSDLReference{uavcan.time.SynchronizedAmbiguousTimestamp}.
+The namespace \DSDLReference{uavcan.si.unit} contains basic units that can be used as type-safe wrappers
+over \verb|float32| and other scalar and array types.
+
+The namespace \DSDLReference{uavcan.si.sample} contains time-stamped versions of the above,
+where the timestamp field is always located at the end in order to make the time-stamped types
+structural sub-types of the non-timestamped ones.
+The structural sub-typing enhances interoperability.
+
+Each message type defined in the namespace \verb|uavcan.si.sample| contains a timestamp field of type
+\DSDLReference{uavcan.time.SynchronizedTimestamp}.
 Every emitted message should be timestamped in order to allow subscribers to identify which of the messages
 relate to the same event or to the same instant.
 Messages that are emitted in bulk in relation to the same event or the same instant should contain
-exactly the same value of the timestamp
-to simplify the task of timestamp matching for the subscribers.
+exactly the same value of the timestamp to simplify the task of timestamp matching for the subscribers.
 
 The exact strategy of matching related messages by timestamp employed by subscribers is entirely
 implementation-defined.
@@ -143,10 +151,13 @@ will opt for different design trade-offs and different tactics to suit their con
 Such diversity is not harmful, because its effects are always confined to the local node and cannot affect
 operation of other nodes or their compatibility.
 
-The table \ref{table:dsdl:uavcan.si} provides a high-level overview of the SI namespace.
+Tables~\ref{table:dsdl:uavcan.si.unit} and~\ref{table:dsdl:uavcan.si.sample}
+provide a high-level overview of the SI namespace.
 Please follow the references for details.
 
-\DSDL{uavcan.si.* --index-only}
+\DSDL{uavcan.si.unit.* --index-only}
+
+\DSDL{uavcan.si.sample.* --index-only}
 
 \subsubsection{Primitive namespace}
 
@@ -162,18 +173,20 @@ their use carries the risk of creating suboptimal interfaces that are difficult 
 
 Normally, the use of primitive types should be limited to very basic vendor-neutral interfaces for COTS
 equipment and software, debug and diagnostic purposes, and whenever there is a need to exchange data the
-type of which cannot be determined statically.\footnote{An example of the latter use case is the register protocol
-described in section \ref{sec:application_register_interface}.}
+type of which cannot be determined statically.\footnote{%
+      An example of the latter use case is the register protocol described
+      in section~\ref{sec:application_functions_register}.
+}
 
-The table \ref{table:dsdl:uavcan.primitive} provides a high-level overview of the primitive namespace.
+Table~\ref{table:dsdl:uavcan.primitive} provides a high-level overview of the primitive namespace.
 Please follow the references for details.
 
 \DSDL{uavcan.primitive.* --index-only}
 
-\subsection{Remote file system interface}\label{sec:application_file_system}
+\subsection{Remote file system interface}\label{sec:application_functions_file_system}
 
 The set of standard data types contains a collection of services for manipulation of remote file systems
-(namespace \DSDLReference{uavcan.file}, see the table \ref{table:dsdl:uavcan.file}).
+(namespace \DSDLReference{uavcan.file}, see table~\ref{table:dsdl:uavcan.file}).
 All basic file system operations are supported, including file reading and writing,
 directory listing, metadata retrieval (size, modification time, etc.), moving, renaming, creating, and deleting.
 
@@ -185,7 +198,7 @@ If write operations are required, all of the defined services should be supporte
 
 \DSDL{uavcan.file.* --index-only}
 
-\subsection{Generic node commands}\label{sec:application_generic_node_commands}
+\subsection{Generic node commands}\label{sec:application_functions_generic_commands}
 
 Commonly used node-level application-agnostic auxiliary commands
 (such as: restart, power off, factory reset, emergency stop, etc.)
@@ -197,8 +210,9 @@ It is recommended to support this service in all nodes.
 \subsection{Node software update}
 
 A simple software\footnote{Or firmware -- UAVCAN does not distinguish between the two.}
-update protocol is defined on top of the remote file system interface (section \ref{sec:application_file_system})
-and the generic node commands (section \ref{sec:application_generic_node_commands}).
+update protocol is defined on top of the remote file system interface
+(section~\ref{sec:application_functions_file_system})
+and the generic node commands (section~\ref{sec:application_functions_generic_commands}).
 
 The software update process involves the following data types:
 
@@ -213,7 +227,7 @@ The software update protocol logic is described in detail in the documentation f
 The protocol is considered simple enough to be usable in embedded bootloaders with
 small memory-constrained microcontrollers.
 
-\subsection{Register interface}\label{sec:application_register_interface}
+\subsection{Register interface}\label{sec:application_functions_register}
 
 UAVCAN defines the concept of \emph{named register} -- a scalar, vector, or string value with an associated
 human-readable name that is stored on a UAVCAN node locally and is accessible via
@@ -240,7 +254,7 @@ Named registers are designed to serve the following purposes:
 \end{description}
 
 The register protocol rests upon two service types defined in the namespace \DSDLReference{uavcan.register};
-the namespace index is shown in the table \ref{table:dsdl:uavcan.register}.
+the namespace index is shown in table~\ref{table:dsdl:uavcan.register}.
 Data types supported by the register protocol are defined in the nested data structure
 \DSDLReference{uavcan.register.Value}.
 
@@ -253,12 +267,12 @@ and provide a framework of common basic functionality.
 
 The message type \DSDLReference{uavcan.diagnostic.Record} is designed to facilitate emission of
 human-readable diagnostic messages and event logging,
-both for the needs of real-time display\footnote{E.g., messages displayed to a human operator in real time.}
+both for the needs of real-time display\footnote{E.g., messages displayed to a human operator/pilot in real time.}
 and for long-term storage\footnote{E.g., flight data recording.}.
 
-\subsection{Plug-and-play nodes}
+\subsection{Plug-and-play nodes}\label{sec:application_functions_pnp}
 
-Every UAVCAN node must have a node-ID that is unique within the network.
+Every UAVCAN node shall have a node-ID that is unique within the network (excepting anonymous nodes).
 Normally, such identifiers are assigned by the network designer, integrator, some automatic external tool,
 or another entity that is external to the network.
 However, there exist circumstances where such manual assignment is either difficult or undesirable.
@@ -271,12 +285,12 @@ such as the bit rate.
 
 UAVCAN defines an automatic node-ID allocation protocol that is built on top of the data types defined in the
 namespace \DSDLReference{uavcan.pnp} (where \emph{pnp} stands for ``plug-and-play'')
-(see table \ref{table:dsdl:uavcan.pnp}).
+(see table~\ref{table:dsdl:uavcan.pnp}).
 The protocol is described in the documentation for the data type \DSDLReference{uavcan.pnp.NodeIDAllocationData}.
 
-The plug-and-play node-ID allocation protocol relies on anonymous messages reviewed in the section
-\ref{sec:transport_anonymous_message_publication}.
-Remember that the plug-and-play feature is entirely optional and it is expected that some applications where a
+The plug-and-play node-ID allocation protocol relies on anonymous messages reviewed in section
+\ref{sec:transport_route_specifier}.
+Remember that the plug-and-play feature is entirely optional and it is expected that applications where a
 high degree of determinism and robustness is expected are unlikely to benefit from it.
 
 This feature derives from the work
@@ -288,17 +302,18 @@ by Diego Ongaro and John Ousterhout.
 
 \subsection{Internet/LAN forwarding interface}
 
-Data types defined in the namespace \DSDLReference{uavcan.internet} (see table \ref{table:dsdl:uavcan.internet})
+Data types defined in the namespace \DSDLReference{uavcan.internet} (see table~\ref{table:dsdl:uavcan.internet})
 are designed for establishing robust direct connectivity between local UAVCAN nodes and hosts on the Internet
-or on a local area network (LAN) by means of so called \emph{modem nodes}%
-\footnote{Normally, a modem node would be implemented using on-board cellular, radio frequency,
-or satellite communication hardware.}
-(possibly redundant).
+or on a local area network (LAN) using \emph{modem nodes}\footnote{%
+      Usually such modem nodes are implemented using on-board cellular, radio frequency,
+      or satellite communication hardware.
+} (possibly redundant).
 
 This basic support for world-wide communication provided at the protocol level allows any component
 of a vehicle equipped with modem nodes to reach external resources or exchange arbitrary data globally
-without dependency on application-specific means of communication%
-\footnote{Information security and other security-related concerns are outside of the scope of this specification.}.
+without depending on an application-specific means of communication\footnote{%
+    Information security and other security-related concerns are outside of the scope of this specification.
+}.
 
 The set of supported Internet/LAN protocols may be extended in future revisions of the specification.
 
@@ -314,3 +329,13 @@ The set of supported Internet/LAN protocols may be extended in future revisions 
 \end{remark}
 
 \DSDL{uavcan.internet.* --index-only}
+
+\subsection{Meta-transport}
+
+Data types defined in the namespace \DSDLReference{uavcan.metatransport}
+(see table~\ref{table:dsdl:uavcan.metatransport})
+are designed for tunneling transport frames\footnote{Section~\ref{sec:transport_model}.}
+over UAVCAN subjects,
+as well as logging UAVCAN traffic in the form of serialized UAVCAN message objects.
+
+\DSDL{uavcan.metatransport.* --index-only}

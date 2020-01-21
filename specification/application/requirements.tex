@@ -1,0 +1,82 @@
+\section{Application-level requirements}\label{sec:application_requirements}
+
+This section describes a set of high-level rules that shall be obeyed by all UAVCAN implementations.
+
+\subsection{Port identifier distribution}
+
+An overview of related concepts is provided in chapter~\ref{sec:basic}.
+
+The subject and service identifier values are segregated into three ranges:
+\begin{itemize}
+    \item unregulated port identifiers that can be freely chosen by users and integrators (both fixed and non-fixed);
+    \item regulated fixed identifiers for non-standard data type definitions
+          that are assigned by the UAVCAN maintainers for publicly released data types;
+    \item regulated identifiers of the standard data types that are an integral part of the UAVCAN specification.
+\end{itemize}
+
+More information on the subject of data type regulation is provided in section~\ref{sec:basic_data_type_regulation}.
+
+The ranges are summarized in table~\ref{table:application_requirements_port_id_distribution}.
+Unused gaps are reserved for future expansion of adjacent ranges.
+
+\begin{UAVCANSimpleTable}{Port identifier distribution}{|l l X|}%
+    \label{table:application_requirements_port_id_distribution}
+    Subject-ID          & Service-ID        & Purpose \\
+    $[0, 24575]$        & $[0, 127]$        & Unregulated identifiers (both fixed and non-fixed). \\
+    $[28672, 29695]$    & $[256, 319]$      & Non-standard fixed regulated identifiers (i.e., vendor-specific). \\
+    $[31744, 32767]$    & $[384, 511]$      & Standard fixed regulated identifiers. \\
+\end{UAVCANSimpleTable}
+
+\subsection{Port compatibility}
+
+% https://github.com/UAVCAN/specification/pull/64#discussion_r357771739
+
+The system integrator shall ensure that nodes participating in data exchange via a given port\footnote{%
+    I.e., subject or service.
+} use data type definitions that are sufficiently congruent so that the resulting behavior of the involved nodes
+is predictable and the possibility of unintended behaviors caused by misinterpretation of exchanged serialized
+objects is eliminated.
+
+\begin{remark}
+    Let there be type $A$:
+
+    \begin{minted}{python}
+        void1
+        uint7 demand_factor_pct  # [percent]
+        # Values above 100% are not allowed.
+    \end{minted}
+
+    And type $B$:
+
+    \begin{minted}{python}
+        uint8 demand_factor_pct  # [percent]
+        # Values above 100% indicate overload.
+    \end{minted}
+
+    The data types are not semantically compatible, but they can be used on the same subject nevertheless:
+    a subscriber expecting $B$ can accept $A$.
+    The reverse is not true, however.
+
+    This example shows that even semantically incompatible types can facilitate
+    behaviorally correct interoperability of nodes.
+\end{remark}
+
+\begin{remark}
+    Compatibility of subjects and services is completely independent from the names of the involved data types.
+    Data types can be moved between namespaces and freely renamed and re-versioned
+    without breaking compatibility with existing deployments.
+    Nodes provided by different vendors that utilize differently named data types may
+    still interoperate if such data types happen to be compatible.
+    The duty of ensuring the compatibility lies on the system integrator.
+\end{remark}
+
+\subsection{Standard namespace}
+
+An overview of related concepts is provided in chapter~\ref{sec:dsdl}.
+
+This specification defines a set of standard regulated DSDL data types located under
+the root namespace named ``\verb"uavcan"'' (section~\ref{sec:sdt}).
+
+Vendor-specific, user-specific, or any other data types not defined by this specification
+shall not be defined inside the standard root namespace\footnote{Custom data type definitions shall be located
+inside vendor-specific or user-specific namespaces instead.}.

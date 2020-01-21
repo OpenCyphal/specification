@@ -62,14 +62,14 @@
 % Source code listings highlighting
 \usemintedstyle{vs}
 \setminted{
-frame=leftline,
-linenos,
-numberblanklines=false,
-fontsize=\footnotesize,
-xleftmargin=\dimexpr\leftskip-2.15mm\relax,
-framesep=2mm,
-baselinestretch=1,
-autogobble
+    frame=leftline,
+    linenos,
+    numberblanklines=false,
+    fontsize=\footnotesize,
+    xleftmargin=\dimexpr\leftskip-2.15mm\relax,
+    framesep=2mm,
+    baselinestretch=1,
+    autogobble
 }
 % The Pygments library is just too smart.
 % We don't want it to highlight errors in our listings because our listings are obviously perfect.
@@ -177,7 +177,7 @@ autogobble
 \leftskip=17mm
 \headsep=8mm
 \footskip=12mm
-\geometry{margin=18mm,top=20mm,bottom=20mm}
+\geometry{margin=17mm,top=20mm,bottom=20mm}
 
 % Removes the left margin for the next paragraph
 \newcommand{\NoLeftSkip}{\parindent=-\leftskip}
@@ -193,14 +193,14 @@ autogobble
 
 \titleformat{\part}[display]{}{\centering\Large Part \thepart}{1em}{
     \centering\huge\bfseries
-    }
+}
 
 \titleformat{\chapter}{\huge\bfseries}{}{1em}{\makebox[17mm][l]{\thechapter}\hangindent=17mm}
 \titleformat{\section}{\Large\bfseries}{}{1em}{\makebox[17mm][l]{\thesection}\hangindent=17mm}
 \titleformat{\subsection}{\bfseries}{}{1em}{\makebox[17mm][l]{\thesubsection}\hangindent=17mm}
 \titleformat{\subsubsection}{\itshape}{\thesubsubsection}{1em}{%
     \makebox[17mm][l]{\thesubsubsection}\hangindent=17mm
-    }
+}
 
 % Starred sections
 \titleformat{name=\chapter,numberless}{\huge\bfseries}{}{1em}{}
@@ -249,21 +249,21 @@ autogobble
     \section*{\contentsname}%
     \@starttoc{toc}%
     \fussy%
-    }
+}
 \renewcommand\listoffigures{%
     \thispagestyle{plain}%
     \sloppy%
     \section*{\listfigurename}%
     \@starttoc{lof}%
     \fussy%
-    }
+}
 \renewcommand\listoftables{%
     \thispagestyle{plain}%
     \sloppy%
     \section*{\listtablename}%
     \@starttoc{lot}%
     \fussy%
-    }
+}
 
 % Make links black in the TOC, LOF, LOT.
 \preto\tableofcontents{\hypersetup{linkcolor=black}         \setlength{\parskip}{0em}}
@@ -291,6 +291,10 @@ autogobble
     \NoLeftSkip
     \begin{minipage}{\textwidth}  % Minipage is needed to prevent page breaks after the caption
         \begin{ThreePartTable}
+            % If hypcap is enabled, the package "caption" yields a warning saying that the option will be ignored,
+            % ostensibly because we don't have the hypcap package loaded (we don't need this behavior).
+            % RTFM https://www.texlive.info/CTAN/macros/latex/contrib/caption/caption-rus.pdf.
+            \captionsetup{hypcap=false}
             % https://tex.stackexchange.com/questions/3243/why-should-a-table-caption-be-placed-above-the-table
             \captionof{table}{#1}
 }{
@@ -342,7 +346,7 @@ autogobble
     \ifdefempty{\chaptertitle}%
     {\sectiontitle}%
     {\chaptertitle}%
-    }
+}
 
 \newcommand\PageNumberWithTotal{\thepage\if@mainmatter/\pageref*{LastPage}\fi}
 
@@ -364,7 +368,7 @@ autogobble
 
     \headrule
     \footrule
-    }
+}
 \newpagestyle{main}{
     \sethead%
         [\TitleWithDateAfter][][\UAVCANLogo]     % even
@@ -376,11 +380,11 @@ autogobble
 
     \headrule
     \footrule
-    }
+}
 \newpagestyle{titlepage}{
     \setfoot{\UAVCANCopyright}{}{\VerboseLinkToSupportForum}
     \footrule
-    }
+}
 
 % Use the same style on pages that open new chapters.
 \patchcmd{\chapter}{plain}{main}{}{}
@@ -402,7 +406,7 @@ autogobble
     \UAVCANLogo[\textwidth]\hfill\vspace{10mm}
     \begin{flushleft}\begin{Huge}\@title\end{Huge}\end{flushleft}
     Revision \today\\[10mm]
-    }
+}
 
 \renewenvironment{titlepage}{%
     \leftskip=0mm\parindent=0mm
@@ -411,12 +415,12 @@ autogobble
         \begin{@twocolumnfalse}
             \RenderTitlePageHeader
         \end{@twocolumnfalse}
-        ]
+    ]
     % This is needed to allow LaTeX add more white spaces to avoid overflowing lines.
     % Extra white spaces in two-column environments are much less bad than overflowing lines.
     \emergencystretch 10em
-    }{%
+}{%
     \clearpage
-    }
+}
 
 \endinput

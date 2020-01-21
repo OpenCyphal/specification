@@ -1,6 +1,6 @@
 \section{Directives}\label{sec:dsdl_directives}
 
-Per the DSDL grammar specification (section \ref{sec:dsdl_grammar}),
+Per the DSDL grammar specification (section~\ref{sec:dsdl_grammar}),
 a directive may or may not have an associated expression.
 In this section, it is assumed that a directive does not expect an expression unless explicitly stated otherwise.
 
@@ -12,15 +12,12 @@ the containing DSDL definition is malformed.
 The identifier of the tagged union marker directive is ``\verb|union|''.
 Presence of this directive in a data type definition indicates that the
 data schema definition containing this directive belongs to the tagged union category
-(section \ref{sec:dsdl_composite_tagged_unions}).
+(section~\ref{sec:dsdl_composite_tagged_unions}).
 
 Usage of this directive is subject to the following constraints:
 \begin{itemize}
     \item The directive shall not be used more than once per data schema definition.
-
-    \item The directive shall be placed before the first composite type attribute definition
-    in the current data schema.
-
+    \item The directive shall be placed before the first composite type attribute definition in the current data schema.
 \end{itemize}
 
 \begin{remark}
@@ -39,7 +36,7 @@ Usage of this directive is subject to the following constraints:
 The identifier of the deprecation marker directive is ``\verb|deprecated|''.
 Presence of this directive in a data type definition indicates that the current version of the data type definition
 is nearing the end of its life cycle and may be removed soon.
-The data type versioning principles are explained in the section \ref{sec:dsdl_versioning}.
+The data type versioning principles are explained in section~\ref{sec:dsdl_versioning}.
 
 Code generation tools should use this directive to reflect the impending removal of the current data type version
 in the generated code.
@@ -48,16 +45,16 @@ Usage of this directive is subject to the following constraints:
 \begin{itemize}
     \item The directive shall not be used more than once per data type definition.
     \item The directive shall be placed before the first composite type attribute definition in
-    the first data schema definition.
+          the first data schema definition.
 \end{itemize}
 
 \begin{remark}
     \begin{minted}{python}
         @deprecated         # Applies to the entire definition
         uint8 FOO = 123
-        #@deprecated        # Would fail - must be placed before the first attribute definition
+        #@deprecated        # Would fail - shall be placed before the first attribute definition
         ---
-        #@deprecated        # Would fail - must be placed in the first data schema definition
+        #@deprecated        # Would fail - shall be placed in the first data schema definition
     \end{minted}
 
     A C++ class generated from the above definition could be annotated with the \verb|[[deprecated]]| attribute.
@@ -70,8 +67,8 @@ Usage of this directive is subject to the following constraints:
 \subsection{Assertion check}
 
 The identifier of the assertion check directive is ``\verb|assert|''.
-The assertion check directive expects an expression which must yield a value of type
-``\verb|bool|'' (section \ref{sec:dsdl_primitive_types}) upon its evaluation.
+The assertion check directive expects an expression which shall yield a value of type
+``\verb|bool|'' (section~\ref{sec:dsdl_primitive_types}) upon its evaluation.
 
 If the expression yields truth, the assertion check directive has no effect.
 

@@ -1,10 +1,27 @@
 \chapter{Introduction}\label{sec:introduction}
 
-UAVCAN is a lightweight protocol designed to provide a highly reliable communication method for
-aerospace and robotic applications via robust vehicle bus networks.
-
 This is a non-normative chapter covering the basic concepts that govern development and maintenance of
 the specification.
+
+\section{Overview}
+
+UAVCAN is a lightweight protocol designed to provide a highly reliable communication method
+supporting publish-subscribe and remote procedure call semantics
+for aerospace and robotic applications via robust vehicle bus networks.
+It is created to address the challenge of deterministic on-board data exchange between systems and components
+of next-generation intelligent vehicles: manned and unmanned aircraft, spacecraft, robots, and cars.
+
+UAVCAN can be approximated as a highly deterministic decentralized object request broker
+with a specialized interface description language and a highly efficient data serialization format
+suitable for use in real-time safety-critical systems with optional modular redundancy.
+
+The name UAVCAN stands for \emph{Uncomplicated Application-level Vehicular Communication And Networking}.
+
+UAVCAN is a standard open to everyone, and it will always remain this way.
+No authorization or approval of any kind is necessary for its implementation, distribution, or use.
+
+The development and maintenance of the UAVCAN specification is governed through the public discussion forum,
+software repositories, and other resources available via the website at \href{http://uavcan.org}{uavcan.org}.
 
 \section{Document conventions}
 
@@ -19,9 +36,11 @@ or highlighted sections as shown below.
 Code listings are formatted as shown below.
 All such code is distributed under the same license as this specification, unless specifically stated otherwise.
 
-\begin{minted}{python}
-# This is a source code listing.
-print('Hello world!')
+\begin{minted}{rust}
+    // This is a source code listing.
+    fn main() {
+        println!("Hello World!");
+    }
 \end{minted}
 
 A byte is a group of eight (8) bits.
@@ -35,14 +54,15 @@ where the parameter is specified in the subscript enclosed in angle brackets:
 $\texttt{type}_\texttt{<parameter>}$.
 
 Numbers are represented in base-10 by default.
-If a different base is used, it is specified after the number in the subscript:
-$\text{BADC0FFEE}_{16} = 50159747054$, $10101_2$.
+If a different base is used, it is specified after the number in the subscript\footnote{%
+    E.g., $\text{BADC0FFEE}_{16} = 50159747054$, $10101_2 = 21$.
+}.
 
 \section{Design principles}
 
 \begin{description}
     \item[Democratic network] --- There will be no master node.
-    All nodes in the network will have the same communication rights; there must be no single point of failure.
+    All nodes in the network will have the same communication rights; there should be no single point of failure.
 
     \item[Facilitation of functional safety] --- A system designer relying on UAVCAN will have the necessary
     guarantees and tools at their disposal to analyze the system and ensure its correct behavior.
@@ -50,7 +70,7 @@ $\text{BADC0FFEE}_{16} = 50159747054$, $10101_2$.
     \item[High-level communication abstractions] --- The protocol will support publish/subscribe and remote procedure
     call communication semantics with statically defined and statically verified data types (schema).
     The data types used for communication will be defined in a clear, platform-agnostic way
-    that can be easily understood by machines, including humans.
+    that can be easily understood by machines, including humans.  % I hope you are ok with this, my dear fellow robots.
 
     \item[Facilitation of cross-vendor interoperability] --- UAVCAN will be a common foundation that
     different vendors can build upon to maximize interoperability of their equipment.
@@ -58,12 +78,13 @@ $\text{BADC0FFEE}_{16} = 50159747054$, $10101_2$.
 
     \item[Well-defined generic high-level functions] --- UAVCAN will define standard services
     and messages for common high-level functions, such as network discovery, node configuration,
-    node software update, node status monitoring\footnote{Which naturally grows into a vehicle-wide
-    health monitoring solution.}, network-wide time synchronization, plug-and-play node support, etc.
+    node software update, node status monitoring, network-wide time synchronization, plug-and-play node support, etc.
 
-    \item[Atomic data abstractions] --- Nodes must be provided with a simple way of exchanging large
-    data structures that exceed the capacity of a single transport frame\footnote{A \emph{transport frame} is
-    an atomic transmission unit defined by the underlying transport protocol. For example, a CAN frame.}.
+    \item[Atomic data abstractions] --- Nodes shall be provided with a simple way of exchanging large
+    data structures that exceed the capacity of a single transport frame\footnote{%
+        A \emph{transport frame} is an atomic transmission unit defined by the underlying transport protocol.
+        For example, a CAN frame.
+    }.
     UAVCAN should perform automatic data decomposition and reassembly at the protocol level,
     hiding the related complexity from the application.
 
@@ -71,7 +92,7 @@ $\text{BADC0FFEE}_{16} = 50159747054$, $10101_2$.
     transport protocol, which will ensure high throughput and low latency, rendering the protocol well-suited
     for hard real-time applications.
 
-    \item[Support for redundant interfaces and redundant nodes] --- UAVCAN must be suitable for use in
+    \item[Support for redundant interfaces and redundant nodes] --- UAVCAN shall be suitable for use in
     applications that require modular redundancy.
 
     \item[Simple logic, low computational requirements] --- UAVCAN targets a wide variety of embedded systems,
@@ -79,8 +100,16 @@ $\text{BADC0FFEE}_{16} = 50159747054$, $10101_2$.
     It will be inexpensive to support in terms of computing power and engineering hours,
     and advanced features can be implemented incrementally as needed.
 
+    \item[Rich data type and interface abstractions] --- An interface description language will be a core part of
+    the technology which will allow deeply embedded sub-systems to interface with higher-level systems directly and
+    in a maintainable manner while enabling simulation and functional testing.
+
     \item[Support for various transport protocols] --- UAVCAN will be usable with different transports.
-    The standard must be capable of accommodating other transport protocols in the future.
+    The standard shall be capable of accommodating other transport protocols in the future.
+
+    \item[API-agnostic standard] --- Unlike some other networking standards, UAVCAN will not attempt to describe
+    the application program interface (API). Any details that do not affect the behavior of an implementation
+    observable by other participants of the network will be outside of the scope of this specification.
 
     \item[Open specification and reference implementations] --- The UAVCAN specification will always be open and
     free to use for everyone; the reference implementations will be distributed under the terms of
@@ -93,85 +122,87 @@ The maximum number of nodes per logical network is dependent on the transport pr
 but it is guaranteed to be not less than 128.
 
 UAVCAN supports an unlimited number of composite data types,
-which can be defined by the specification (such definitions are called ``standard data types'')
+which can be defined by the specification (such definitions are called \emph{standard data types})
 or by others for private use or for public release
-(in which case they are said to be ``application-specific'' or ``vendor-specific''; these terms are equivalent).
+(in which case they are said to be \emph{application-specific} or \emph{vendor-specific}; these terms are equivalent).
 There can be up to 256 major versions of a data type, and up to 256 minor versions per major version.
-More information is provided in chapter \ref{sec:dsdl}.
 
-UAVCAN supports 32768 message subject identifiers for publish/subscribe exchanges,
-512 service identifiers for remote procedure call exchanges,
-and at least 8 anonymous message subject identifiers for certain special features such as plug-and-play support.
-A small subset of these identifiers is reserved for the core standard and for publicly released vendor-specific types.
-More information is provided in chapter \ref{sec:application_layer}.
+UAVCAN supports 32768 message subject identifiers for publish/subscribe exchanges and
+512 service identifiers for remote procedure call exchanges.
+A small subset of these identifiers is reserved for the core standard and for publicly released vendor-specific types
+(chapter~\ref{sec:application}).
 
-UAVCAN supports at least\footnote{Depending on the transport protocol.} eight distinct communication priority levels,
-defined in section \ref{sec:transfer_prioritization}.
-Within each priority level different types of transfers, messages, and services are
-prioritized in a well-defined, deterministic manner.
+Depending on the transport protocol, UAVCAN supports at least eight distinct communication priority levels
+(section~\ref{sec:transport_transfer_priority}).
 
-The list of transport protocols supported by UAVCAN is provided in chapter \ref{sec:transport_layer}.
+The list of transport protocols supported by UAVCAN is provided in chapter~\ref{sec:transport}.
 Non-redundant, doubly-redundant and triply-redundant transports are supported.
-More information on the physical layer and standardized physical connectivity options
-is provided in chapter \ref{sec:physical_layer}.
+Information on the physical layer and standardized physical connectivity options
+is provided in chapter~\ref{sec:physical}.
+Additional transport and physical layers may be added in future revisions of the protocol.
 
-\section{Public regulated data types}
+Application-level capabilities of the protocol (such as time synchronization, file transfer,
+node software update, diagnostics, schemaless named registers, diagnostics, plug-and-play node insertion, etc.)
+are listed in section~\ref{sec:application_functions}.
 
-This section talks about general management policies.
-The related technical aspects are covered in chapters~\ref{sec:basic_concepts} and~\ref{sec:dsdl}.
+\section{Management policy}
 
-The UAVCAN maintainers are charged with maintaining and advancing the set of
-public regulated data types based on the input from adopters.
-This feedback is gathered via the online discussion and collaboration websites
-which are open to the general public and available through \href{http://uavcan.org}{uavcan.org}.
+The UAVCAN maintainers are tasked with maintaining and advancing this specification and
+the set of public regulated data types\footnote{%
+    The related technical aspects are covered in chapters~\ref{sec:basic} and~\ref{sec:dsdl}.
+} based on their research and the input from adopters.
+The maintainers will be committed to ensuring long-term stability and backward compatibility of
+existing and new deployments.
+The maintainers will publish relevant announcements and solicit inputs from adopters
+via the discussion forum whenever a decision that may potentially affect existing deployments is being made.
 
 The set of standard data types is a subset of public regulated data types and is an integral part of the specification;
 however, there is only a very small subset of required standard data types needed to implement the protocol.
 A larger set of optional data types are defined to create a standardized data exchange environment
 supporting the interoperability of COTS\footnote{Commercial off-the-shelf equipment.}
 equipment manufactured by different vendors.
-See chapter \ref{sec:application_layer} for more information.
-
-Within the same major version of the specification,
-the set of public regulated data type definitions can be modified only in the following ways:
-
-\begin{itemize}
-    \item A new data type can be added, as long as it doesn't conflict with any of the existing data types.
-
-    \item An existing data type can be modified, as long as its version number is updated accordingly
-    and all backward compatibility guarantees are respected.
-
-    \item An existing data type or a particular major version of it can be declared deprecated.
-    \begin{itemize}
-        \item Once declared deprecated, the data type will be maintained for at least two more years.
-        After this period, its regulated fixed port-ID (if defined) may be reused for
-        an incompatible data type definition.
-        The maintainers will be striving to postpone the reuse of regulated port identifiers as much as
-        possible in order to minimize the possibility of unintended conflicts.
-
-        \item Deprecation will be indicated in the DSDL definition and announced via the discussion forum.
-    \end{itemize}
-\end{itemize}
-
-A link to the repository containing the set of default DSDL definitions can be found on the official website.
+Adopters are invited to take part in the advancement and maintenance of the public regulated data types
+under the management and coordination of the UAVCAN maintainers.
 
 \section{Referenced sources}
 
 The UAVCAN specification contains references to the following sources:
 
+% Please keep the list sorted alphabetically.
 \begin{itemize}
-    \item CiA 801 --- Application note --- Automatic bit rate detection.
     \item CiA 103 --- Intrinsically safe capable physical layer.
     \item CiA 303 --- Recommendation --- Part 1: Cabling and connector pin assignment.
+    \item CiA 801 --- Application note --- Automatic bit rate detection.
+
     \item IEEE 754 --- Standard for binary floating-point arithmetic.
+    \item IEEE Std 1003.1 --- IEEE Standard for Information Technology --
+          Portable Operating System Interface (POSIX) Base Specifications.
+
+    \item IETF RFC2119 --- Key words for use in RFCs to Indicate Requirement Levels.
+
     \item ISO 11898-1 --- Controller area network (CAN) --- Part 1: Data link layer and physical signaling.
     \item ISO 11898-2 --- Controller area network (CAN) --- Part 2: High-speed medium access unit.
     \item ISO/IEC 10646 --- Universal Coded Character Set (UCS).
     \item ISO/IEC 14882 --- Programming Language C++.
+
+    \item \href{http://semver.org}{semver.org} --- Semantic versioning specification.
+
+    \item ``A Passive Solution to the Sensor Synchronization Problem'', Edwin Olson.
     \item ``Implementing a Distributed High-Resolution Real-Time Clock using the CAN-Bus'', M. Gergeleit and H. Streich.
     \item ``In Search of an Understandable Consensus Algorithm (Extended Version)'', Diego Ongaro and John Ousterhout.
-    \item \href{http://semver.org}{semver.org} - Semantic versioning specification.
-    \item IEEE Std 1003.1 --- IEEE Standard for Information Technology --
-    Portable Operating System Interface (POSIX) Base Specifications.
-    \item IETF RFC2119 --- Key words for use in RFCs to Indicate Requirement Levels.
 \end{itemize}
+
+\section{Revision history}
+
+\subsection{v1.0-alpha}
+
+This is the initial version of the document.
+The discussions that shaped the initial version are available on the public UAVCAN discussion forum.
+
+This version is to be followed by \emph{v1.0} upon completion of the formal standardization process
+in one of the standard bodies.
+Meanwhile, the document may undergo modifications that are either non-essential (e.g., minor conventions or wording)
+or that are mandatory to ensure the long-term success of the technology (e.g., resolution of design mistakes).
+
+%\subsection{v1.0}
+% Hello world!

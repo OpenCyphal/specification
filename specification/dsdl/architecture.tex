@@ -54,7 +54,7 @@ A \emph{full namespace} name is the full name without the short name and its com
 A \emph{sub-root namespace} is a nested namespace that is located immediately under its root namespace.
 Data types that reside directly under their root namespace do not have a sub-root namespace.
 
-The name structure is illustrated on the figure \ref{fig:dsdl_data_type_name_structure}.
+The name structure is illustrated in figure~\ref{fig:dsdl_data_type_name_structure}.
 
 \begin{figure}[H]
     $$
@@ -70,10 +70,10 @@ The name structure is illustrated on the figure \ref{fig:dsdl_data_type_name_str
         \underbrace{\texttt{\huge{GetInfo}}}_{\text{short name}}
     }^{\text{full name}}
     $$
-    \caption{Data type name structure.\label{fig:dsdl_data_type_name_structure}}
+    \caption{Data type name structure\label{fig:dsdl_data_type_name_structure}}
 \end{figure}
 
-A set of full namespace names and a set of full data type names must not intersect\footnote{%
+A set of full namespace names and a set of full data type names shall not intersect\footnote{%
     For example, a namespace ``\texttt{vendor.example}'' and a data type ``\texttt{vendor.example.1.0}''
     are mutually exclusive.
     Note the data type name shown in this example violates the naming conventions
@@ -82,21 +82,22 @@ A set of full namespace names and a set of full data type names must not interse
 
 Data type names and namespace names are case-sensitive.
 However, names that differ only in letter case are not permitted\footnote{%
-Because that may cause problems with case-insensitive file systems.}.
+    Because that may cause problems with case-insensitive file systems.
+}.
 In other words, a pair of names which differ only in letter case is considered to constitute a name collision.
 
 A name component consists of alphanumeric ASCII characters (which are: \verb|A-Z|, \verb|a-z|, and \verb|0-9|)
 and underscore (``\verb|_|'', ASCII code 95).
 An empty string is not a valid name component.
-The first character of a name component must not be a digit.
-A name component must not match any of the reserved word patterns,
-which are listed in the table \ref{table:dsdl_reserved_word_patterns}.
+The first character of a name component shall not be a digit.
+A name component shall not match any of the reserved word patterns,
+which are listed in table~\ref{table:dsdl_reserved_word_patterns}.
 
-The length of a full data type name must not exceed 50
+The length of a full data type name shall not exceed 50
 characters\footnote{This includes the name component separators.}.
 
 Every data type definition is assigned a major and minor version number pair.
-In order to uniquely identify a data type definition, its version numbers must be specified.
+In order to uniquely identify a data type definition, its version numbers shall be specified.
 In the following text, the term \emph{version} without a majority qualifier refers to
 a pair of major and minor version numbers.
 
@@ -108,13 +109,13 @@ A data type version where both major and minor components are zero is not allowe
 DSDL data type definitions are contained in UTF-8 encoded text files with a file name extension \verb|.uavcan|.
 
 One file defines exactly one version of a data type,
-meaning that each combination of major and minor version numbers must be unique per data type name.
+meaning that each combination of major and minor version numbers shall be unique per data type name.
 There may be an arbitrary number of versions of the same data type defined alongside each other,
 provided that each version is defined at most once.
 Version number sequences can be non-contiguous,
 meaning that it is allowed to skip version numbers or remove existing definitions that are neither oldest nor newest.
 
-A data type definition may have an optional fixed port-ID\footnote{Chapter \ref{sec:basic_concepts}.} value specified.
+A data type definition may have an optional fixed port-ID\footnote{Chapter~\ref{sec:basic}.} value specified.
 
 The name of a data type definition file is constructed from the following entities
 joined via the ASCII dot character ``\verb|.|'' (ASCII code 46), in the specified order:
@@ -140,7 +141,7 @@ joined via the ASCII dot character ``\verb|.|'' (ASCII code 46), in the specifie
         \underbrace{\texttt{\huge{uavcan}}}_{\text{file extension}}%
     }^{\text{mandatory}}
     $$
-    \caption{Data type definition file name structure.\label{fig:dsdl_definition_file_name_structure}}
+    \caption{Data type definition file name structure\label{fig:dsdl_definition_file_name_structure}}
 \end{figure}
 
 DSDL namespaces are represented as directories, where one directory defines exactly one namespace, possibly nested.
@@ -148,8 +149,10 @@ The name of the directory defines the name of its data type name component.
 A directory defining a namespace will always define said namespace in its entirety,
 meaning that the contents of a namespace cannot be spread across different directories sharing the same name.
 One directory cannot define more than one level of
-nesting\footnote{For example, ``\texttt{foo.bar}'' is not a valid directory name.
-The valid representation would be ``\texttt{bar}'' nested in ``\texttt{foo}''.}.
+nesting\footnote{%
+    For example, ``\texttt{foo.bar}'' is not a valid directory name.
+    The valid representation would be ``\texttt{bar}'' nested in ``\texttt{foo}''.
+}.
 
 \begin{remark}
     \begin{figure}[H]
@@ -187,7 +190,7 @@ The valid representation would be ``\texttt{bar}'' nested in ``\texttt{foo}''.}.
             \texttt{\qquad{}\qquad{}\qquad{}ID.1.0.uavcan} &
             Data type definition v1.0 without fixed port-ID. \\\hline
         \end{tabu}
-        \caption{DSDL directory structure example.}\label{fig:dsdl_directory_structure_example}
+        \caption{DSDL directory structure example}\label{fig:dsdl_directory_structure_example}
     \end{figure}
 \end{remark}
 
@@ -240,8 +243,11 @@ the number of bits in a serialized representation is called its \emph{bit length
 A \emph{bit length set} of a data type (or a data schema) refers to the set of bit length values of all possible
 serialized representations of objects that are instances of the data type (or that follow the data schema).
 
+A data type or schema whose bit length set contains more than one element is said to be \emph{variable length}.
+The opposite case is referred to as \emph{fixed length}.
+
 The data type of a serialized message or service object exchanged over the network
 is recovered from its subject-ID or service-ID, respectively,
 which is attached to the serialized object, along with other metadata, in a manner dictated by the applicable
-transport layer specification (chapter \ref{sec:transport_layer}).
-For more information on port identifiers and data type mapping refer to section \ref{sec:basic_subjects_and_services}.
+transport layer specification (chapter~\ref{sec:transport}).
+For more information on port identifiers and data type mapping refer to section~\ref{sec:basic_subjects_and_services}.

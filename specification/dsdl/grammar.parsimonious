@@ -24,7 +24,7 @@ statement_service_response_marker = ~r"---+"  # Separates request/response, spec
 
 statement_directive = statement_directive_with_expression
                     / statement_directive_without_expression
-statement_directive_with_expression    = "@" identifier _ expression  # The expression type must match the directive.
+statement_directive_with_expression    = "@" identifier _ expression  # The expression type shall match the directive.
 statement_directive_without_expression = "@" identifier
 
 # ==================================================== Data types ====================================================
@@ -36,7 +36,7 @@ type_array = type_array_variable_inclusive
            / type_array_variable_exclusive
            / type_array_fixed
 
-type_array_variable_inclusive = type_scalar _? "[" _? "<=" _? expression _? "]"  # Expression must yield integer.
+type_array_variable_inclusive = type_scalar _? "[" _? "<=" _? expression _? "]"  # Expression shall yield integer.
 type_array_variable_exclusive = type_scalar _? "[" _? "<"  _? expression _? "]"
 type_array_fixed              = type_scalar _? "[" _?         expression _? "]"
 

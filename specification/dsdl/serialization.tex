@@ -16,7 +16,7 @@ exchanging data over a UAVCAN network.
 The implicit truncation and implicit zero extension rules introduced in this section are designed to
 facilitate structural subtyping and to enable extensibility of data types while retaining backward compatibility.
 This is a conscious trade-off between runtime type checking and long-term stability guarantees.
-This model assumes data type compatibility is determined statically and not enforced at runtime.
+This model assumes that data type compatibility is determined statically and may not enforced at runtime.
 
 \subsubsection{Bit and byte ordering}
 
@@ -56,7 +56,7 @@ such format is also known as little-endian.
         }_\text{most significant byte}%
     }
     $$
-    \caption{Bit and byte ordering.\label{fig:dsdl_serialization_bit_ordering}}
+    \caption{Bit and byte ordering\label{fig:dsdl_serialization_bit_ordering}}
 \end{figure}
 
 \subsubsection{Implicit padding}
@@ -114,7 +114,7 @@ Non-zero padding bits (bytes) are not allowed\footnote{%
     \end{minted}
 
     Then the serialized representation of $x$ can be deserialized into an instance of $A$.
-    The topic of data type compatibility is explored in detail in section \ref{sec:dsdl_versioning}.
+    The topic of data type compatibility is explored in detail in section~\ref{sec:dsdl_versioning}.
 \end{remark}
 
 \subsubsection{Implicit zero extension of missing data}
@@ -134,10 +134,10 @@ upon construction of a serialized representation of an object\footnote{%
 \begin{remark}
     The implicit zero extension rule enables extension of data types by introducing additional fields
     without breaking backward compatibility with existing deployments.
-    The topic of data type compatibility is explored in detail in section \ref{sec:dsdl_versioning}.
+    The topic of data type compatibility is explored in detail in section~\ref{sec:dsdl_versioning}.
 
     The following example assumes that the reader is familiar with the variable-length array serialization rules,
-    explained in section \ref{sec:dsdl_serialized_variable_length_array}.
+    explained in section~\ref{sec:dsdl_serialized_variable_length_array}.
 
     Let the data type $A$ be defined as follows:
 
@@ -156,6 +156,16 @@ upon construction of a serialized representation of an object\footnote{%
     \verb|array| contains a sequence of four zeros: $0, 0, 0, 0$.
 \end{remark}
 
+\subsubsection{Error handling}
+
+It is guaranteed by design that no error states may occur during serialization.
+
+A deserialization process may encounter a serialized representation that does not belong to the
+set of serialized representations of the data type at hand.
+In such case, the invalid serialized representation shall be discarded and the implementation
+shall explicitly report its inability to complete the deserialization process for the given input.
+It is guaranteed by design that no other error states may occur during deserialization.
+
 \subsection{Void types}\label{sec:dsdl_serialized_void}
 
 The serialized representation of a void-typed field attribute is constructed as a sequence of zero bits.
@@ -165,7 +175,7 @@ When a void-typed field attribute is decoded, the values of respective bits are 
 in other words, any bit sequence of correct length is a valid serialized representation
 of a void-typed field attribute.
 This behavior facilitates usage of void fields as placeholders for non-void fields
-introduced in newer versions of the data type (section \ref{sec:dsdl_versioning}).
+introduced in newer versions of the data type (section~\ref{sec:dsdl_versioning}).
 
 \begin{remark}
     The following data schema will be serialized as a sequence of three zero bits $000_2$:
@@ -204,7 +214,7 @@ introduced in newer versions of the data type (section \ref{sec:dsdl_versioning}
 
 \subsubsection{General principles}
 
-Implementations where native data formats are incompatible with those adopted by UAVCAN must perform
+Implementations where native data formats are incompatible with those adopted by UAVCAN shall perform
 implicit conversions between the native formats and the corresponding UAVCAN formats during
 serialization and deserialization.
 Implementations shall strive to avoid or minimize information loss and/or distortion caused by such conversions.
@@ -250,7 +260,7 @@ with leading zeros preserved so that the total number of binary digits would equ
 \subsubsection{Signed integer types}
 
 The serialized representation of a non-negative value of a signed integer type is constructed as described
-in section \ref{sec:dsdl_serialized_unsigned_integer}.
+in section~\ref{sec:dsdl_serialized_unsigned_integer}.
 
 The serialized representation of a negative value of a signed integer type is computed by
 applying the following transformation:
@@ -259,7 +269,7 @@ where $n$ is the bit length of the serialized representation
 (which is reflected in the numerical suffix of the data type name)
 and $x$ is the value whose serialized representation is being constructed.
 The result of the transformation is a positive number,
-whose serialized representation is then constructed as described in section \ref{sec:dsdl_serialized_unsigned_integer}.
+whose serialized representation is then constructed as described in section~\ref{sec:dsdl_serialized_unsigned_integer}.
 
 The representation described here is widely known as \emph{two's complement}.
 
@@ -277,10 +287,11 @@ The serialized representation of floating point types follows the IEEE 754 serie
     \item \verb|float64| --- IEEE 754 binary64.
 \end{itemize}
 
-Implementations that model real numbers using any method other than IEEE 754 must be able to model
-positive infinity, negative infinity, signaling NaN\footnote{Per the IEEE 754 standard, NaN stands for
-``not-a-number'' -- a set of special bit patterns that represent lack of a meaningful value.},
-and quiet NaN.
+Implementations that model real numbers using any method other than IEEE 754 shall be able to model
+positive infinity, negative infinity, signaling NaN\footnote{%
+    Per the IEEE 754 standard, NaN stands for
+    ``not-a-number'' -- a set of special bit patterns that represent lack of a meaningful value.
+}, and quiet NaN.
 
 \subsection{Array types}
 
@@ -315,12 +326,10 @@ The bit length of the unsigned integer value is determined as follows:
 $$\lceil{}\log_2 (c + 1)\rceil{}$$
 where $c$ is the capacity (i.e., the maximum number of elements) of the variable-length array.
 The number of elements $n$ contained in the variable-length array is encoded
-in the serialized representation of the implicit length field%
-\footnote{%
-    Seeing as $n \leq c$ always holds, bit sequences where the implicit length field contains values
-    greater than $c$ do not belong to the set of serialized representations of the array.
-}
-as described in section \ref{sec:dsdl_serialized_unsigned_integer}.
+in the serialized representation of the implicit length field
+as described in section~\ref{sec:dsdl_serialized_unsigned_integer}.
+By definition, $n \leq c$; therefore, bit sequences where the implicit length field contains values
+greater than $c$ do not belong to the set of serialized representations of the array.
 
 The rest of the serialized representation is constructed as if the variable-length array was
 a fixed-length array of $n$ elements.
@@ -349,7 +358,7 @@ a fixed-length array of $n$ elements.
 
 \subsection{Composite types}
 
-As explained in the section \ref{sec:dsdl_composite_types}, a data type of the service kind contains
+As explained in the section~\ref{sec:dsdl_composite_types}, a data type of the service kind contains
 two data schema definitions: one for request object, one for response object.
 Unless explicitly specified otherwise, any reference to serialized representations of a service type
 implies either or both of its data schema definitions, depending on context.
@@ -398,18 +407,16 @@ $$\lceil{}\log_2 n\rceil{}$$
 where $n$ is the number of field attributes in the union, $n \geq 2$.
 
 Each of the tagged union field attributes is assigned an index according to the order of their definition;
-the order follows that of the DSDL statements (see section \ref{sec:dsdl_grammar} on statement ordering).
+the order follows that of the DSDL statements (see section~\ref{sec:dsdl_grammar} on statement ordering).
 The first defined field attribute is assigned the index 0 (zero),
 the index of each following field attribute is incremented by one.
 
 The index of the field attribute whose value is currently held by the tagged union is encoded
-in the serialized representation of the implicit union tag%
-\footnote{%
-    Seeing as $i < n$ always holds, where $i$ is the index of the current field attribute,
-    bit sequences where the implicit union tag field contains values
-    that are greater than or equal $n$ do not belong to the set of serialized representations of the tagged union.
-}
-as described in section \ref{sec:dsdl_serialized_unsigned_integer}.
+in the serialized representation of the implicit union tag as described in section
+\ref{sec:dsdl_serialized_unsigned_integer}.
+By definition, $i < n$, where $i$ is the index of the current field attribute;
+therefore, bit sequences where the implicit union tag field contains values
+that are greater than or equal $n$ do not belong to the set of serialized representations of the tagged union.
 
 The serialized representation of the implicit union tag is immediately followed by
 the serialized representation of the currently selected field attribute value.

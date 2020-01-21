@@ -21,7 +21,8 @@ and understandable diagnostic messages.
 
 At the time of DSDL definition processing, integer and real numbers are represented internally as rational numbers
 where the range of numerator and denominator is unlimited\footnote{%
-Technically, the range may only be limited by the memory resources available to the DSDL processing tool.}.
+    Technically, the range may only be limited by the memory resources available to the DSDL processing tool.
+}.
 DSDL processing tools are not permitted to introduce any implicit rational number transformations that
 may result in a loss of information.
 
@@ -123,12 +124,12 @@ the specification.
 \subsection{Set}\label{sec:dsdl_set}
 
 A set type represents an unordered collection of unique objects.
-All objects must be of the same type.
+All objects shall be of the same type.
 Uniqueness of elements is determined by application of the equality operator ``\verb|==|''.
 
 The DSDL name of the set type is ``\verb|set|''.
 
-A set can be constructed from a set literal, in which case such set must contain at least one element.
+A set can be constructed from a set literal, in which case such set shall contain at least one element.
 
 The attributes and operators defined on set instances are listed in the tables~\ref{table:dsdl_set_attributes}
 and~\ref{table:dsdl_set_operators}, where $E$ represents the set element type.
@@ -142,8 +143,8 @@ and~\ref{table:dsdl_set_operators}, where $E$ represents the set element type.
     Smallest element in the set determined by sequential application of the operator ``\texttt{<}''. \\
 
     \texttt{max} & $E$ &
-    Operator ``\texttt{>}'' is defined \mbox{$(E, E) \rightarrow \texttt{bool}$} &
-    Greatest element in the set determined by sequential application of the operator ``\texttt{>}''. \\
+    Operator ``\texttt{<}'' is defined \mbox{$(E, E) \rightarrow \texttt{bool}$} &
+    Greatest element in the set determined by sequential application of the operator ``\texttt{<}''. \\
 
     \texttt{count} & \texttt{rational} & &
     Cardinality. \\
@@ -203,7 +204,7 @@ and~\ref{table:dsdl_set_operators}, where $E$ represents the set element type.
 
 \subsection{Serializable metatype}\label{sec:dsdl_metaserializable}
 
-Serializable types (which are reviewed in section \ref{sec:dsdl_serializable_types})
+Serializable types (which are reviewed in section~\ref{sec:dsdl_serializable_types})
 are instances of the serializable metatype.
 This metatype is convenient for expression of various relations and attributes defined on serializable types.
 
