@@ -33,6 +33,8 @@ Do not put a full stop after a caption unless it contains any other punctuation 
 
 Always insert a non-breakable space before reference: `refer to section~\ref{sec:chapter_section}`.
 
+When referring to a category of identifiers, put a hyphen before "ID"; for example: "node-ID" is correct, "node ID" is not.
+
 ### Rigging
 
 In order to refer to a DSDL definition, use macro `\DSDLReference{}`.
