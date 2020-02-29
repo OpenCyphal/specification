@@ -1,0 +1,16 @@
+{
+    "name": "Spec PDF build",
+    "dockerFile": "Dockerfile",
+    "settings": { 
+        "terminal.integrated.shell.linux": "/bin/bash"
+    },
+    "mounts": [
+        "source=root-vscode-server,target=/root/.vscode-server/extensions,type=volume",
+        "source=root-vscode-server-insiders,target=/.vscode-server-insiders/extensions,type=volume",
+    ],
+    "extensions": [
+        "James-Yu.latex-workshop",
+        "uavcan.dsdl",
+        "ban.spellright"
+    ]
+}
