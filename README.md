@@ -97,8 +97,10 @@ Regulated non-standard definitions\footnote{%
 A GNU/Linux-based operating system is assumed.
 The described instructions may be valid for other operating systems but this is not guaranteed.
 
-In order to compile the document, install TexLive (Debian-based APT packages: `texlive-full lyx`)
-and the Python packages listed in `requirements.txt`.
+In order to compile the document, install TexLive (Debian-based APT packages: `texlive-full lyx`),
+and make sure that the version of pdfLaTeX is `3.14159265-2.6-1.40.16`.
+Any other version may miscompile the document with subtle typographical defects.
+Install the Python packages listed in `requirements.txt`.
 
 When done, run `./compile.sh`.
 
