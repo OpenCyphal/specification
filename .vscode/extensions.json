@@ -1,0 +1,10 @@
+{
+    // See http://go.microsoft.com/fwlink/?LinkId=827846
+    // for the documentation about the extensions.json format
+    "recommendations": [
+        "James-Yu.latex-workshop",
+        "uavcan.dsdl",
+        "ban.spellright",
+        "ms-vscode-remote.vscode-remote-extensionpack"
+    ]
+}

@@ -105,6 +105,15 @@ Install the Python packages listed in `requirements.txt`.
 
 When done, run `./compile.sh`.
 
+#### Using texer
+
+You can use our Docker container to build the specification if you don't want to setup your own build environment.
+
+1. pull [texer container](https://hub.docker.com/repository/docker/uavcan/texer)
+2. `docker run --rm -it -v ${PWD}:/repo:delegated uavcan/texer:ubuntu-16.04`
+3. `pip3 install pydsdl`
+4. `./compile.sh`
+
 ### IDE setup
 
 First, ensure that you can compile the document as described above.
@@ -113,44 +122,9 @@ Do not proceed further until that requirement is satisfied.
 Use Visual Studio Code with extensions `James-Yu.latex-workshop` and `ban.spellright` for editing.
 More info in the [Zubax Knowledge Base](https://kb.zubax.com/x/IYEh).
 
-If you're using Visual Studio Code, the following settings for `James-Yu.latex-workshop` may be useful
-(paste them into your user config file):
+If you're using Visual Studio Code there are local settings for `latex-workshop` and you can use
+the `.vscode/spellright.dict` to squelch bogus spelling errors from Spellright.
 
-```json
-{
-    "latex-workshop.view.pdf.hand": true,
-    "latex-workshop.latex.recipes": [
-        {
-            "name": "pdflatex x3",
-            "tools": [
-                "pdflatex",
-                "pdflatex",
-                "pdflatex"
-            ]
-        }
-    ],
-    "latex-workshop.latex.tools": [
-        {
-            "name": "pdflatex",
-            "command": "pdflatex",
-            "args": [
-                "-synctex=1",
-                "-interaction=nonstopmode",
-                "-file-line-error",
-                "--halt-on-error",
-                "--shell-escape",
-                "%DOC%"
-            ]
-        },
-        {
-            "name": "bibtex",
-            "command": "bibtex",
-            "args": [
-                "%DOCFILE%"
-            ]
-        }
-    ]
-}
-```
+#### L33t IDE Setup
 
-Use the dictionary file `.vscode/spellright.dict` to squelch bogus spelling errors from Spellright.
+If you want to use our [texer container](https://hub.docker.com/repository/docker/uavcan/texer) with vscode then install the ["ms-vscode-remote.vscode-remote-extensionpack"](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack) and Docker. When you open vscode in this repostory it should prompt you to "open this folder in container?". Otherwise `F1` or `CMD+SHIFT+P` and select `Remote-Containers: Reopen Locally`. Once within the container you can simply `F1` or `CMD+SHIFT+P` and `LaTeX Workshop: Build LaTeX project` to build the specification PDF.
