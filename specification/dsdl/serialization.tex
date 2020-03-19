@@ -32,27 +32,27 @@ such format is also known as little-endian.
     $$
     \overset{\text{bit index}}{%
         \underbrace{%
-            \overset{0}{\hugett{0}}
-            \overset{1}{\hugett{1}}
-            \overset{2}{\hugett{0}}
-            \overset{3}{\hugett{1}}
-            \overset{4}{\hugett{0}}
-            \overset{5}{\hugett{1}}
-            \overset{6}{\hugett{0}}
-            \overset{7}{\hugett{1}}
+            \overset{7}{\hugett{0}}
+            \overset{6}{\hugett{1}}
+            \overset{5}{\hugett{0}}
+            \overset{4}{\hugett{1}}
+            \overset{3}{\hugett{0}}
+            \overset{2}{\hugett{1}}
+            \overset{1}{\hugett{0}}
+            \overset{0}{\hugett{1}}
         }_\text{least significant byte}%
     }
     \hugett{\ldots}
     \overset{\text{bit index}}{%
         \underbrace{%
-            \overset{0}{\hugett{0}}
-            \overset{1}{\hugett{1}}
-            \overset{2}{\hugett{0}}
-            \overset{3}{\hugett{1}}
-            \overset{4}{\hugett{0}}
-            \overset{5}{\hugett{1}}
-            \overset{6}{\hugett{0}}
-            \overset{7}{\hugett{1}}
+            \overset{7}{\hugett{0}}
+            \overset{6}{\hugett{1}}
+            \overset{5}{\hugett{0}}
+            \overset{4}{\hugett{1}}
+            \overset{3}{\hugett{0}}
+            \overset{2}{\hugett{1}}
+            \overset{1}{\hugett{0}}
+            \overset{0}{\hugett{1}}
         }_\text{most significant byte}%
     }
     $$
@@ -73,7 +73,7 @@ over network bandwidth utilization and data transfer latency as necessary withou
 The exceptional edge case mentioned above when implicit padding is introduced is as follows.
 Serialized representations of DSDL entities operate at the bit level,
 whereas the transport protocols supported by UAVCAN\footnote{As well as the majority of network protocols in general.}
-use byte as the smallest atomic data element.
+use bytes as the smallest atomic data element.
 The resulting mismatch of the data granularity levels is resolved by
 appending the serialized representation of the top-level composite type object with zero (0) bits
 until the length of its bit sequence is an integer multiple of eight (8).
@@ -90,9 +90,9 @@ any excessive (unused) data remaining upon deserialization\footnote{%
 }.
 
 As a consequence of the above requirement the transport layer can introduce
-additional zero padding bits (bytes) at the end of a serialized representation
+additional zero padding bits at the end of a serialized representation
 to satisfy data size granularity constraints.
-Non-zero padding bits (bytes) are not allowed\footnote{%
+Non-zero padding bits are not allowed\footnote{%
     Because padding bits may be misinterpreted as part of the serialized representation.
 }.
 
@@ -119,16 +119,16 @@ Non-zero padding bits (bytes) are not allowed\footnote{%
 
 \subsubsection{Implicit zero extension of missing data}
 
-For the purposes of deserialization routines,
-the serialized representation of any instance of any data type shall be considered to contain an implicit
-sequence of trailing zero (0) bits of infinite length.
+For the purposes of deserialization routines, if any received message is shorter than the known datatype an
+implementation shall attempt to accept this message by filling the missing data with zeros (0)\footnote{%
+    When accepting multi-part transfers the subsequent evaluation of the checksum may fail in such cases.
+}.
 
 Despite this rule, implementations are not allowed to intentionally truncate trailing zeros
 upon construction of a serialized representation of an object\footnote{%
-    Intentional truncation is prohibited because in a future revision of the specification the implicit zero
-    extension rule may be removed.
-    If intentional truncation were allowed, removal of the implicit zero extension rule would have
-    broken backward compatibility.
+    Intentional truncation is prohibited because a future revision of the specification may remove the implicit zero
+    extension rule.
+    If intentional truncation were allowed, removal of this rule would break backward compatibility.
 }.
 
 \begin{remark}
@@ -158,13 +158,13 @@ upon construction of a serialized representation of an object\footnote{%
 
 \subsubsection{Error handling}
 
-It is guaranteed by design that no error states may occur during serialization.
+Correct UAVCAN types shall have no serialization error states.
 
 A deserialization process may encounter a serialized representation that does not belong to the
 set of serialized representations of the data type at hand.
 In such case, the invalid serialized representation shall be discarded and the implementation
 shall explicitly report its inability to complete the deserialization process for the given input.
-It is guaranteed by design that no other error states may occur during deserialization.
+Correct UAVCAN types shall have no other deserialization error states.
 
 \subsection{Void types}\label{sec:dsdl_serialized_void}
 
@@ -215,9 +215,9 @@ introduced in newer versions of the data type (section~\ref{sec:dsdl_versioning}
 \subsubsection{General principles}
 
 Implementations where native data formats are incompatible with those adopted by UAVCAN shall perform
-implicit conversions between the native formats and the corresponding UAVCAN formats during
+conversions between the native formats and the corresponding UAVCAN formats during
 serialization and deserialization.
-Implementations shall strive to avoid or minimize information loss and/or distortion caused by such conversions.
+Implementations shall avoid or minimize information loss and/or distortion caused by such conversions.
 
 Serialized representations of instances of the primitive type category that are longer than one byte (8 bits)
 are constructed as follows.
@@ -225,19 +225,41 @@ First, only the least significant bytes that contain the used bits of the value 
 the rest are discarded following the lossy assignment policy selected by the specified cast mode.
 Then the bytes are arranged in the least-significant-byte-first order\footnote{Also known as ``little endian''.}.
 If the bit width of the value is not an integer multiple of eight (8),
-the rightmost byte (i.e., the most significant byte) is shifted left until the most significant bit of the value
-is aligned with the most significant bit of the byte.
+the rightmost byte (i.e., the most significant byte) is written into the next byte but the next value in the type
+will begin starting with the next bit in that same byte. If there are no further values then the remaining bits
+shall be zero (0).
 
 \begin{remark}
     The value $1110\,1101\,1010_2$ (3802 in base-10) of type \verb|uint12| is encoded as follows.
     The bit sequence is shown in the base-2 system, where bytes (octets) are comma-separated:
     $$
-        \overbrace{%
-            \underbrace{\hugett{11011010}}_{\substack{\text{Least significant} \\ \text{bits/byte}}}%
-            \hugett{,}%
-            \underbrace{\hugett{1110}}_{\substack{\text{Most} \\ \text{significant} \\ \text{bits}}}%
-        }^{\text{The value }3802_{10}}%
-        \underbrace{\hugett{????}}_{\substack{\text{Next object} \\ \text{or zero} \\ \text{padding bits}}}
+        \overset{\text{byte 0}}{%
+            \underbrace{%
+                \overset{7}{\hugett{1}}
+                \overset{6}{\hugett{1}}
+                \overset{5}{\hugett{0}}
+                \overset{4}{\hugett{1}}
+                \overset{3}{\hugett{1}}
+                \overset{2}{\hugett{0}}
+                \overset{1}{\hugett{1}}
+                \overset{0}{\hugett{0}}
+            }_{\substack{\text{Least significant 8} \\ \text{bits of }3802_{10}}}%
+        }%
+        \hugett{,}%
+        \overset{\text{byte 1}}{%
+            \underbrace{
+                \overset{7}{\hugett{?}}
+                \overset{6}{\hugett{?}}
+                \overset{5}{\hugett{?}}
+                \overset{4}{\hugett{?}}
+            }_{\substack{\text{Next object} \\ \text{or zero} \\ \text{padding bits}}}%
+            \underbrace{ 
+                \overset{3}{\hugett{1}}
+                \overset{2}{\hugett{1}}
+                \overset{1}{\hugett{1}}
+                \overset{0}{\hugett{0}}
+            }_{\substack{\text{Most} \\ \text{significant} \\ \text{4 bits of} \\ \text{3802}_{10}}}%
+        }
     $$
 \end{remark}
 

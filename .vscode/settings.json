@@ -1,6 +1,8 @@
 {
     "remote.containers.workspaceMountConsistency": "delegated",
     "latex-workshop.view.pdf.hand": true,
+    "latex-workshop.view.autoFocus.enabled": true,
+    "latex-workshop.latex.autoBuild.run": "never",
     "latex-workshop.latex.recipes": [
         {
             "name": "pdflatex x3",
