@@ -16,7 +16,7 @@ exchanging data over a UAVCAN network.
 The implicit truncation and implicit zero extension rules introduced in this section are designed to
 facilitate structural subtyping and to enable extensibility of data types while retaining backward compatibility.
 This is a conscious trade-off between runtime type checking and long-term stability guarantees.
-This model assumes that data type compatibility is determined statically and may not enforced at runtime.
+This model assumes that data type compatibility is determined statically and is not, normally, enforced at runtime.
 
 \subsubsection{Bit and byte ordering}
 
@@ -224,9 +224,8 @@ are constructed as follows.
 First, only the least significant bytes that contain the used bits of the value are preserved;
 the rest are discarded following the lossy assignment policy selected by the specified cast mode.
 Then the bytes are arranged in the least-significant-byte-first order\footnote{Also known as ``little endian''.}.
-If the bit width of the value is not an integer multiple of eight (8),
-the rightmost byte (i.e., the most significant byte) is written into the next byte but the next value in the type
-will begin starting with the next bit in that same byte. If there are no further values then the remaining bits
+If the bit width of the value is not an integer multiple of eight (8) then the next value in the type will begin
+starting with the next bit in the current byte. If there are no further values then the remaining bits
 shall be zero (0).
 
 \begin{remark}
@@ -276,7 +275,7 @@ is constructed as if the number were to be written in base-2 numerical system
 with leading zeros preserved so that the total number of binary digits would equal $n$.
 
 \begin{remark}
-    The serialized representation of integer 123 of type \verb|uint9| is $001111011_2$.
+    The serialized representation of integer 123 of type \verb|uint9| is $0111101100000000_2$.
 \end{remark}
 
 \subsubsection{Signed integer types}
@@ -296,7 +295,7 @@ whose serialized representation is then constructed as described in section~\ref
 The representation described here is widely known as \emph{two's complement}.
 
 \begin{remark}
-    The serialized representation of integer -123 of type \verb|int9| is $110000101_2$.
+    The serialized representation of integer -123 of type \verb|int9| is $01000010100000001_2$.
 \end{remark}
 
 \subsubsection{Floating point types}
@@ -344,9 +343,18 @@ the implicit length field followed by the array elements.
 The implicit length field is of an unsigned integer type.
 The serialized representation of the implicit length field
 is injected in the beginning of the serialized representation of its array.
-The bit length of the unsigned integer value is determined as follows:
-$$\lceil{}\log_2 (c + 1)\rceil{}$$
-where $c$ is the capacity (i.e., the maximum number of elements) of the variable-length array.
+The bit length of the unsigned integer value is first determined as follows:
+
+$$b=\lceil{}\log_2 (c + 1)\rceil{}$$
+
+where $c$ is the capacity (i.e., the maximum number of elements) of the variable-length array and
+$b$ is the minimum number of bits needed to encode $c$ as an unsigned integer. An additional transformation
+of $b$ ensures byte alignment of this implicit field when serialized\footnote{Future updates to the specification
+may allow this second step to be modified but the default action will always be to byte-align the implicit
+length field.}:
+
+$$2^{\lceil{}\log_2 (max(8, b))\rceil{}}$$
+
 The number of elements $n$ contained in the variable-length array is encoded
 in the serialized representation of the implicit length field
 as described in section~\ref{sec:dsdl_serialized_unsigned_integer}.
@@ -357,21 +365,31 @@ The rest of the serialized representation is constructed as if the variable-leng
 a fixed-length array of $n$ elements.
 
 \begin{remark}
-    It is recommended to manually align variable-length arrays by prepending them with padding field attributes
-    so that the first element is byte-aligned, as that facilitates more efficient serialization and deserialization.
+    Datatype authors must take into account that dynamic arrays with a capacity of $<=255$ elements will
+    consume an additional 8-bits of the message (where a capacity of $<=65535$ will consume 16-bits and so on).
+    For example:
 
     \begin{minted}{python}
-        void2                        # Padding - good practice but not required
-        AnyType.1.0[<42] array       # The implicit length field is 6 bits wide
-        @assert _offset_.min == 8    # Ensuring that the first element is byte-aligned
+        uint8 first
+        AnyType.1.0[<6] second         # The implicit length field is 8 bits wide
+        @assert _offset_.max / 8 <= 7  # This would fail.
     \end{minted}
 
-    If the array contained three elements,
-    the resulting set of its serialized representations would be equivalent to that of the following definition:
+    In the above example the author attempted to fit the message into a single CAN 2.0 frame but
+    did not account for the implicit length field. The correct version would be:
 
     \begin{minted}{python}
-        void2                        # Padding - good practice but not required
-        uint6 implicit_length_field  # Set to 3, because the array contains three elements
+        uint8 first
+        AnyType.1.0[<5] second         # The implicit length field is 8 bits wide
+        @assert _offset_.max / 8 <= 7  # This would pass.
+    \end{minted}
+
+    If the array contained three elements, the resulting set of its serialized representations would
+    be equivalent to that of the following definition:
+
+    \begin{minted}{python}
+        uint8 first
+        uint8 implicit_length_field  # Set to 3, because the array contains three elements
         AnyType.1.0 item_0
         AnyType.1.0 item_1
         AnyType.1.0 item_2
@@ -381,7 +399,7 @@ a fixed-length array of $n$ elements.
 \subsection{Composite types}
 
 As explained in the section~\ref{sec:dsdl_composite_types}, a data type of the service kind contains
-two data schema definitions: one for request object, one for response object.
+two data schema definitions: one for the request object and one for the response object.
 Unless explicitly specified otherwise, any reference to serialized representations of a service type
 implies either or both of its data schema definitions, depending on context.
 
