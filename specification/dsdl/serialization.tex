@@ -366,7 +366,7 @@ a fixed-length array of $n$ elements.
 
 \begin{remark}
     Datatype authors must take into account that dynamic arrays with a capacity of $<=255$ elements will
-    consume an additional 8-bits of the message (where a capacity of $<=65535$ will consume 16-bits and so on).
+    consume an additional 8-bits of the serialized representation (where a capacity of $\leq 65535$ will consume 16-bits and so on).
     For example:
 
     \begin{minted}{python}
