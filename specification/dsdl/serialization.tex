@@ -375,7 +375,7 @@ a fixed-length array of $n$ elements.
         @assert _offset_.max / 8 <= 7  # This would fail.
     \end{minted}
 
-    In the above example the author attempted to fit the message into a single CAN 2.0 frame but
+    In the above example the author attempted to fit the message into a single Classic CAN frame but
     did not account for the implicit length field. The correct version would be:
 
     \begin{minted}{python}
