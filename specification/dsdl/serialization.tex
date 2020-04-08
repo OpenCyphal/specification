@@ -390,9 +390,9 @@ a fixed-length array of $n$ elements.
     \begin{minted}{python}
         uint8 first
         uint8 implicit_length_field  # Set to 3, because the array contains three elements
-        AnyType.1.0 item_0
-        AnyType.1.0 item_1
-        AnyType.1.0 item_2
+        uint8 item_0
+        uint8 item_1
+        uint8 item_2
     \end{minted}
 \end{remark}
 
