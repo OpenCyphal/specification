@@ -353,7 +353,7 @@ of $b$ ensures byte alignment of this implicit field when serialized\footnote{Fu
 may allow this second step to be modified but the default action will always be to byte-align the implicit
 length field.}:
 
-$$2^{\lceil{}\log_2 (max(8, b))\rceil{}}$$
+$$2^{\lceil{}\log_2 (\text{max}(8, b))\rceil{}}$$
 
 The number of elements $n$ contained in the variable-length array is encoded
 in the serialized representation of the implicit length field
