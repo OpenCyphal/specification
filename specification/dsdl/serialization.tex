@@ -380,7 +380,7 @@ a fixed-length array of $n$ elements.
 
     \begin{minted}{python}
         uint8 first
-        AnyType.1.0[<5] second         # The implicit length field is 8 bits wide
+        uint8[<=5] second              # The implicit length field is 8 bits wide
         @assert _offset_.max / 8 <= 7  # This would pass.
     \end{minted}
 
