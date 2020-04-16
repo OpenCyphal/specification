@@ -109,7 +109,7 @@ When done, run `./compile.sh`.
 
 You can use our Docker container to build the specification if you don't want to setup your own build environment.
 
-1. pull [texer container](https://hub.docker.com/repository/docker/uavcan/texer)
+1. pull [texer container](https://hub.docker.com/r/uavcan/texer)
 2. `docker run --rm -it -v ${PWD}:/repo:delegated uavcan/texer:ubuntu-16.04`
 3. `pip3 install pydsdl`
 4. `./compile.sh`
