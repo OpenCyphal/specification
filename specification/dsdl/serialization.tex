@@ -119,9 +119,12 @@ Non-zero padding bits are not allowed\footnote{%
 
 \subsubsection{Implicit zero extension of missing data}
 
-For the purposes of deserialization routines, if any received message is shorter than the known datatype an
-implementation shall attempt to accept this message by filling the missing data with zeros (0)\footnote{%
-    When accepting multi-part transfers the subsequent evaluation of the checksum may fail in such cases.
+For the purposes of deserialization routines,
+the serialized representation of any instance of a data type shall \emph{implicitly} end with an
+infinite sequence of bits with a value of zero (0).\footnote{%
+    This can be implemented by checking for out-of-bounds access during deserialization and returning zeros
+    if an out-of-bounds access is detected. This is where the name ``implicit zero extension rule'' is derived
+    from.
 }.
 
 Despite this rule, implementations are not allowed to intentionally truncate trailing zeros
