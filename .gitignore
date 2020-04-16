@@ -1,2 +1,4 @@
 *.tmp
 *.cache
+.mypy_cache
+
