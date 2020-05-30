@@ -35,6 +35,10 @@ Always insert a non-breakable space before reference: `refer to section~\ref{sec
 
 When referring to a category of identifiers, put a hyphen before "ID"; for example: "node-ID" is correct, "node ID" is not.
 
+Avoid introduction of new acronyms unless you really must.
+It is better to say "transfer-ID" or "data type hash" rather than TID or DTH.
+Excessive reliance on acronyms may impede comprehension.
+
 ### Rigging
 
 In order to refer to a DSDL definition, use macro `\DSDLReference{}`.
@@ -128,3 +132,5 @@ the `.vscode/spellright.dict` to squelch bogus spelling errors from Spellright.
 #### L33t IDE Setup
 
 If you want to use our [texer container](https://hub.docker.com/repository/docker/uavcan/texer) with vscode then install the ["ms-vscode-remote.vscode-remote-extensionpack"](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack) and Docker. When you open vscode in this repostory it should prompt you to "open this folder in container?". Otherwise `F1` or `CMD+SHIFT+P` and select `Remote-Containers: Reopen Locally`. Once within the container you can simply `F1` or `CMD+SHIFT+P` and `LaTeX Workshop: Build LaTeX project` to build the specification PDF.
+
+The above [may not work](https://github.com/microsoft/vscode-remote-release/issues/1097) if you are running an OSS build of VSCode (e.g., from Arch AUR). It is recommended to use the official binaries from Micro$oft.
