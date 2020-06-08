@@ -275,6 +275,9 @@
 \preto\listoftables{\hypersetup{linkcolor=black}         \setlength{\parskip}{0em}}
 \appto\listoftables{\hypersetup{linkcolor=colorhyperlink}\setlength{\parskip}{\DefaultParskip}}
 
+% Include section numbers in the pdf bookmark tree.
+\hypersetup{bookmarksnumbered}
+
 %
 % Table macros.
 %
