@@ -223,10 +223,10 @@ The minor versions may differ, which is acceptable due to the major version comp
         truncated float16 internal_temperature    # [kelvin]
         truncated float16 coolant_temperature     # [kelvin]
 
-        # breaking compatibility with Status.0.1 is okay because the major version is 0
         saturated float32 power_consumption_0     # [watt] Power consumption by the redundant PSU 0
         saturated float32 power_consumption_1     # [watt] likewise for PSU 1
         saturated float32 power_consumption_2     # [watt] likewise for PSU 2
+        # breaking compatibility with Status.0.1 is okay because the major version is 0
 
         uint8 FLAG_COOLING_SYSTEM_B_ACTIVE = 1
         uint8 FLAG_COOLING_SYSTEM_A_ACTIVE = 2
@@ -255,17 +255,17 @@ The minor versions may differ, which is acceptable due to the major version comp
 
         float32[3] power_consumption    # [watt] Power consumption by the PSU
 
-        # Remember that UAVCAN puts the highest bits within each byte first.
-        # Error flags (this is the recommended practice).
         bool flag_cryobox_breach
         bool flag_overheating
         bool flag_psu_malfunction
+        # Error flags (this is the recommended practice).
+        # Remember that UAVCAN puts the highest bits within each byte first.
         
         void3   # Reserved for other flags
         
-        # Status flags (this is the recommended practice).
         bool flag_cooling_system_a_active
         bool flag_cooling_system_b_active
+        # Status flags (this is the recommended practice).
     \end{minted}
 
     Since the definitions v1.0 and v1.1 are semantically compatible,
