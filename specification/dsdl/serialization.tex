@@ -22,8 +22,8 @@ This model assumes that data type compatibility is determined statically and is 
 
 The smallest atomic data entity is a bit.
 Eight bits form one byte;
-within the byte, the bits are ordered so that the most significant bit is considered first (0-th index),
-and the least significant bit is considered last (7-th index).
+within the byte, the bits are ordered so that the least significant bit is considered first (0-th index),
+and the most significant bit is considered last (7-th index).
 
 Numeric values consisting of multiple bytes are arranged so that the least significant byte is encoded first;
 such format is also known as little-endian.
@@ -39,7 +39,7 @@ such format is also known as little-endian.
             \overset{3}{\hugett{0}}
             \overset{2}{\hugett{1}}
             \overset{1}{\hugett{0}}
-            \overset{0}{\hugett{1}}
+            \overset{LS-bit}{\overset{0}{\hugett{1}}}
         }_\text{least significant byte}%
     }
     \hugett{\ldots}
@@ -52,7 +52,7 @@ such format is also known as little-endian.
             \overset{3}{\hugett{0}}
             \overset{2}{\hugett{1}}
             \overset{1}{\hugett{0}}
-            \overset{0}{\hugett{1}}
+            \overset{LS-bit}{\overset{0}{\hugett{1}}}
         }_\text{most significant byte}%
     }
     $$
