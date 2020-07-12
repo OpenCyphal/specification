@@ -446,8 +446,13 @@ the implicit \emph{union tag} value followed by the selected field attribute val
 The implicit union tag is an unsigned integer value whose serialized representation
 is implicitly injected in the beginning of the serialized representation of its tagged union.
 The bit length of the implicit union tag is determined as follows:
-$$\lceil{}\log_2 n\rceil{}$$
-where $n$ is the number of field attributes in the union, $n \geq 2$.
+$$b=\lceil{}\log_2 n\rceil{}$$
+where $n$ is the number of field attributes in the union, $n \geq 2$ and $b$ is the minimum number of bits needed
+to encode $n$ as an unsigned integer. An additional transformation of $b$ ensures byte alignment of this implicit
+field when serialized\footnote{Future updates to the specification may allow this second step to be modified but
+the default action will always be to byte-align the implicit length field.}:
+
+$$2^{\lceil{}\log_2 (\text{max}(8, b))\rceil{}}$$
 
 Each of the tagged union field attributes is assigned an index according to the order of their definition;
 the order follows that of the DSDL statements (see section~\ref{sec:dsdl_grammar} on statement ordering).
@@ -487,13 +492,15 @@ the serialized representation of the currently selected field attribute value.
     Suppose that the value of \verb|b| is 7.
     The resulting serialized representation is shown below in the base-2 system:
     $$%
-    \underbrace{\hugett{01}}_{\substack{\text{union} \\ \text{tag}}}%
-    \underbrace{\hugett{00000111}}_{\text{field }\texttt{b}}%
+    \overset{\text{byte 0}}{%
+        \underbrace{\hugett{00000001}}_{\substack{\text{union} \\ \text{tag}}}%
+    }%
+    \hugett{,}%
+    \overset{\text{byte 1}}{%
+        \underbrace{\hugett{00000111}}_{\text{field }\texttt{b}}%
+    }
     $$
 
-    It is recommended to manually align tagged unions when they are nested into outer objects by
-    prepending them with a padding field attribute so that the value contained in the union is byte-aligned
-    after the tag, as that facilitates more efficient serialization and deserialization.
 \end{remark}
 
 \begin{remark}
