@@ -255,17 +255,16 @@ The minor versions may differ, which is acceptable due to the major version comp
 
         float32[3] power_consumption    # [watt] Power consumption by the PSU
 
-        bool flag_cryobox_breach
-        bool flag_overheating
-        bool flag_psu_malfunction
-        # Error flags (this is the recommended practice).
-        # Remember that UAVCAN puts the highest bits within each byte first.
+        bool flag_cooling_system_b_active
+        bool flag_cooling_system_a_active
+        # Status flags (this is the recommended practice).
         
         void3   # Reserved for other flags
-        
-        bool flag_cooling_system_a_active
-        bool flag_cooling_system_b_active
-        # Status flags (this is the recommended practice).
+
+        bool flag_psu_malfunction
+        bool flag_overheating
+        bool flag_cryobox_breach
+        # Error flags (this is the recommended practice).
     \end{minted}
 
     Since the definitions v1.0 and v1.1 are semantically compatible,
@@ -285,12 +284,12 @@ The minor versions may differ, which is acceptable due to the major version comp
 
         float32[3] power_consumption    # [watt] Power consumption by the PSU
 
-        bool flag_cryobox_breach
-        bool flag_overheating
-        bool flag_psu_malfunction
-        void3
-        bool flag_cooling_system_a_active
         bool flag_cooling_system_b_active
+        bool flag_cooling_system_a_active
+        void3
+        bool flag_psu_malfunction
+        bool flag_overheating
+        bool flag_cryobox_breach
     \end{minted}
 
     Imagine that later it was determined that the module should report additional status information
@@ -307,12 +306,12 @@ The minor versions may differ, which is acceptable due to the major version comp
 
         float32[3] power_consumption    # [watt] Power consumption by the PSU
 
-        bool flag_cryobox_breach
-        bool flag_overheating
-        bool flag_psu_malfunction
-        void3
-        bool flag_cooling_system_a_active
         bool flag_cooling_system_b_active
+        bool flag_cooling_system_a_active
+        void3
+        bool flag_psu_malfunction
+        bool flag_overheating
+        bool flag_cryobox_breach
 
         float32 rotor_angular_velocity  # [radian/second] (usage of RPM would be non-compliant)
         float32 volumetric_flow_rate    # [meter^3/second]
