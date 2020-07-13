@@ -33,5 +33,6 @@
                 "%DOCFILE%"
             ]
         }
-    ]
+    ],
+    "latex-workshop.viewer.pdf.internal.port": 41491
 }

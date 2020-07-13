@@ -8,6 +8,7 @@
         "source=root-vscode-server,target=/root/.vscode-server/extensions,type=volume",
         "source=root-vscode-server-insiders,target=/.vscode-server-insiders/extensions,type=volume",
     ],
+    "forwardPorts": [41491],
     "extensions": [
         "James-Yu.latex-workshop",
         "uavcan.dsdl",
