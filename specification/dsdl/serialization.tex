@@ -491,13 +491,11 @@ of field attribute declaration.
         }_{\texttt{byte 3}}%
     $$
 
-    Note that some of the complexity of the above illustration stems from the western convention of representing
+    Note that some of the complexity of the above illustration stems from the modern convention of representing
     numbers with the most significant components on the left moving to the least significant component of the
     number of the right. If you were to reverse this convention the bit sequences for each type in the composite
-    would seem to be continuous as they crossed byte boundaries. Using this reversed representation, however; is
-    not recommended both because the convention is deeply ingrained in most readers, tools, and technologies; and
-    because the bits in each byte are put onto the CAN bus in the left-to-right order shown. Said differently;
-    CAN is "bit big-endian" and UAVCAN is "byte little-endian" on top of CAN. 
+    would seem to be continuous as they crossed byte boundaries. Using this reversed representation, however, is
+    not recommended because the convention is deeply ingrained in most readers, tools, and technologies.
 \end{remark}
 
 \subsubsection{Tagged unions}

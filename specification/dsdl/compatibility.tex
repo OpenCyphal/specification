@@ -228,8 +228,8 @@ The minor versions may differ, which is acceptable due to the major version comp
         saturated float32 power_consumption_2     # [watt] likewise for PSU 2
         # breaking compatibility with Status.0.1 is okay because the major version is 0
 
-        uint8 FLAG_COOLING_SYSTEM_B_ACTIVE = 1
-        uint8 FLAG_COOLING_SYSTEM_A_ACTIVE = 2
+        uint8 FLAG_COOLING_SYSTEM_A_ACTIVE = 1
+        uint8 FLAG_COOLING_SYSTEM_B_ACTIVE = 2
         # Status flags in the lower bits.
         uint8 FLAG_PSU_MALFUNCTION = 32
         uint8 FLAG_OVERHEATING     = 64
@@ -255,8 +255,8 @@ The minor versions may differ, which is acceptable due to the major version comp
 
         float32[3] power_consumption    # [watt] Power consumption by the PSU
 
-        bool flag_cooling_system_b_active
         bool flag_cooling_system_a_active
+        bool flag_cooling_system_b_active
         # Status flags (this is the recommended practice).
         
         void3   # Reserved for other flags
@@ -284,8 +284,8 @@ The minor versions may differ, which is acceptable due to the major version comp
 
         float32[3] power_consumption    # [watt] Power consumption by the PSU
 
-        bool flag_cooling_system_b_active
         bool flag_cooling_system_a_active
+        bool flag_cooling_system_b_active
         void3
         bool flag_psu_malfunction
         bool flag_overheating
