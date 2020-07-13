@@ -426,16 +426,78 @@ of field attribute declaration.
 
     It can be seen that the bit layout is rather complicated because the field boundaries do not align with byte
     boundaries, which makes it a good case study.
-    The resulting serialized byte sequence is shown below in the base-2 system,
-    where bytes (octets) are comma-separated:
+    The resulting serialized byte sequence is shown below in the base-2 system:
     $$
-        \overbrace{\hugett{11011010,1110}}^{\texttt{first}}%
-        \underbrace{\hugett{111}}_{\texttt{second}}%
-        \overbrace{\hugett{1,011}}^{\texttt{third}}%
-        \underbrace{\hugett{11}}_{\texttt{fourth}}%
-        \overbrace{\hugett{100,0}}^{\texttt{fifth}}%
-        \underbrace{\hugett{???????}}_{\substack{\text{Next object or} \\ \text{zero padding bits}}}
+        \underbrace{%
+            \overbrace{%
+                \underset{7}{\overset{7}{\hugett{1}}}%
+                \underset{6}{\overset{6}{\hugett{1}}}%
+                \underset{5}{\overset{5}{\hugett{0}}}%
+                \underset{4}{\overset{4}{\hugett{1}}}%
+                \underset{3}{\overset{3}{\hugett{1}}}%
+                \underset{2}{\overset{2}{\hugett{0}}}%
+                \underset{1}{\overset{1}{\hugett{1}}}%
+                \underset{0}{\overset{0}{\hugett{0}}}%
+            }^{\texttt{first}}%
+        }_{\texttt{byte 0}}%
+        \hugett{,}%
+        \underbrace{%
+            \overbrace{%
+                \underset{7}{\overset{0}{\hugett{1}}}%
+            }^{\texttt{third}}%
+            \overbrace{%
+                \underset{6}{\overset{2}{\hugett{1}}}%
+                \underset{5}{\overset{1}{\hugett{1}}}%
+                \underset{4}{\overset{0}{\hugett{1}}}%
+            }^{\texttt{second}}%
+            \overbrace{%
+                \underset{3}{\overset{11}{\hugett{1}}}%
+                \underset{2}{\overset{10}{\hugett{1}}}%
+                \underset{1}{\overset{9}{\hugett{0}}}%
+                \underset{0}{\overset{8}{\hugett{1}}}%
+            }^{\texttt{first}}%
+        }_{\texttt{byte 1}}%
+        \hugett{,}%
+        \underbrace{%
+            \overbrace{%
+                \underset{7}{\overset{2}{\hugett{0}}}%
+                \underset{6}{\overset{1}{\hugett{0}}}%
+                \underset{5}{\overset{0}{\hugett{0}}}%
+            }^{\texttt{fifth}}%
+            \overbrace{%
+                \underset{4}{\overset{1}{\hugett{1}}}%
+                \underset{3}{\overset{0}{\hugett{1}}}%
+            }^{\texttt{fourth}}%
+            \overbrace{%
+                \underset{2}{\overset{3}{\hugett{1}}}%
+                \underset{1}{\overset{2}{\hugett{0}}}%
+                \underset{0}{\overset{1}{\hugett{1}}}%
+            }^{\texttt{third}}%
+        }_{\texttt{byte 2}}%
+        \hugett{,}%
+        \underbrace{%
+            \overbrace{%
+                \underset{7}{\overset{?}{\hugett{?}}}%
+                \underset{6}{\overset{?}{\hugett{?}}}%
+                \underset{5}{\overset{?}{\hugett{?}}}%
+                \underset{4}{\overset{?}{\hugett{?}}}%
+                \underset{3}{\overset{?}{\hugett{?}}}%
+                \underset{2}{\overset{?}{\hugett{?}}}%
+                \underset{1}{\overset{?}{\hugett{?}}}%
+            }^{\substack{\text{Next object or} \\ \text{zero padding bits}}}
+            \overbrace{%
+                \underset{0}{\overset{3}{\hugett{1}}}%
+            }^{\texttt{fifth}}%
+        }_{\texttt{byte 3}}%
     $$
+
+    Note that some of the complexity of the above illustration stems from the western convention of representing
+    numbers with the most significant components on the left moving to the least significant component of the
+    number of the right. If you were to reverse this convention the bit sequences for each type in the composite
+    would seem to be continuous as they crossed byte boundaries. Using this reversed representation, however; is
+    not recommended both because the convention is deeply ingrained in most readers, tools, and technologies; and
+    because the bits in each byte are put onto the CAN bus in the left-to-right order shown. Said differently;
+    CAN is "bit big-endian" and UAVCAN is "byte little-endian" on top of CAN. 
 \end{remark}
 
 \subsubsection{Tagged unions}
@@ -485,7 +547,7 @@ the serialized representation of the currently selected field attribute value.
     The following data schema will have an identical layout:
 
     \begin{minted}{python}
-        uint2 implicit_union_tag  # Set to 1
+        uint8 implicit_union_tag  # Set to 1
         uint8 b                   # The actual value
     \end{minted}
 
