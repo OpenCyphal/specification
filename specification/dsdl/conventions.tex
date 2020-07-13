@@ -44,8 +44,7 @@ This recommendation does not apply to the file header comment.
 Data structures may include optional field attributes that are not always populated.
 
 The recommended approach for representing optional field attributes
-is to use variable-length arrays with the capacity of one element,
-prefixed with padding bits as necessary to retain byte alignment.
+is to use variable-length arrays with the capacity of one element.
 
 Alternatively, such one-element variable-length arrays can be replaced with two-field unions,
 where the first field is empty and the second field contains the desired optional value.
@@ -61,14 +60,13 @@ even if not populated, and special case values undermine type safety.
     Array-based optional field:
 
     \begin{minted}{python}
-        void7                           # It is recommended to ensure byte alignment.
         MyType[<=1] optional_field
     \end{minted}
 
     Union-based optional field:
 
     \begin{minted}{python}
-        @union                          # The implicit tag is one bit long.
+        @union                          # The implicit tag is one byte long.
         uavcan.primitive.Empty none     # Represents lack of value, unpopulated field.
         MyType some                     # The field of interest; field ordering is important.
     \end{minted}
@@ -76,7 +74,6 @@ even if not populated, and special case values undermine type safety.
     The defined above union can be used as follows (suppose it is named \verb|MaybeMyType|):
 
     \begin{minted}{python}
-        void7                           # It is recommended to ensure byte alignment.
         MaybeMyType optional_field
     \end{minted}
 
@@ -103,7 +100,6 @@ even if not populated, and special case values undermine type safety.
     \begin{minted}{python}
         float64 foo
         float32 bar
-        void7                           # It is recommended to ensure byte alignment.
         MyType[<=1] my_new_field
     \end{minted}
 

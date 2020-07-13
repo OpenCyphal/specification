@@ -160,7 +160,7 @@ For tagged unions, the value of the offset attribute is defined as:
 $$
     \texttt{\_offset\_}_\text{union} =
     \bigcup\limits_{i=1}^{n}
-    \left\{ \lceil{}\log_2 n\rceil{} + b : b \in B_i \right\}
+    \left\{ 2^{\lceil\log_2 \text{max}\left(8, \lceil\log_2 n\rceil\right)\rceil} + b : b \in B_i \right\}
 $$
 where $n$ is the number of fields defined in the current union definition,
 and $B_i$ is the bit length set of the data type of the field number $i$.
@@ -186,7 +186,7 @@ and $\prod$ is the Cartesian product operator.
         uint8 a
         #@print _offset_  # Would fail: it's a tagged union, _offset_ is undefined until after the last field
         uint16 b
-        @assert _offset_ == {1 + 8,  1 + 16}
+        @assert _offset_ == {8 + 8,  8 + 16}
         ---
         @assert _offset_ == {0}
         float16 a
@@ -196,12 +196,11 @@ and $\prod$ is the Cartesian product operator.
         int4 b
         @assert _offset_ == {24}
         uint8[<4] c
-        @assert _offset_ == 2 + {24,  32,  40,  48}
-        void6
+        @assert _offset_ == 8 + {24,  32,  40,  48}
         @assert _offset_ % 8 == {0}
         # One of the main usages for _offset_ is statically proving that the following field is byte-aligned
         # for all possible valid serialized representations of the preceding fields. It is done by computing
-        # a remainder as shown below. If the field is aligned, the remainder set will equal {0}. If the
+        # a remainder as shown above. If the field is aligned, the remainder set will equal {0}. If the
         # remainder set contains other elements, the field may be misaligned under some circumstances.
         # If the remainder set does not contain zero, the field is never aligned.
         uint8 well_aligned   # Proven to be byte-aligned.

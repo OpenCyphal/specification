@@ -317,7 +317,8 @@ $D$ is a structural subtype of $B$ if all conditions are satisfied:
     \item both $B$ and $D$ define tagged unions;
     \item $B$ is not $D$;
     \item $b \leq d$;
-    \item $\lceil{}\log_2 b\rceil{} = \lceil{}\log_2 d\rceil{}$;
+    \item $2^{\lceil\log_2 \text{max}\left(8, \lceil\log_2 b\rceil\right)\rceil} =
+           2^{\lceil\log_2 \text{max}\left(8, \lceil\log_2 d\rceil\right)\rceil}$;
     \item for $i \in \left[0, b\right)$, the type of the field attribute of $D$ at index $i$
           is the same or is a subtype of the type of the field attribute of $B$ at index $i$.
     \item for $i \in \left[0, b\right)$, the name of the field attribute of $D$ at index $i$
@@ -352,7 +353,7 @@ one type is a subtype of another, and for any member its supertypes are located 
     Subtyping example for union types. First type:
 
     \begin{minted}{python}
-        @union                            # The implicit union tag field is 2 bits wide
+        @union                            # The implicit union tag field is 8 bits wide
         uavcan.primitive.Empty.1.0 foo
         float16 bar
         uint8 zoo
@@ -361,7 +362,7 @@ one type is a subtype of another, and for any member its supertypes are located 
     The second type is a structural subtype of the first type:
 
     \begin{minted}{python}
-        @union                            # The implicit union tag field is 2 bits wide
+        @union                            # The implicit union tag field is 8 bits wide
         uavcan.diagnostic.Record.1.0 foo  # Subtype
         float16 bar                       # Same
         uint8 zoo                         # Same

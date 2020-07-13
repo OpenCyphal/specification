@@ -533,7 +533,7 @@ the serialized representation of the currently selected field attribute value.
     Consider the following example:
 
     \begin{minted}{python}
-        @union           # In this case, the implicit union tag is 2 bit wide
+        @union           # In this case, the implicit union tag is one byte wide
         uint16 FOO = 42  # A regular constant attribute
         uint16 a         # Field index 0
         uint8 b          # Field index 1
