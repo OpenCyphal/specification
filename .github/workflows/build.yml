@@ -9,19 +9,20 @@ jobs:
     name: Build PDF file using LaTeX
 
     steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    # Checks-out the repository under $GITHUB_WORKSPACE
     - name: Checkout
       uses: actions/checkout@v2
       with:
         submodules: recursive
 
-    # Run the UAVCAN texer container with LaTeX environment
+    # Compile the UAVCAN specification with texer DockerHub container
     - name: Run texer container
       uses: docker://uavcan/texer:ubuntu-18.04
       with:
-        entrypoint: ./compile.sh
+        entrypoint: /bin/bash
+        args: -c "pip install -r requirements.txt && ./compile.sh"
 
-    # Upload datasheet
+    # Upload artifact
     - name: Upload pdf as an artifact
       uses: actions/upload-artifact@v2
       with:
