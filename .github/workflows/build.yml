@@ -1,0 +1,30 @@
+# A workflow to create the UAVCAN Specification PDF
+
+name: CI
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build PDF file using LaTeX
+
+    steps:
+    # Checks-out the repository under $GITHUB_WORKSPACE
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    # Compile the UAVCAN specification with texer DockerHub container
+    - name: Run texer container
+      uses: docker://uavcan/texer:ubuntu-18.04
+      with:
+        entrypoint: /bin/bash
+        args: -c "pip install -r requirements.txt && ./compile.sh"
+
+    # Upload artifact
+    - name: Upload pdf as an artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: UAVCAN Specification
+        path: specification/UAVCAN_Specification.pdf
