@@ -137,13 +137,18 @@ Depending on the transport protocol, UAVCAN supports at least eight distinct com
 
 The list of transport protocols supported by UAVCAN is provided in chapter~\ref{sec:transport}.
 Non-redundant, doubly-redundant and triply-redundant transports are supported.
-Information on the physical layer and standardized physical connectivity options
-is provided in chapter~\ref{sec:physical}.
-Additional transport and physical layers may be added in future revisions of the protocol.
+Additional transport layers may be added in future revisions of the protocol.
 
 Application-level capabilities of the protocol (such as time synchronization, file transfer,
 node software update, diagnostics, schemaless named registers, diagnostics, plug-and-play node insertion, etc.)
 are listed in section~\ref{sec:application_functions}.
+
+The core specification does not define nor explicitly limit any physical layers for a given transport, however;
+properties required by UAVCAN may imply or impose constraints and/or minimum performance requirements on physical
+networks. Because of this, the core standard does not control compatibility below a supported transport layer between
+compliant nodes on a physical network (i.e. there are no, anticipated, compatibility concerns between compliant nodes
+connected to a virtual network where hardware constraints are not enforced nor emulated). Additional standards specifying
+physical-layer requirements, including connectors, may be required to utilize this standard in a vehicle system.
 
 \section{Management policy}
 
@@ -171,7 +176,6 @@ The UAVCAN specification contains references to the following sources:
 % Please keep the list sorted alphabetically.
 \begin{itemize}
     \item CiA 103 --- Intrinsically safe capable physical layer.
-    \item CiA 303 --- Recommendation --- Part 1: Cabling and connector pin assignment.
     \item CiA 801 --- Application note --- Automatic bit rate detection.
 
     \item IEEE 754 --- Standard for binary floating-point arithmetic.
