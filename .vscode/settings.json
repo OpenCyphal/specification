@@ -1,4 +1,7 @@
 {
+    "editor.rulers": [
+        120
+    ],
     "remote.containers.workspaceMountConsistency": "delegated",
     "latex-workshop.view.pdf.hand": true,
     "latex-workshop.view.autoFocus.enabled": false,
@@ -34,5 +37,17 @@
             ]
         }
     ],
-    "latex-workshop.viewer.pdf.internal.port": 41491
+    "latex-workshop.viewer.pdf.internal.port": 41491,
+    "spellright.documentTypes": [
+        "markdown",
+        "latex",
+        "plaintext"
+    ],
+    "spellright.ignoreFiles": [
+        "**/.gitignore",
+        "**/.spellignore"
+    ],
+    "spellright.language": [
+        "en_US"
+    ]
 }
