@@ -8,7 +8,13 @@
     "latex-workshop.latex.autoBuild.run": "never",
     "latex-workshop.latex.recipes": [
         {
-            "name": "pdflatex x3",
+            "name": "pdflatex incremental",
+            "tools": [
+                "pdflatex"
+            ]
+        },
+        {
+            "name": "pdflatex full",
             "tools": [
                 "pdflatex",
                 "pdflatex",
