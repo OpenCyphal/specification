@@ -1,3 +1,4 @@
 # This file lists the Python dependencies that are necessary to build the specification.
 pygments
-pydsdl~=1.1
+#pydsdl~=1.1  # uncomment and remove the next line when the referred branch is released
+git+git://github.com/UAVCAN/pydsdl@beta
