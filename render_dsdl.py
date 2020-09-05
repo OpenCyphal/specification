@@ -196,9 +196,11 @@ print(r"\captionof{table}{Index of the %s namespace ``%s''}%%" %
       ('nested' if is_nested_namespace else 'root', naked_pattern))
 print(r'\label{table:dsdl:%s}%%' % naked_pattern)
 print(r'\footnotesize\setlength\tabcolsep{3pt}\setlength{\tabulinesep}{-1pt}\setlength{\extrarowsep}{-1pt}%')
-print(r'\begin{%s}{|l r r|r r|r l|c l|}\rowfont{\bfseries}\hline' % table_environment)
-print(r'Namespace tree & Ver. & FPID & \multicolumn{2}{c|}{Max bytes} & \multicolumn{2}{c|}{Page sec.} &'
-      r'\multicolumn{2}{l|}{Full name and kind (message/service)} \\\hline')
+print(r'\begin{%s}{|l r r|c c|l|}\rowfont{\bfseries}\hline' % table_environment)
+print(r'Namespace tree & Ver. & FPID &',
+      r'max(BLS) bytes &',
+      r'Extent bytes &',
+      r'Full name \\\hline')
 prefix = '.'
 at_least_one_type_emitted = False
 INDENT_BLOCK = r'\quad{}'
@@ -212,8 +214,7 @@ for namespace, ns_type_mapping in grouped.items():
     while prefix != current_prefix:
         if current_prefix.startswith(prefix):
             new_comp = current_prefix[len(prefix):].strip('.').split('.')[0]
-            print(INDENT_BLOCK * (prefix.count('.') - 1) + r'\texttt{%s}' % escape(new_comp),
-                  r'&&&&&&&&\\', sep='')
+            print(INDENT_BLOCK * (prefix.count('.') - 1) + r'\texttt{%s}' % escape(new_comp), r'&&&&&\\', sep='')
             prefix += new_comp
         else:
             prefix = '.' + '.'.join(prefix.strip('.').split('.')[:-1])
@@ -232,13 +233,22 @@ for namespace, ns_type_mapping in grouped.items():
             # Allow page breaks only when switching namespaces
             print(r'\nopagebreak[4]{}')
 
-            # Max length in bytes
+            # Layout information
             b2b = lambda x: (x + 7) // 8
+            is_final = lambda t: not isinstance(t, pydsdl.DelimitedType)
+            annotate_finality = lambda t, x: r'\textit{final}' if is_final(t) else str(x)
             if is_service:
-                max_bytes = '%d & %d' % (b2b(max(t.request_type.bit_length_set)),
-                                         b2b(max(t.response_type.bit_length_set)))
+                ser_max_bytes = r'$%d \rightleftharpoons{} %d$' % (
+                    b2b(max(t.request_type.bit_length_set)),
+                    b2b(max(t.response_type.bit_length_set))
+                )
+                extent_bytes = r'$%s \rightleftharpoons{} %s$' % (
+                    annotate_finality(t.request_type, b2b(t.request_type.extent)),
+                    annotate_finality(t.response_type, b2b(t.response_type.extent))
+                )
             else:
-                max_bytes = '%d &' % b2b(max(t.bit_length_set))
+                ser_max_bytes = r'$%d$' % b2b(max(t.bit_length_set))
+                extent_bytes = r'$%s$' % annotate_finality(t, b2b(t.extent))
 
             weak = lambda s: r'\emph{\color{gray}%s}' % s
 
@@ -249,15 +259,13 @@ for namespace, ns_type_mapping in grouped.items():
 
             print('%d.%d' % t.version, '&',
                   t.fixed_port_id if t.has_fixed_port_id else '', '&',
-                  max_bytes, '&')
+                  ser_max_bytes, '&',
+                  extent_bytes, '&')
 
             if is_first:
-                print(r'\pageref{sec:dsdl:%s}' % t.full_name, '&',
-                      r'\ref{sec:dsdl:%s}' % t.full_name, '&',
-                      r'\faExchange' if is_service else r'\faEnvelopeO', '&'
-                      r'\texttt{%s}' % escape(t.full_name), r'\\')
+                print(r'\hyperref[sec:dsdl:%s]{\texttt{%s}}' % (t.full_name, escape(t.full_name)), r'\\')
             else:
-                print(r'\multicolumn{2}{c|}{', weak(r'$\cdots{}$'), r'} && ', weak(r'$\cdots{}$'), r' \\')
+                print(weak(r'$\cdots{}$'), r'\\')
 
 print(r'\hline\end{%s}' % table_environment)
 print(r'\end{ThreePartTable}')
