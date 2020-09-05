@@ -102,10 +102,8 @@ A GNU/Linux-based operating system is assumed.
 The described instructions may be valid for other operating systems but this is not guaranteed.
 
 In order to compile the document, install TeX Live
-(Ubuntu packages: [`texlive-full`](https://packages.ubuntu.com/xenial/texlive-full) and `lyx`),
-and make sure that the version of pdfLaTeX is `3.14159265-2.6-1.40.16`.
-Any other version may miscompile the document with subtle typographical defects.
-Install the Python packages listed in `requirements.txt`.
+(Ubuntu packages: [`texlive-full`](https://packages.ubuntu.com/xenial/texlive-full) and `lyx`)
+and the Python packages listed in `requirements.txt`.
 
 When done, run `./compile.sh`.
 
@@ -131,6 +129,6 @@ the `.vscode/spellright.dict` to squelch bogus spelling errors from Spellright.
 
 #### L33t IDE Setup
 
-If you want to use our [texer container](https://hub.docker.com/repository/docker/uavcan/texer) with vscode then install the ["ms-vscode-remote.vscode-remote-extensionpack"](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack) and Docker. When you open vscode in this repostory it should prompt you to "open this folder in container?". Otherwise `F1` or `CMD+SHIFT+P` and select `Remote-Containers: Reopen Locally`. Once within the container you can simply `F1` or `CMD+SHIFT+P` and `LaTeX Workshop: Build LaTeX project` to build the specification PDF.
+If you want to use our [texer container](https://hub.docker.com/repository/docker/uavcan/texer) with vscode then install the ["ms-vscode-remote.vscode-remote-extensionpack"](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack) and Docker. When you open vscode in this repository it should prompt you to "open this folder in container?". Otherwise `F1` or `CMD+SHIFT+P` and select `Remote-Containers: Reopen Locally`. Once within the container you can simply `F1` or `CMD+SHIFT+P` and `LaTeX Workshop: Build LaTeX project` to build the specification PDF.
 
 The above [may not work](https://github.com/microsoft/vscode-remote-release/issues/1097) if you are running an OSS build of VSCode (e.g., from Arch AUR). It is recommended to use the official binaries from Micro$oft.
