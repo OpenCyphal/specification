@@ -292,6 +292,10 @@ A tagged union shall not contain padding field attributes.
 The value of a tagged union object is a function of the field attribute which value it is currently holding
 and the value of the field attribute itself.
 
+\subsubsection{Extent and finality}
+
+
+
 \subsubsection{Type polymorphism and equivalency}
 
 Type polymorphism is supported in DSDL through structural subtyping.
@@ -302,30 +306,65 @@ Let $B$ and $D$ be DSDL message types whose data schemas define $b$ and $d$ fiel
 Let each field attribute be assigned a sequential index according to its position in the DSDL definition
 (see section~\ref{sec:dsdl_grammar} on statement ordering).
 
-$D$ is a \emph{structural subtype} of $B$ if all conditions are satisfied:
-\begin{itemize}
-    \item neither $B$ nor $D$ define a tagged union;
-    \item $B$ is not $D$;
-    \item $b \leq d$;
-    \item for each field attribute of $B$ at index $i$ there is an equal\footnote{%
-              Field attribute equality is defined in section~\ref{sec:dsdl_attributes}.
-          } field attribute in $D$ at index $i$.
-\end{itemize}
+\begin{enumerate}
+    % -----------------------------------------------------------------------------------------------------------------
+    \item Structure subtyping rule --- $D$ is a \emph{structural subtype} of $B$ if all conditions are satisfied:
+    \begin{itemize}
+        \item neither $B$ nor $D$ define a tagged union\footnote{%
+            This is because tagged unions are serialized differently.
+        };
+        \item neither $B$ nor $D$ are final\footnote{%
+            Final types are serialized in-place as if their definition was directly copied into the outer (containing)
+            type (if any).
+            This circumstance effectively renders them non-modifiable because that may break the bit layout of the outer
+            types (if any).
+        };
+        \item the extent of $B$ is not less than the extent of $D$\footnote{%
+            This is to uphold the Liskov substitution principle.
+            A deserializer expecting an instance of $B$ in a serialized representation should be invariant
+            to the replacement $B \leftarrow{} D$.
+            If the extent of $D$ was larger, then its serialized representation could spill beyond the allocated
+            container, possibly resulting in the truncation of the following data, which in turn could result in
+            incorrect deserialization.
+            See \ref{sec:dsdl_data_serialization}.
+        };
+        \item $B$ is not $D$;
+        \item $b \leq d$;
+        \item for each field attribute of $B$ at index $i$ there is an equal\footnote{%
+                Field attribute equality is defined in section~\ref{sec:dsdl_attributes}.
+            } field attribute in $D$ at index $i$.
+    \end{itemize}
 
-$D$ is a structural subtype of $B$ if all conditions are satisfied:
-\begin{itemize}
-    \item both $B$ and $D$ define tagged unions;
-    \item $B$ is not $D$;
-    \item $b \leq d$;
-    \item $2^{\lceil\log_2 \text{max}\left(8, \lceil\log_2 b\rceil\right)\rceil} =
-           2^{\lceil\log_2 \text{max}\left(8, \lceil\log_2 d\rceil\right)\rceil}$;
-    \item for $i \in \left[0, b\right)$, the type of the field attribute of $D$ at index $i$
-          is the same or is a subtype of the type of the field attribute of $B$ at index $i$.
-    \item for $i \in \left[0, b\right)$, the name of the field attribute of $D$ at index $i$
-          is the same as the name of the field attribute of $B$ at index $i$.
-\end{itemize}
+    % -----------------------------------------------------------------------------------------------------------------
+    \item Tagged union subtyping rule --- $D$ is a structural subtype of $B$ if all conditions are satisfied:
+    \begin{itemize}
+        \item both $B$ and $D$ define tagged unions;
+        \item neither $B$ nor $D$ are final;
+        \item the extent of $B$ is not less than the extent of $D$;
+        \item $B$ is not $D$;
+        \item $b \leq d$;
+        \item $2^{\lceil\log_2 \text{max}\left(8, \lceil\log_2 b\rceil\right)\rceil} =
+               2^{\lceil\log_2 \text{max}\left(8, \lceil\log_2 d\rceil\right)\rceil}$\footnote{%
+                  I.e., the length of the implicit union tag field should be the same.
+              };
+        \item for $i \in \left[0, b\right)$, the type of the field attribute of $D$ at index $i$
+            is the same or is a subtype of the type of the field attribute of $B$ at index $i$.
+        \item for $i \in \left[0, b\right)$, the name of the field attribute of $D$ at index $i$
+            is the same as the name of the field attribute of $B$ at index $i$.
+    \end{itemize}
 
-$D$ is a structural subtype of $B$ if $b = 0$.
+    % -----------------------------------------------------------------------------------------------------------------
+    \item Empty schema subtyping rule --- $D$ is a structural subtype of $B$ if all conditions are satisfied:
+    \begin{itemize}
+        \item $b = 0$\footnote{%
+            If $B$ contains no field attributes, the applicability of the Liskov substitution principle is invariant to
+            whether its subtypes are tagged union types or not.
+        };
+        \item neither $B$ nor $D$ are final;
+        \item the extent of $B$ is not less than the extent of $D$;
+        \item $B$ is not $D$.
+    \end{itemize}
+\end{enumerate}
 
 If $D$ is a structural subtype of $B$, then $B$ is a \emph{structural supertype} of $D$.
 
