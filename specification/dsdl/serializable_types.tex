@@ -294,7 +294,62 @@ and the value of the field attribute itself.
 
 \subsubsection{Extent and finality}
 
+\begin{figure}[H]
+    \centering
+    \begin{tabular}{r c c c c c}
+        \cline{2-5}
+        {\footnotesize{v1.0:}} &
+        \multicolumn{1}{|c|}{$a_0$} & \multicolumn{1}{c|}{$a_1$}
+        &\multicolumn{1}{c|}{$b_0$} & \multicolumn{1}{c|}{$b_1$} &
+        \\\cline{2-5}
+        & $\checkmark$ & $\checkmark$ & $\times$ & $\times$ & $\times$ \\
+        \cline{2-6}
+        {\footnotesize{v1.1:}} &
+        \multicolumn{1}{|c|}{$a_0$} & \multicolumn{1}{c|}{$a_1$} & \multicolumn{1}{c|}{$a_2$}
+        &\multicolumn{1}{c|}{$b_0$} & \multicolumn{1}{c|}{$b_1$}
+        \\\cline{2-6}
+    \end{tabular}
+    \caption{Non-extensibility of final types}
+    \label{fig:dsdl_final_non_extensibility}
+\end{figure}
 
+\begin{figure}[H]
+    \centering
+    \begin{tabular}{r c c c c c c}
+        \cline{2-7}
+        {\footnotesize{v1.0:}} &
+        \multicolumn{1}{|c|}{$H_a$} & \multicolumn{1}{c|}{$a_0$} & \multicolumn{1}{c|}{$a_1$}
+        &\multicolumn{1}{c|}{\footnotesize{$\underset{\leftrightarrow}{\varnothing}$}}
+        &\multicolumn{1}{c|}{$b_0$} & \multicolumn{1}{c|}{$b_1$}
+        \\\cline{2-7}
+        & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+        \cline{2-7}
+        {\footnotesize{v1.1:}} &
+        \multicolumn{1}{|c|}{$H_a$} & \multicolumn{1}{c|}{$a_0$} & \multicolumn{1}{c|}{$a_1$} & \multicolumn{1}{c|}{$a_2$}
+        &\multicolumn{1}{c|}{$b_0$} & \multicolumn{1}{c|}{$b_1$}
+        \\\cline{2-7}
+    \end{tabular}
+    \caption{Extensibility of non-final types with the help of the delimiter header}
+    \label{fig:dsdl_final_non_extensibility}
+\end{figure}
+
+\begin{figure}[H]
+    $$
+    \overbrace{%
+        \underbrace{%
+            \blacksquare\blacksquare\blacksquare\blacksquare\blacksquare\blacksquare%
+            \blacksquare\blacksquare\blacksquare\blacksquare\blacksquare\blacksquare%
+        }_{\substack{\text{Serialized data} \\ \text{exchanged over network}}}%
+        \underbrace{%
+            \boxtimes\boxtimes\boxtimes\boxtimes\boxtimes\boxtimes\boxtimes\boxtimes%
+        }_{\substack{\text{Local memory reserve} \\ \text{for extensibility}}}%
+    }^{\substack{%
+        \text{Extent} \\
+        \text{(required buffer memory)}
+    }}
+    $$
+    \caption{Serialized bit length and extent\label{fig:dsdl_extent}}
+\end{figure}
 
 \subsubsection{Type polymorphism and equivalency}
 
