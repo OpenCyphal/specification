@@ -31,6 +31,63 @@ Usage of this directive is subject to the following constraints:
     \end{minted}
 \end{remark}
 
+\subsection{Explicit extent specifier}\label{sec:dsdl_directive_extent}
+
+The identifier of the explicit extent specification directive is ``\verb|extent|''.
+This directive overrides the default extent of its schema (section \ref{sec:dsdl_composite_extent_and_finality})
+with the value obtained by evaluating the provided expression.
+The expression shall be present and it shall yield a non-negative integer value of type
+``\verb|rational|'' (section~\ref{sec:dsdl_primitive_types}) upon its evaluation.
+
+Usage of this directive is subject to the following constraints (otherwise, the definition is malformed):
+\begin{itemize}
+    \item The directive shall not be used more than once per data schema definition.
+    \item The directive shall be placed after the last attribute definition in the current data schema\footnote{%
+              This constraint is to help avoid issues where the extent is defined as a function of the offset past
+              the last field of the schema, and a new field is mistakenly added after the extent directive.
+          }.
+    \item The value shall satisfy the constraints given in section \ref{sec:dsdl_composite_extent_and_finality}.
+    \item The schema shall not be final.
+\end{itemize}
+
+\begin{remark}
+    \begin{minted}{python}
+        uint64 foo
+        @extent 256 * 8  # Make the extent 256 bytes large
+        #@final          # Would fail -- mutually exclusive directives
+    \end{minted}
+
+    \begin{minted}{python}
+        uint64[<=64] bar
+        @extent _offset_.max * 2
+        #float32 baz  # Would fail (protects against incorrectly computing
+                      # the extent when it is a function of _offset_)
+    \end{minted}
+\end{remark}
+
+\subsection{Finality marker}\label{sec:dsdl_directive_final}
+
+The identifier of the finality marker directive is ``\verb|final|''.
+This directive marks the current schema final (section \ref{sec:dsdl_composite_extent_and_finality})
+(if not provided, the schema is non-final).
+
+Usage of this directive is subject to the following constraints (otherwise, the definition is malformed):
+\begin{itemize}
+    \item The directive shall not be used more than once per data schema definition.
+    \item The extent directive shall not be used in this data schema definition.
+\end{itemize}
+
+\begin{remark}
+    \begin{minted}{python}
+        uint64 foo
+        @final        # The request schema is final.
+        #@extent 128  # Would fail -- cannot specify extent for final schema
+        ---
+        float64 bar   # The response schema is not final.
+        @extent 4000 * 8
+    \end{minted}
+\end{remark}
+
 \subsection{Deprecation marker}
 
 The identifier of the deprecation marker directive is ``\verb|deprecated|''.
@@ -107,4 +164,3 @@ If the expression is provided but cannot be evaluated, the containing DSDL defin
         @print 'we all float64 down here\n'  # Possible output: 'we all float64 down here\n'
     \end{minted}
 \end{remark}
-

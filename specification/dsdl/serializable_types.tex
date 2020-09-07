@@ -292,46 +292,40 @@ A tagged union shall not contain padding field attributes.
 The value of a tagged union object is a function of the field attribute which value it is currently holding
 and the value of the field attribute itself.
 
-\subsubsection{Extent and finality}
+\subsubsection{Extent and finality}\label{sec:dsdl_composite_extent_and_finality}
 
-\begin{figure}[H]
-    \centering
-    \begin{tabular}{r c c c c c}
-        \cline{2-5}
-        {\footnotesize{v1.0:}} &
-        \multicolumn{1}{|c|}{$a_0$} & \multicolumn{1}{c|}{$a_1$}
-        &\multicolumn{1}{c|}{$b_0$} & \multicolumn{1}{c|}{$b_1$} &
-        \\\cline{2-5}
-        & $\checkmark$ & $\checkmark$ & $\times$ & $\times$ & $\times$ \\
-        \cline{2-6}
-        {\footnotesize{v1.1:}} &
-        \multicolumn{1}{|c|}{$a_0$} & \multicolumn{1}{c|}{$a_1$} & \multicolumn{1}{c|}{$a_2$}
-        &\multicolumn{1}{c|}{$b_0$} & \multicolumn{1}{c|}{$b_1$}
-        \\\cline{2-6}
-    \end{tabular}
-    \caption{Non-extensibility of final types}
-    \label{fig:dsdl_final_non_extensibility}
-\end{figure}
+As detailed in section \ref{sec:dsdl_versioning},
+data types may evolve over time to accommodate new design requirements, new features, to rectify issues, etc.
+In order to allow gradual migration of deployed systems to revised data types,
+it is desirable to ensure that they can be modified in a way that does not render new definitions
+incompatible with their earlier versions.
+In this context there are two related concepts:
 
-\begin{figure}[H]
-    \centering
-    \begin{tabular}{r c c c c c c}
-        \cline{2-7}
-        {\footnotesize{v1.0:}} &
-        \multicolumn{1}{|c|}{$H_a$} & \multicolumn{1}{c|}{$a_0$} & \multicolumn{1}{c|}{$a_1$}
-        &\multicolumn{1}{c|}{\footnotesize{$\underset{\leftrightarrow}{\varnothing}$}}
-        &\multicolumn{1}{c|}{$b_0$} & \multicolumn{1}{c|}{$b_1$}
-        \\\cline{2-7}
-        & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
-        \cline{2-7}
-        {\footnotesize{v1.1:}} &
-        \multicolumn{1}{|c|}{$H_a$} & \multicolumn{1}{c|}{$a_0$} & \multicolumn{1}{c|}{$a_1$} & \multicolumn{1}{c|}{$a_2$}
-        &\multicolumn{1}{c|}{$b_0$} & \multicolumn{1}{c|}{$b_1$}
-        \\\cline{2-7}
-    \end{tabular}
-    \caption{Extensibility of non-final types with the help of the delimiter header}
-    \label{fig:dsdl_final_non_extensibility}
-\end{figure}
+\begin{description}
+    \item[Extent] --- the minimum amount of memory, in bits, that shall be allocated to store the serialized
+    representation of the schema.
+    The extent of any schema is always greater than or equal the maximal value of its bit length set.
+    It is always a multiple of 8.
+
+    \item[Finality] --- denotes whether a schema is \emph{final}.
+    A schema that is final is non-evolvable and its extent equals the maximal value of its bit length set\footnote{%
+        I.e., the smallest possible extent.
+    }.
+\end{description}
+
+The extent is the growth limit for the maximal bit length of the schema as it evolves.
+The requirement that the extent is at least as large as the longest serialized representation of
+any version of the schema ensures that an agent leveraging any of its versions can
+correctly process any other compatible version due to the avoidance of unintended truncation of
+serialized representations.
+
+Serialized representations of evolvable definitions carry additional metadata which introduces a certain overhead.
+This may be undesirable in some scenarios, especially in cases where serialized representations of the
+definition are expected to be highly compact, thereby making the overhead comparatively more significant.
+In such cases, the designer may opt out of the extensibility by declaring the definition final.
+Serialized representations of final definitions do not incur the aforementioned overhead.
+
+The related mechanics are described in section \ref{sec:dsdl_data_serialization} dedicated to data serialization.
 
 \begin{figure}[H]
     $$
@@ -339,17 +333,36 @@ and the value of the field attribute itself.
         \underbrace{%
             \blacksquare\blacksquare\blacksquare\blacksquare\blacksquare\blacksquare%
             \blacksquare\blacksquare\blacksquare\blacksquare\blacksquare\blacksquare%
-        }_{\substack{\text{Serialized data} \\ \text{exchanged over network}}}%
+        }_{\substack{\text{Longest serialized} \\ \text{representation}}}%
         \underbrace{%
             \boxtimes\boxtimes\boxtimes\boxtimes\boxtimes\boxtimes\boxtimes\boxtimes%
-        }_{\substack{\text{Local memory reserve} \\ \text{for extensibility}}}%
+        }_{\substack{\text{Memory reserve} \\ \text{(none if final)}}}%
     }^{\substack{%
         \text{Extent} \\
-        \text{(required buffer memory)}
+        \text{(memory requirement)}
     }}
     $$
-    \caption{Serialized bit length and extent\label{fig:dsdl_extent}}
+    \caption{Serialized representation and extent\label{fig:dsdl_extent}}
 \end{figure}
+
+The default extent of a non-final definition is the following function of its bit length set $B$:
+
+$$
+\text{Ext}_\text{default}\left(B\right) =
+\left\lceil{}\left\lfloor{}\frac{3}{2} \max{}\left(B\right)\right\rfloor{}/8\right\rceil{}8
+$$
+
+The extent can be set explicitly\footnote{
+    Observe that when composites are nested,
+    the default extent of an outer composite will be increasing as an exponential
+    function of the number of levels of nesting (because each level introduces the fixed multiplier).
+    Therefore, it is advised to specify the extent manually to manage the memory requirement.
+}
+using the directive described in section \ref{sec:dsdl_directive_extent},
+unless the definition is final.
+
+By default, a definition is not final unless explicitly indicated otherwise using the directive described in
+section \ref{sec:dsdl_directive_final}.
 
 \subsubsection{Type polymorphism and equivalency}
 
