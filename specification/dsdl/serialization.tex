@@ -59,33 +59,10 @@ such format is also known as little-endian.
     \caption{Bit and byte ordering\label{fig:dsdl_serialization_bit_ordering}}
 \end{figure}
 
-\subsubsection{Implicit padding}
-
-Excepting one edge case reviewed below,
-serialized representations of DSDL entities never include implicit data padding.
-Unaligned data may lead to suboptimal serialization and deserialization performance;
-therefore, the data type designer should manually align elements as necessary to prevent performance degradation.
-It is guaranteed, however, that unaligned data cannot result in unspecified or otherwise unexpected behavior
-of the data handling routines.
-The manual approach to data alignment allows the data type designer to trade-off serialization efficiency
-over network bandwidth utilization and data transfer latency as necessary without compromising functional safety.
-
-The exceptional edge case mentioned above when implicit padding is introduced is as follows.
-Serialized representations of DSDL entities operate at the bit level,
-whereas the transport protocols supported by UAVCAN\footnote{As well as the majority of network protocols in general.}
-use bytes as the smallest atomic data element.
-The resulting mismatch of the data granularity levels is resolved by
-appending the serialized representation of the top-level composite type object with zero (0) bits
-until the length of its bit sequence is an integer multiple of eight (8).
-The term \emph{top-level object} denotes an object that is not nested inside another DSDL entity.
-In other words, padding bits may only be added before a fully constructed serialized representation is
-handed over for transmission over the UAVCAN network
-(or any other destination which does not support bit-level data granularity).
-
-\subsubsection{Implicit truncation of excessive data}
+\subsubsection{Implicit truncation of excessive data}\label{sec:dsdl_serialization_implicit_truncation}
 
 When a serialized representation is deserialized, implementations shall ignore
-any excessive (unused) data remaining upon deserialization\footnote{%
+any excessive (unused) data or padding bits remaining upon deserialization\footnote{%
     The presence of unused data should not be considered an error.
 }.
 
@@ -365,11 +342,15 @@ By definition, $n \leq c$; therefore, bit sequences where the implicit length fi
 greater than $c$ do not belong to the set of serialized representations of the array.
 
 The rest of the serialized representation is constructed as if the variable-length array was
-a fixed-length array of $n$ elements.
+a fixed-length array of $n$ elements\footnote{%
+    Observe that the implicit array length field, per its definition,
+    is guaranteed to never break the alignment of the following array elements.
+}.
 
 \begin{remark}
-    Datatype authors must take into account that dynamic arrays with a capacity of $\leq{}255$ elements will
-    consume an additional 8-bits of the serialized representation (where a capacity of $\leq 65535$ will consume 16-bits and so on).
+    Data type authors must take into account that variable-length arrays with a capacity of $\leq{}255$ elements will
+    consume an additional 8 bits of the serialized representation
+    (where a capacity of $\leq 65535$ will consume 16 bits and so on).
     For example:
 
     \begin{minted}{python}
@@ -527,7 +508,10 @@ therefore, bit sequences where the implicit union tag field contains values
 that are greater than or equal $n$ do not belong to the set of serialized representations of the tagged union.
 
 The serialized representation of the implicit union tag is immediately followed by
-the serialized representation of the currently selected field attribute value.
+the serialized representation of the currently selected field attribute value\footnote{%
+    Observe that the implicit union tag field, per its definition,
+    is guaranteed to never break the alignment of the following field.
+}.
 
 \begin{remark}
     Consider the following example:

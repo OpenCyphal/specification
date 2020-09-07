@@ -1,15 +1,42 @@
 \section{Serializable types}\label{sec:dsdl_serializable_types}
 
+\subsection{General principles}
+
 Values of the serializable type category can be exchanged between nodes over the UAVCAN network.
 This is opposed to the expression types (section~\ref{sec:dsdl_expression_types}),
 instances of which can only exist while DSDL definitions are being evaluated.
 The data serialization rules are defined in section~\ref{sec:dsdl_data_serialization}.
 
+\subsubsection{Alignment and padding}
+
+For any type, its \emph{alignment} $A$ is defined as some positive integer number of bits such that the offset of a
+serialized representation of an instance of this type relative to the origin of the
+containing serialized representation (if any) is an integer multiple of $A$.
+
+Given an instance of type whose alignment is $A$,
+it is guaranteed that its serialized representation is always an integer multiple of $A$ bits long.
+
+When constructing a serialized representation,
+the alignment and length requirements are satisfied by means of \emph{padding},
+which refers to the extension of a bit sequence with zero bits until
+the resulting alignment or length requirements are satisfied.
+During deserialization, the padding bits are ignored (skipped) irrespective of their value
+(also see related section \ref{sec:dsdl_serialization_implicit_truncation}).
+
+\begin{remark}
+    For example, given a variable-length entity whose length varies between 1 and 3 bits,
+    followed by a field whose type has the alignment requirement of 8,
+    one may end up with 5, 6, or 7 bits of padding inserted before the second field at runtime.
+
+    The exact amount of such padding cannot always be determined statically because it depends on a runtime value;
+    however, it is guaranteed that it is always strictly less than the alignment requirement of the following field
+    or, if this is the last field in a group, the alignment requirement of its container.
+\end{remark}
+
 \subsection{Void types}
 
 Void types are used for padding purposes.
-As will be explained in later sections, it is desirable to align field attributes at byte boundaries;
-void types can be used to facilitate that.
+The alignment of void types is 1 bit (i.e., no alignment).
 
 Void-typed field attributes are set to zero when an object is serialized and ignored when it is deserialized.
 Void types can be used to reserve space in data type definitions for possible use in later versions of the data type.
@@ -25,6 +52,8 @@ Void types can be referred to directly by their name from any namespace.
 Primitive types are assumed to be known to DSDL processing tools a priori,
 and as such, they need not be defined by the user.
 Primitive types can be referred to directly by their name from any namespace.
+
+The alignment of primitive types is 1 bit (i.e., no alignment).
 
 \subsubsection{Hierarchy}
 
@@ -195,7 +224,17 @@ a variable-length array:
 \end{itemize}
 If neither of the above prefixes are provided, the resultant definition is that of a fixed-length array.
 
+The alignment of an array equals the alignment of its element type\footnote{
+    E.g., the alignment of \texttt{uint5[<=3]} or \texttt{int64[3]} is 1 bit (that is, no alignment).
+}.
+
 \subsection{Composite types}\label{sec:dsdl_composite_types}
+
+The alignment of composite types is one byte (8 bits)\footnote{%
+    Regardless of the content.
+    It follows that empty composites can be inserted arbitrarily to force byte alignment
+    of the next field(s) at runtime.
+}.
 
 \subsubsection{Kinds}
 
