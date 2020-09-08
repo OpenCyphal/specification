@@ -211,9 +211,15 @@ in one of the standard bodies.
 Compared to v1.0-alpha, the differences are as follows (the motivation is provided on the forum):
 
 \begin{itemize}
+    \item The physical layer specification has been removed.
+          It is now up to the domain-specific UAVCAN-based standards to define the physical layer.
+
     \item The subject-ID range reduced from $[0, 32767]$ down to $[0, 8191]$.
+          This change may be reverted in a future edition of the standard, if found practical.
+
     \item Added support for delimited serialization; introduced related concepts of \emph{extent} and \emph{finality}
           (section \ref{sec:dsdl_composite_extent_and_finality}).
+          This change enables one to easily evolve networked services in a backward-compatible way.
 \end{itemize}
 
 \subsection{v1.0-alpha -- Jan 2020}
