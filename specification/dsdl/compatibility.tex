@@ -105,7 +105,7 @@ the version numbers of its first definition shall be assigned ``1.0'' (major 1, 
 
 In order to ensure predictability and functional safety of applications that leverage UAVCAN,
 it is required that once a data type definition is released,
-its DSDL source text, name, version numbers, fixed port-ID, and other properties cannot undergo any
+its DSDL source text, name, version numbers, fixed port-ID, extent, finality, and other properties cannot undergo any
 modifications whatsoever, with the following exceptions:
 \begin{itemize}
     \item Whitespace changes of the DSDL source text are allowed,
@@ -142,6 +142,8 @@ per combination of data type name and version number pair.
 All data types under the same name shall be also of the same kind.
 In other words, if the first released definition of a data type is of the message kind,
 all other versions shall also be of the message kind.
+
+All data types under the same name and major version number should share the same extent and the same finality status.
 
 \subsubsection{Fixed port identifier assignment constraints}
 

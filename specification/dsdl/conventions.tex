@@ -60,12 +60,14 @@ even if not populated, and special case values undermine type safety.
     Array-based optional field:
 
     \begin{minted}{python}
+        @final
         MyType[<=1] optional_field
     \end{minted}
 
     Union-based optional field:
 
     \begin{minted}{python}
+        @final
         @union                          # The implicit tag is one byte long.
         uavcan.primitive.Empty none     # Represents lack of value, unpopulated field.
         MyType some                     # The field of interest; field ordering is important.
@@ -107,6 +109,7 @@ even if not populated, and special case values undermine type safety.
     and another node is receiving it using the new definition.
     The implicit zero extension rule guarantees that the optional field array will
     appear empty to the receiving node because the implicit length field will be read as zero.
+    Same is true if the message was nested inside another one, thanks to the delimiter header.
 \end{remark}
 
 \subsection{Bit flag representation}
