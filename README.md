@@ -76,13 +76,13 @@ Without strict conventions in place, they quickly become unmanageable.
 - There shall be one blank line above and below a section header,
 unless the section header is at the top of the source file.
 - Multi-line content enclosed in curly braces should be indented.
-- If a list item spills on the next line, the spilled text should be indented on the same level with the first line.
+- If a list item spills on the next line, the spilled text should be indented on the same level with `\item`.
 
 ```tex
 \begin{itemize}
     \item This list item is sufficiently long to exceed the limit of 120 characters per line,
-          so it has to spill onto the next line.
-          The spilled part is indented correctly.
+    so it has to spill onto the next line.
+    The spilled part is indented correctly.
 
     \item Another item.
 \end{itemize}
