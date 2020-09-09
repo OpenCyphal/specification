@@ -1,4 +1,4 @@
-FROM uavcan/texer:ubuntu-16.04
+FROM uavcan/texer:ubuntu-18.04
 
 RUN mkdir -p /root/.vscode-server/extensions \
              /root/.vscode-server-insiders/extensions
