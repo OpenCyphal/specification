@@ -380,15 +380,18 @@ a fixed-length array of $n$ elements\footnote{%
     \end{minted}
 \end{remark}
 
-\subsection{Composite types}
+\subsection{Composite types}\label{sec:dsdl_serialization_composite}
 
 As explained in the section~\ref{sec:dsdl_composite_types}, a data type of the service kind contains
 two data schema definitions: one for the request object and one for the response object.
 Unless explicitly specified otherwise, any reference to serialized representations of a service type
 implies either or both of its data schema definitions, depending on context.
 
-A serialized representation of an object of a composite type is a sequence of serialized representations of
-its field attribute values joined into a bit sequence.
+\subsubsection{Final structure}
+
+A serialized representation of an object of a final composite type that is not a tagged union
+is a sequence of serialized representations of its field attribute values joined into a bit sequence,
+separated by padding if such is necessary to satisfy the alignment requirements.
 The ordering of the serialized representations of the field attribute values follows the order
 of field attribute declaration.
 
@@ -479,7 +482,7 @@ of field attribute declaration.
     not recommended because the convention is deeply ingrained in most readers, tools, and technologies.
 \end{remark}
 
-\subsubsection{Tagged unions}
+\subsubsection{Final tagged union}
 
 Similar to variable-length arrays, a serialized representation of a tagged union consists of two segments:
 the implicit \emph{union tag} value followed by the selected field attribute value.
@@ -569,3 +572,7 @@ the serialized representation of the currently selected field attribute value\fo
         AnyType.1.0[<=1] maybe_some
     \end{minted}
 \end{remark}
+
+\subsubsection{Non-final}\label{sec:dsdl_serialization_composite_non_final}
+
+...

@@ -156,29 +156,17 @@ and the category of the containing data schema definition.
 If the current data schema definition belongs to the tagged union category,
 the referring statement shall be located after the last field attribute definition.
 A field attribute definition following the referring statement renders the current definition invalid.
-For tagged unions, the value of the offset attribute is defined as:
-$$
-    \texttt{\_offset\_}_\text{union} =
-    \bigcup\limits_{i=1}^{n}
-    \left\{ 2^{\lceil\log_2 \text{max}\left(8, \lceil\log_2 n\rceil\right)\rceil} + b : b \in B_i \right\}
-$$
-where $n$ is the number of fields defined in the current union definition,
-and $B_i$ is the bit length set of the data type of the field number $i$.
+For tagged unions, the value of the offset attribute is defined as the
+cumulative bit length set\footnote{Section \ref{sec:dsdl_composite_alignment_cumulative_bls}.}
+of the union's fields, where each element of the set is incremented by the bit length of the implicit union tag field
+(section \ref{sec:dsdl_serialization_composite}).
 
 If the current data schema definition does not belong to the tagged union category,
 the referring statement may be located anywhere within the current data schema definition.
-The value of the offset attribute is defined as:
-$$
-    \texttt{\_offset\_} =
-    \begin{cases}
-        \left\{ \sum s : s \in \prod\limits_{i=1}^{n} B_i \right\} &\mid n > 0 \\
-        \left\{0\right\}                                           &\mid n = 0 \\
-    \end{cases}
-$$
-where $n$ is the number of fields defined in statements preceding the referring statement
-(see section~\ref{sec:dsdl_grammar} on statement ordering),
-$B_i$ is the bit length set of the data type of the field number $i$,
-and $\prod$ is the Cartesian product operator.
+The value of the offset attribute is defined as the
+cumulative bit length set\footnote{Section \ref{sec:dsdl_composite_alignment_cumulative_bls}.}
+of the fields defined in statements preceding the referring statement
+(see section~\ref{sec:dsdl_grammar} on statement ordering).
 
 \begin{remark}
     \begin{minted}{python}
@@ -206,4 +194,3 @@ and $\prod$ is the Cartesian product operator.
         uint8 well_aligned   # Proven to be byte-aligned.
     \end{minted}
 \end{remark}
-

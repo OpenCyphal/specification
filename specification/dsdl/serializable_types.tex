@@ -7,7 +7,7 @@ This is opposed to the expression types (section~\ref{sec:dsdl_expression_types}
 instances of which can only exist while DSDL definitions are being evaluated.
 The data serialization rules are defined in section~\ref{sec:dsdl_data_serialization}.
 
-\subsubsection{Alignment and padding}
+\subsubsection{Alignment and padding}\label{sec:dsdl_serializable_alignment_padding}
 
 For any type, its \emph{alignment} $A$ is defined as some positive integer number of bits such that the offset of a
 serialized representation of an instance of this type relative to the origin of the
@@ -230,12 +230,6 @@ The alignment of an array equals the alignment of its element type\footnote{
 
 \subsection{Composite types}\label{sec:dsdl_composite_types}
 
-The alignment of composite types is one byte (8 bits)\footnote{%
-    Regardless of the content.
-    It follows that empty composites can be inserted arbitrarily to force byte alignment
-    of the next field(s) at runtime.
-}.
-
 \subsubsection{Kinds}
 
 There are two kinds of composite data type definitions: message types and service types.
@@ -320,7 +314,7 @@ The available attributes and their semantics are documented in the section~\ref{
     \end{minted}
 \end{remark}
 
-\subsubsection{Unions}\label{sec:dsdl_composite_tagged_unions}
+\subsubsection{Tagged unions}\label{sec:dsdl_composite_tagged_unions}
 
 Any data schema definition can be supplied with a special directive (section~\ref{sec:dsdl_directives})
 indicating that it forms a tagged union.
@@ -330,6 +324,28 @@ A tagged union shall not contain padding field attributes.
 
 The value of a tagged union object is a function of the field attribute which value it is currently holding
 and the value of the field attribute itself.
+
+To avoid ambiguity, a data schema that is not a tagged union is referred to as a \emph{structure}.
+
+\subsubsection{Alignment and cumulative bit length set}\label{sec:dsdl_composite_alignment_cumulative_bls}
+
+The alignment of composite types is one byte (8 bits)\footnote{%
+    Regardless of the content.
+    It follows that empty composites can be inserted arbitrarily to force byte alignment
+    of the next field(s) at runtime.
+}.
+
+Per the definitions given in \ref{sec:dsdl_serializable_alignment_padding},
+a serialized representation of a composite type is padded to 8 bits by inserting padding bits
+after its last element until the resulting length is a multiple of 8 bits.
+
+Given a set of field attributes, their \emph{cumulative bit length set} is computed
+by evaluating every permutation of their respective bit length sets plus the required padding.
+For tagged unions, this amounts to the union of the bit length sets of each field
+plus the bit length set of the implicit union tag prefix.
+Otherwise, the cumulative bit length set is the Cartesian product of the bit length sets of each field
+plus the required inter-field padding.
+The specifics are given in section \ref{sec:dsdl_data_serialization}.
 
 \subsubsection{Extent and finality}\label{sec:dsdl_composite_extent_and_finality}
 
@@ -384,10 +400,12 @@ The related mechanics are described in section \ref{sec:dsdl_data_serialization}
     \caption{Serialized representation and extent\label{fig:dsdl_extent}}
 \end{figure}
 
-The default extent of a non-final definition is the following function of its bit length set $B$:
+The default extent of a non-final definition is the following function
+of the cumulative bit length set\footnote{Section \ref{sec:dsdl_composite_alignment_cumulative_bls}.}
+of its fields $B$:
 
 $$
-\text{Ext}_\text{default}\left(B\right) =
+X_\text{default}\left(B\right) =
 \left\lceil{}\left\lfloor{}\frac{3}{2} \max{}\left(B\right)\right\rfloor{}/8\right\rceil{}8
 $$
 
@@ -402,6 +420,72 @@ unless the definition is final.
 
 By default, a definition is not final unless explicitly indicated otherwise using the directive described in
 section \ref{sec:dsdl_directive_final}.
+
+\subsubsection{Bit length set}
+
+The bit length set of a final composite type equals the cumulative bit length set
+of its fields plus the final padding (see section \ref{sec:dsdl_composite_alignment_cumulative_bls}).
+
+\begin{remark}
+    The bit length set of the following is $\left\{ 8, 24, 40, 56 \right\}$:
+    \begin{minted}{python}
+        uint16[<=3] foo
+        @final
+    \end{minted}
+
+    The bit length set of the following is $\left\{ 16, 32, 48, 64 \right\}$:
+    \begin{minted}{python}
+        uint16[<=3] foo
+        int2 bar
+        @final
+    \end{minted}
+
+    The bit length set of the following is $\left\{ 8, 16 \right\}$:
+    \begin{minted}{python}
+        bool[<=3] foo
+        @final
+    \end{minted}
+\end{remark}
+
+The bit length set of a non-final composite type is dependent only on its extent $X$, and is defined as follows:
+$$
+    \left\{ B_\text{DH} + 8b \mid b \in \mathbb{Z},\ 0 \leq b \leq \frac{X}{8} \right\}
+$$
+where $B_\text{DH}$ is the bit length of the \emph{delimiter header}
+as defined in section \ref{sec:dsdl_serialization_composite_non_final}.
+
+\begin{remark}
+    This is intentionally not dependent on the fields of the composite because the definition of non-final
+    composites should be possible to change without violating the backward compatibility.
+
+    If the bit length set was dependent on the field composition, then a composite $A$ that nests another composite
+    $B$ could have made a fragile assumption about the offset of the fields that follow $B$
+    that could be broken when $B$ is modified. Example:
+
+    \begin{minted}{python}
+        # A.1.0
+        B.1.0 x
+        float32 assume_aligned  # B.1.0 contains a single uint64, assume this field is 32-bit aligned?
+    \end{minted}
+
+    \begin{minted}{python}
+        # B.1.0
+        uint64 x
+    \end{minted}
+
+    Imagine then that \verb|B.1.0| is replaced with the following:
+
+    \begin{minted}{python}
+        # B.1.1
+        uint64 x
+        bool[<=64] y
+    \end{minted}
+
+    Once this modification is introduced, the fragile assumption about the alignment of
+    \verb|A.1.0.assume_aligned| would be violated.
+    To avoid this issue, the bit length set definition of non-final types intentionally discards the information
+    about its field composition, forcing dependent types to avoid any non-trivial assumptions.
+\end{remark}
 
 \subsubsection{Type polymorphism and equivalency}
 
