@@ -49,7 +49,7 @@ Textual patterns are specified using the standard
 POSIX Extended Regular Expression (ERE) syntax;
 the character set is ASCII and patterns are case sensitive, unless explicitly specified otherwise.
 
-Type parametrization expressions use subscript notation,
+Type parameterization expressions use subscript notation,
 where the parameter is specified in the subscript enclosed in angle brackets:
 $\texttt{type}_\texttt{<parameter>}$.
 
@@ -127,7 +127,7 @@ or by others for private use or for public release
 (in which case they are said to be \emph{application-specific} or \emph{vendor-specific}; these terms are equivalent).
 There can be up to 256 major versions of a data type, and up to 256 minor versions per major version.
 
-UAVCAN supports 32768 message subject identifiers for publish/subscribe exchanges and
+UAVCAN supports 8192 message subject identifiers for publish/subscribe exchanges and
 512 service identifiers for remote procedure call exchanges.
 A small subset of these identifiers is reserved for the core standard and for publicly released vendor-specific types
 (chapter~\ref{sec:application}).
@@ -147,8 +147,11 @@ The core specification does not define nor explicitly limit any physical layers 
 properties required by UAVCAN may imply or impose constraints and/or minimum performance requirements on physical
 networks. Because of this, the core standard does not control compatibility below a supported transport layer between
 compliant nodes on a physical network (i.e. there are no, anticipated, compatibility concerns between compliant nodes
-connected to a virtual network where hardware constraints are not enforced nor emulated). Additional standards specifying
-physical-layer requirements, including connectors, may be required to utilize this standard in a vehicle system.
+connected to a virtual network where hardware constraints are not enforced nor emulated).
+Additional standards specifying physical-layer requirements, including connectors,
+may be required to utilize this standard in a vehicle system.
+
+The capabilities of the protocol will never be reduced within a major version of the specification but may be expanded.
 
 \section{Management policy}
 
@@ -198,15 +201,21 @@ The UAVCAN specification contains references to the following sources:
 
 \section{Revision history}
 
-\subsection{v1.0-alpha}
-
-This is the initial version of the document.
-The discussions that shaped the initial version are available on the public UAVCAN discussion forum.
+\subsection{v1.0-beta -- Sep 2020}
 
 This version is to be followed by \emph{v1.0} upon completion of the formal standardization process
 in one of the standard bodies.
-Meanwhile, the document may undergo modifications that are either non-essential (e.g., minor conventions or wording)
-or that are mandatory to ensure the long-term success of the technology (e.g., resolution of design mistakes).
+
+Compared to v1.0-alpha, the differences are as follows (the motivation is provided on the forum):
+
+\begin{itemize}
+    \item The subject-ID range reduced from $[0, 32767]$ down to $[0, 8191]$.
+\end{itemize}
+
+\subsection{v1.0-alpha -- Jan 2020}
+
+This is the initial version of the document.
+The discussions that shaped the initial version are available on the public UAVCAN discussion forum.
 
 %\subsection{v1.0}
 % Hello world!

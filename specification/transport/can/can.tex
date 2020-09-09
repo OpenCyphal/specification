@@ -66,11 +66,11 @@ for message transfers and service transfers, respectively.
             %
             \multirow{2}{*}{\textbf{Message}} &
             \multicolumn{4}{c|}{Service, not message} &
-            \multicolumn{3}{c|}{Anonymous} &
-            \multicolumn{14}{c|}{\multirow{2}{*}{Subject-ID}} &
+            \multicolumn{4}{c|}{Anonymous} &
+            \multicolumn{13}{c|}{\multirow{2}{*}{Subject-ID}} &
             \multicolumn{1}{c|}{\multirow{2}{*}{R}} &
             \multicolumn{7}{c|}{\multirow{2}{*}{Source node-ID}}
-            \\\cline{2-4} \cline{7-8}
+            \\\cline{2-4} \cline{7-9}
 
             &
             \multicolumn{3}{c|}{Priority}
@@ -78,7 +78,9 @@ for message transfers and service transfers, respectively.
             &
             &
             R &
-            \multicolumn{15}{c|}{} &
+            R &
+            R &
+            \multicolumn{13}{c|}{} &
             &
             \multicolumn{7}{c|}{}
             \\
@@ -88,8 +90,9 @@ for message transfers and service transfers, respectively.
             $0$ &
             $\mathbb{B}$ &
             $0$ &
-            \multicolumn{1}{c}{} &
-            \multicolumn{14}{c|}{$[0, 32767]$} &
+            $1$ &
+            $1$ &
+            \multicolumn{13}{c|}{$[0, 8191]$} &
             $0$ &
             \multicolumn{7}{c|}{$[0, 127]$}
             \\\hline
@@ -162,7 +165,20 @@ for message transfers and service transfers, respectively.
 
     Reserved bit 23     & 1     & $0$               & Discard frame if this field has a different value. \\
 
-    Subject-ID          & 15    & $[0, 32767]$ (any) & Subject-ID of the current message transfer. \\
+    % The asymmetric requirement to transmit only 1 and accept any value is due to the need to ensure compatibility
+    % with the implementations following the v1-alpha spec, where the width of the subject-ID field was 15 bit
+    % (two bits wider). We keep the most significant bits set to ensure the compatibility of the regulated subject-IDs
+    % between v1-alpha and v1-beta. Ensuring the compatibility of unregulated subject-IDs is far less important because
+    % generally, they are easily changeable.
+    %
+    % Such backward-compatible change renders these two bits unusable for the possible future expansion of the
+    % subject-ID field, but this is fine, because shall the expansion become imminent, we can always flip R7 from 0
+    % to 1, and thus pave the way for a completely new bit layout format with a wider subject-ID. Meanwhile, R21 and
+    % R22 can be leveraged for some additional optional features.
+    Reserved bit 22     & 1     & $1$, any          & Transmit $1$; ignore (do not check) when receiving. \\
+    Reserved bit 21     & 1     & $1$, any          & Transmit $1$; ignore (do not check) when receiving. \\
+
+    Subject-ID          & 13    & $[0, 8191]$ (any) & Subject-ID of the current message transfer. \\
 
     Reserved bit 7      & 1     & $0$               & Discard frame if this field has a different value. \\
 

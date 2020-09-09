@@ -1,11 +1,20 @@
 {
+    "editor.rulers": [
+        120
+    ],
     "remote.containers.workspaceMountConsistency": "delegated",
     "latex-workshop.view.pdf.hand": true,
     "latex-workshop.view.autoFocus.enabled": false,
     "latex-workshop.latex.autoBuild.run": "never",
     "latex-workshop.latex.recipes": [
         {
-            "name": "pdflatex x3",
+            "name": "pdflatex incremental",
+            "tools": [
+                "pdflatex"
+            ]
+        },
+        {
+            "name": "pdflatex full",
             "tools": [
                 "pdflatex",
                 "pdflatex",
@@ -34,5 +43,17 @@
             ]
         }
     ],
-    "latex-workshop.viewer.pdf.internal.port": 41491
+    "latex-workshop.viewer.pdf.internal.port": 41491,
+    "spellright.documentTypes": [
+        "markdown",
+        "latex",
+        "plaintext"
+    ],
+    "spellright.ignoreFiles": [
+        "**/.gitignore",
+        "**/.spellignore"
+    ],
+    "spellright.language": [
+        "en_US"
+    ]
 }

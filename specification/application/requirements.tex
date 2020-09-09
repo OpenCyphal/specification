@@ -17,14 +17,14 @@ The subject and service identifier values are segregated into three ranges:
 More information on the subject of data type regulation is provided in section~\ref{sec:basic_data_type_regulation}.
 
 The ranges are summarized in table~\ref{table:application_requirements_port_id_distribution}.
-Unused gaps are reserved for future expansion of adjacent ranges.
+The ranges may be expanded, but not contracted, in a future version of the document.
 
 \begin{UAVCANSimpleTable}{Port identifier distribution}{|l l X|}%
     \label{table:application_requirements_port_id_distribution}
-    Subject-ID          & Service-ID        & Purpose \\
-    $[0, 24575]$        & $[0, 127]$        & Unregulated identifiers (both fixed and non-fixed). \\
-    $[28672, 29695]$    & $[256, 319]$      & Non-standard fixed regulated identifiers (i.e., vendor-specific). \\
-    $[31744, 32767]$    & $[384, 511]$      & Standard fixed regulated identifiers. \\
+    Subject-ID      & Service-ID        & Purpose \\
+    $[0, 6143]$     & $[0, 255]$        & Unregulated identifiers (both fixed and non-fixed). \\
+    $[6144, 7167]$  & $[256, 383]$      & Non-standard fixed regulated identifiers (i.e., vendor-specific). \\
+    $[7168, 8191]$  & $[384, 511]$      & Standard fixed regulated identifiers. \\
 \end{UAVCANSimpleTable}
 
 \subsection{Port compatibility}
