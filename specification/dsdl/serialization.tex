@@ -158,11 +158,11 @@ This behavior facilitates usage of void fields as placeholders for non-void fiel
 introduced in newer versions of the data type (section~\ref{sec:dsdl_versioning}).
 
 \begin{remark}
-    The following data schema will be serialized as a sequence of three zero bits $000_2$:
+    The following data type will be serialized as a sequence of three zero bits $000_2$:
     \begin{minted}{python}
         void3
     \end{minted}
-    The following bit sequences are valid serialized representations of the schema:
+    The following bit sequences are valid serialized representations of the type:
     $000_2$,
     $001_2$,
     $010_2$,
@@ -302,7 +302,7 @@ Serialized representations of a fixed-length array of $n$ elements of type $T$ a
 a sequence of $n$ field attributes of type $T$ are equivalent.
 
 \begin{remark}
-    Serialized representations of the following two data schema definitions are equivalent:
+    Serialized representations of the following two data type definitions are equivalent:
 
     \begin{minted}{python}
         AnyType[3] array
@@ -382,11 +382,6 @@ a fixed-length array of $n$ elements\footnote{%
 
 \subsection{Composite types}\label{sec:dsdl_serialization_composite}
 
-As explained in the section~\ref{sec:dsdl_composite_types}, a data type of the service kind contains
-two data schema definitions: one for the request object and one for the response object.
-Unless explicitly specified otherwise, any reference to serialized representations of a service type
-implies either or both of its data schema definitions, depending on context.
-
 \subsubsection{Final structure}
 
 A serialized representation of an object of a final composite type that is not a tagged union
@@ -396,7 +391,7 @@ The ordering of the serialized representations of the field attribute values fol
 of field attribute declaration.
 
 \begin{remark}
-    Consider the following data schema definition,
+    Consider the following definition,
     where the fields are assigned runtime values shown in the comments:
 
     \begin{minted}{python}
@@ -531,7 +526,7 @@ the serialized representation of the currently selected field attribute value\fo
     \end{minted}
 
     In order to encode the field \verb|b|, the implicit union tag shall be assigned the value 1.
-    The following data schema will have an identical layout:
+    The following type will have an identical layout:
 
     \begin{minted}{python}
         @final
@@ -561,7 +556,7 @@ the serialized representation of the currently selected field attribute value\fo
         @final
     \end{minted}
 
-    Consider the following union schema definition:
+    Consider the following union:
 
     \begin{minted}{python}
         @final
@@ -570,7 +565,7 @@ the serialized representation of the currently selected field attribute value\fo
         AnyType.1.0 some
     \end{minted}
 
-    The set of serialized representations of the union schema definition given above is equivalent to
+    The set of serialized representations of the union given above is equivalent to
     that of the following variable-length array:
 
     \begin{minted}{python}
@@ -666,7 +661,8 @@ No special rules apply in such cases.
             & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
             \cline{2-7}
             $C^\prime$ &
-            \multicolumn{1}{|c|}{$H_A$} & \multicolumn{1}{c|}{$a_0$} & \multicolumn{1}{c|}{$a_1$} & \multicolumn{1}{c|}{$a_2$}
+            \multicolumn{1}{|c|}{$H_A$} & \multicolumn{1}{c|}{$a_0$} & \multicolumn{1}{c|}{$a_1$} &
+            \multicolumn{1}{c|}{$a_2$}
             &\multicolumn{1}{c|}{$b_0$} & \multicolumn{1}{c|}{$b_1$}
             \\\cline{2-7}
         \end{tabular}

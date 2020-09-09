@@ -7,17 +7,21 @@ In this section, it is assumed that a directive does not expect an expression un
 If the expectation of an associated directive expression or lack thereof is violated,
 the containing DSDL definition is malformed.
 
+The effect of a directive is confined to the data type definition that contains it.
+That means that for service types, a directive only affects its inferior,
+unless specifically stated otherwise.
+
 \subsection{Tagged union marker}
 
 The identifier of the tagged union marker directive is ``\verb|union|''.
 Presence of this directive in a data type definition indicates that the
-data schema definition containing this directive belongs to the tagged union category
+data type definition containing this directive belongs to the tagged union category
 (section~\ref{sec:dsdl_composite_tagged_unions}).
 
 Usage of this directive is subject to the following constraints:
 \begin{itemize}
-    \item The directive shall not be used more than once per data schema definition.
-    \item The directive shall be placed before the first composite type attribute definition in the current data schema.
+    \item The directive shall not be used more than once per data type definition.
+    \item The directive shall be placed before the first composite type attribute definition in the current definition.
 \end{itemize}
 
 \begin{remark}
@@ -34,20 +38,20 @@ Usage of this directive is subject to the following constraints:
 \subsection{Explicit extent specifier}\label{sec:dsdl_directive_extent}
 
 The identifier of the explicit extent specification directive is ``\verb|extent|''.
-This directive overrides the default extent of its schema (section \ref{sec:dsdl_composite_extent_and_finality})
+This directive overrides the default extent of its data type (section \ref{sec:dsdl_composite_extent_and_finality})
 with the value obtained by evaluating the provided expression.
 The expression shall be present and it shall yield a non-negative integer value of type
 ``\verb|rational|'' (section~\ref{sec:dsdl_primitive_types}) upon its evaluation.
 
 Usage of this directive is subject to the following constraints (otherwise, the definition is malformed):
 \begin{itemize}
-    \item The directive shall not be used more than once per data schema definition.
-    \item The directive shall be placed after the last attribute definition in the current data schema\footnote{%
+    \item The directive shall not be used more than once per data type definition.
+    \item The directive shall be placed after the last attribute definition in the current data type\footnote{%
               This constraint is to help avoid issues where the extent is defined as a function of the offset past
-              the last field of the schema, and a new field is mistakenly added after the extent directive.
+              the last field of the type, and a new field is mistakenly added after the extent directive.
           }.
     \item The value shall satisfy the constraints given in section \ref{sec:dsdl_composite_extent_and_finality}.
-    \item The schema shall not be final.
+    \item The data type shall not be final.
 \end{itemize}
 
 \begin{remark}
@@ -68,22 +72,22 @@ Usage of this directive is subject to the following constraints (otherwise, the 
 \subsection{Finality marker}\label{sec:dsdl_directive_final}
 
 The identifier of the finality marker directive is ``\verb|final|''.
-This directive marks the current schema final (section \ref{sec:dsdl_composite_extent_and_finality})
-(if not provided, the schema is non-final).
+This directive marks the current data type final (section \ref{sec:dsdl_composite_extent_and_finality})
+(if not provided, the data type is non-final).
 
 Usage of this directive is subject to the following constraints (otherwise, the definition is malformed):
 \begin{itemize}
-    \item The directive shall not be used more than once per data schema definition.
-    \item The extent directive shall not be used in this data schema definition.
+    \item The directive shall not be used more than once per data type definition.
+    \item The extent directive shall not be used in this data type definition.
 \end{itemize}
 
 \begin{remark}
     \begin{minted}{python}
         uint64 foo
-        @final        # The request schema is final.
-        #@extent 128  # Would fail -- cannot specify extent for final schema
+        @final        # The request type is final.
+        #@extent 128  # Would fail -- cannot specify extent for final type
         ---
-        float64 bar   # The response schema is not final.
+        float64 bar   # The response type is not final.
         @extent 4000 * 8
     \end{minted}
 \end{remark}
@@ -101,8 +105,9 @@ in the generated code.
 Usage of this directive is subject to the following constraints:
 \begin{itemize}
     \item The directive shall not be used more than once per data type definition.
-    \item The directive shall be placed before the first composite type attribute definition in
-          the first data schema definition.
+    \item The directive shall be placed before the first composite type attribute definition in the definition.
+    \item In case of service types, this directive may only be placed in the request inferior,
+    and it affects the response inferior as well.
 \end{itemize}
 
 \begin{remark}
@@ -111,7 +116,7 @@ Usage of this directive is subject to the following constraints:
         uint8 FOO = 123
         #@deprecated        # Would fail - shall be placed before the first attribute definition
         ---
-        #@deprecated        # Would fail - shall be placed in the first data schema definition
+        #@deprecated        # Would fail - shall be placed in the request inferior
     \end{minted}
 
     A C++ class generated from the above definition could be annotated with the \verb|[[deprecated]]| attribute.

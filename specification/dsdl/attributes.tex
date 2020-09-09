@@ -9,7 +9,7 @@ A composite type attribute that has a value assigned at the data type definition
 a composite type attribute that does not have a value assigned at the definition time is called a
 \emph{field attribute}.
 
-The name of a composite type attribute shall be unique within its data schema definition
+The name of a composite type attribute shall be unique within the data type definition that contains it,
 and it shall not match any of the reserved name patterns specified in the table
 \ref{table:dsdl_reserved_word_patterns}.
 This requirement does not apply to padding fields.
@@ -103,7 +103,11 @@ a DSDL definition is an ordered collection of statements;
 a statement may contain DSDL expressions.
 An expression contained in a statement number $E$ may refer to a
 composite type attribute introduced in a statement number $A$ by its name,
-where $A < E$ and both statements belong to the same data schema definition.
+where $A < E$ and both statements belong to the same data type definition\footnote{
+    Per \ref{sec:dsdl_elements_of_data_type_definition},
+    in case of service types, this applies only to their request and response inferiors.
+    Service types themselves cannot contain attributes.
+}.
 The representation of the referred attribute in the context of the referring DSDL expression
 is specified in table~\ref{table:dsdl_local_attribute_representation}.
 
@@ -128,7 +132,7 @@ is specified in table~\ref{table:dsdl_local_attribute_representation}.
         uint8 FOO = 123
         uint16 BAR = FOO ** 2
         @assert BAR == 15129
-        ---  # The request data schema definition ends here; its attributes are no longer accessible.
+        ---  # The request type ends here; its attributes are no longer accessible.
         #uint16 BAZ = BAR  # Would fail - BAR is not accessible here.
         float64 FOO = 3.14
         @assert FOO == 3.14
@@ -151,9 +155,9 @@ containing an expression which refers to the offset attribute.
 The term \emph{bit length set} is defined in section~\ref{sec:dsdl_bit_length_set}.
 
 The value of the attribute is a function of the field attribute declarations preceding the referring statement
-and the category of the containing data schema definition.
+and the category of the containing definition.
 
-If the current data schema definition belongs to the tagged union category,
+If the current definition belongs to the tagged union category,
 the referring statement shall be located after the last field attribute definition.
 A field attribute definition following the referring statement renders the current definition invalid.
 For tagged unions, the value of the offset attribute is defined as the
@@ -161,8 +165,8 @@ cumulative bit length set\footnote{Section \ref{sec:dsdl_composite_alignment_cum
 of the union's fields, where each element of the set is incremented by the bit length of the implicit union tag field
 (section \ref{sec:dsdl_serialization_composite}).
 
-If the current data schema definition does not belong to the tagged union category,
-the referring statement may be located anywhere within the current data schema definition.
+If the current data definition does not belong to the tagged union category,
+the referring statement may be located anywhere within the current definition.
 The value of the offset attribute is defined as the
 cumulative bit length set\footnote{Section \ref{sec:dsdl_composite_alignment_cumulative_bls}.}
 of the fields defined in statements preceding the referring statement

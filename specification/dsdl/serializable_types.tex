@@ -232,16 +232,14 @@ The alignment of an array equals the alignment of its element type\footnote{
 
 \subsubsection{Kinds}
 
-There are two kinds of composite data type definitions: message types and service types.
+There are two kinds of composite type definitions: message types and service types.
 All versions of a data type shall be of the same kind\footnote{%
     For example, if a data type version 0.1 is of a message kind, all later versions of it shall be messages, too.
 }.
 
-A message data type defines one data schema.
-
-A service data type contains two data schema definitions:
+A service type defines two inferior data types:
 one for service request object, and one for service response object, in that order.
-The two schemas are separated by the service response marker (``\verb|---|'') on a separate line.
+The two inferiors are separated by the service response marker (``\verb|---|'') on a separate line.
 
 The presence of the service response marker indicates that the data type definition at hand is of the service kind.
 At most one service response marker shall appear in a given definition.
@@ -316,16 +314,16 @@ The available attributes and their semantics are documented in the section~\ref{
 
 \subsubsection{Tagged unions}\label{sec:dsdl_composite_tagged_unions}
 
-Any data schema definition can be supplied with a special directive (section~\ref{sec:dsdl_directives})
+Any data type definition can be supplied with a special directive (section~\ref{sec:dsdl_directives})
 indicating that it forms a tagged union.
 
-A tagged union schema shall contain at least two field attributes.
+A tagged union type shall contain at least two field attributes.
 A tagged union shall not contain padding field attributes.
 
 The value of a tagged union object is a function of the field attribute which value it is currently holding
 and the value of the field attribute itself.
 
-To avoid ambiguity, a data schema that is not a tagged union is referred to as a \emph{structure}.
+To avoid ambiguity, a data type that is not a tagged union is referred to as a \emph{structure}.
 
 \subsubsection{Alignment and cumulative bit length set}\label{sec:dsdl_composite_alignment_cumulative_bls}
 
@@ -358,20 +356,20 @@ In this context there are two related concepts:
 
 \begin{description}
     \item[Extent] --- the minimum amount of memory, in bits, that shall be allocated to store the serialized
-    representation of the schema.
-    The extent of any schema is always greater than or equal the maximal value of its bit length set.
+    representation of the type.
+    The extent of any type is always greater than or equal the maximal value of its bit length set.
     It is always a multiple of 8.
 
-    \item[Finality] --- denotes whether a schema is \emph{final}.
-    A schema that is final is non-evolvable and its extent equals the maximal value of its bit length set\footnote{%
+    \item[Finality] --- denotes whether a type is \emph{final}.
+    A type that is final is non-evolvable and its extent equals the maximal value of its bit length set\footnote{%
         I.e., the smallest possible extent.
     }.
-    A schema that is not final is also referred to as \emph{delimited}.
+    A type that is not final is also referred to as \emph{delimited}.
 \end{description}
 
-The extent is the growth limit for the maximal bit length of the schema as it evolves.
+The extent is the growth limit for the maximal bit length of the type as it evolves.
 The requirement that the extent is at least as large as the longest serialized representation of
-any version of the schema ensures that an agent leveraging any of its versions can
+any version of the type ensures that an agent leveraging any of its versions can
 correctly process any other compatible version due to the avoidance of unintended truncation of
 serialized representations.
 
@@ -497,7 +495,9 @@ Type polymorphism is supported in DSDL through structural subtyping.
 The following definition relies on the concept of \emph{field attribute},
 which is introduced in section~\ref{sec:dsdl_attributes}.
 
-Let $B$ and $D$ be DSDL message types whose data schemas define $b$ and $d$ field attributes, respectively.
+Polymorphic relations are not defined on service types.
+
+Let $B$ and $D$ be DSDL types that define $b$ and $d$ field attributes, respectively.
 Let each field attribute be assigned a sequential index according to its position in the DSDL definition
 (see section~\ref{sec:dsdl_grammar} on statement ordering).
 
@@ -509,10 +509,10 @@ Let each field attribute be assigned a sequential index according to its positio
             This is because tagged unions are serialized differently.
         };
         \item neither $B$ nor $D$ are final\footnote{%
-            Final types are serialized in-place as if their definition was directly copied into the outer (containing)
-            type (if any).
-            This circumstance effectively renders them non-modifiable because that may break the bit layout of the outer
-            types (if any).
+            Final types are serialized in-place as if their definition was directly copied into the outer
+            (containing) type (if any).
+            This circumstance effectively renders them non-modifiable because that may break the bit layout
+            of the outer types (if any).
         };
         \item the extent of $B$ is not less than the extent of $D$\footnote{%
             This is to uphold the Liskov substitution principle.
@@ -526,8 +526,8 @@ Let each field attribute be assigned a sequential index according to its positio
         \item $B$ is not $D$;
         \item $b \leq d$;
         \item for each field attribute of $B$ at index $i$ there is an equal\footnote{%
-                Field attribute equality is defined in section~\ref{sec:dsdl_attributes}.
-            } field attribute in $D$ at index $i$.
+            Field attribute equality is defined in section~\ref{sec:dsdl_attributes}.
+        } field attribute in $D$ at index $i$.
     \end{itemize}
 
     % -----------------------------------------------------------------------------------------------------------------
@@ -540,16 +540,16 @@ Let each field attribute be assigned a sequential index according to its positio
         \item $b \leq d$;
         \item $2^{\lceil\log_2 \text{max}\left(8, \lceil\log_2 b\rceil\right)\rceil} =
                2^{\lceil\log_2 \text{max}\left(8, \lceil\log_2 d\rceil\right)\rceil}$\footnote{%
-                  I.e., the length of the implicit union tag field should be the same.
-              };
+            I.e., the length of the implicit union tag field should be the same.
+        };
         \item for $i \in \left[0, b\right)$, the type of the field attribute of $D$ at index $i$
-            is the same or is a subtype of the type of the field attribute of $B$ at index $i$.
+        is the same or is a subtype of the type of the field attribute of $B$ at index $i$.
         \item for $i \in \left[0, b\right)$, the name of the field attribute of $D$ at index $i$
-            is the same as the name of the field attribute of $B$ at index $i$.
+        is the same as the name of the field attribute of $B$ at index $i$.
     \end{itemize}
 
     % -----------------------------------------------------------------------------------------------------------------
-    \item Empty schema subtyping rule --- $D$ is a structural subtype of $B$ if all conditions are satisfied:
+    \item Empty type subtyping rule --- $D$ is a structural subtype of $B$ if all conditions are satisfied:
     \begin{itemize}
         \item $b = 0$\footnote{%
             If $B$ contains no field attributes, the applicability of the Liskov substitution principle is invariant to
@@ -606,9 +606,6 @@ one type is a subtype of another, and for any member its supertypes are located 
     A message type that defines zero fields is a structural supertype of any other message type, regardless of either
     or both being a union.
     A message type may have an arbitrary number of supertypes as long as the field equality constraint is satisfied.
-
-    Polymorphic relations are not defined on service types;
-    however, this may change in a future revision of the standard.
 \end{remark}
 
 \begin{remark}[breakable]

@@ -66,12 +66,11 @@ but not more than one fixed port identifier.
 
 \subsubsection{Data type definitions}
 
-Message and service data types
+Message and service types
 are defined using the \emph{data structure description language} (DSDL) (chapter~\ref{sec:dsdl}).
-A DSDL definition specifies the name, major version, minor version, the data schemas,
+A DSDL definition specifies the name, major version, minor version, attributes,
 and an optional fixed port-ID of the data type among other less important properties.
-Message data types always define exactly one data schema, whereas
-service data types contain two independent schema definitions: one for request, and the other for response.
+Service types define two inferior data types: one for request, and the other for response.
 
 \subsubsection{Regulation}\label{sec:basic_data_type_regulation}
 
