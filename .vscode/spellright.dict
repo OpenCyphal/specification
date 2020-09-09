@@ -439,7 +439,7 @@ neq
 lss
 grt
 Backus-Naur
-parametrized
+parameterized
 priori
 lossy
 polymorphism
@@ -448,7 +448,7 @@ Subtype
 subtypes
 extensibility
 th
-parametrization
+parameterization
 invariance
 retransmit
 aperiodic
