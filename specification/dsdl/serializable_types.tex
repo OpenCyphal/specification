@@ -366,6 +366,7 @@ In this context there are two related concepts:
     A schema that is final is non-evolvable and its extent equals the maximal value of its bit length set\footnote{%
         I.e., the smallest possible extent.
     }.
+    A schema that is not final is also referred to as \emph{delimited}.
 \end{description}
 
 The extent is the growth limit for the maximal bit length of the schema as it evolves.
@@ -400,7 +401,7 @@ The related mechanics are described in section \ref{sec:dsdl_serialization_compo
     \caption{Serialized representation and extent\label{fig:dsdl_extent}}
 \end{figure}
 
-The default extent of a non-final definition is the following function
+The default extent of a non-final (delimited) definition is the following function
 of the cumulative bit length set\footnote{Section \ref{sec:dsdl_composite_alignment_cumulative_bls}.}
 of its fields $B$:
 
@@ -421,7 +422,7 @@ unless the definition is final.
 By default, a definition is not final unless explicitly indicated otherwise using the directive described in
 section \ref{sec:dsdl_directive_final}.
 
-It is allowed for a final composite type to nest non-final composite types, and vice versa.
+It is allowed for a final composite type to nest non-final (delimited) composite types, and vice versa.
 
 \subsubsection{Bit length set}
 
@@ -449,7 +450,8 @@ of its fields plus the final padding (see section \ref{sec:dsdl_composite_alignm
     \end{minted}
 \end{remark}
 
-The bit length set of a non-final composite type is dependent only on its extent $X$, and is defined as follows:
+The bit length set of a non-final (delimited) composite type is dependent only on its extent $X$,
+and is defined as follows:
 $$
     \left\{ B_\text{DH} + 8b \mid b \in \mathbb{Z},\ 0 \leq b \leq \frac{X}{8} \right\}
 $$
@@ -457,7 +459,7 @@ where $B_\text{DH}$ is the bit length of the \emph{delimiter header}
 as defined in section \ref{sec:dsdl_serialization_composite_non_final}.
 
 \begin{remark}
-    This is intentionally not dependent on the fields of the composite because the definition of non-final
+    This is intentionally not dependent on the fields of the composite because the definition of delimited
     composites should be possible to change without violating the backward compatibility.
 
     If the bit length set was dependent on the field composition, then a composite $A$ that nests another composite
@@ -485,7 +487,7 @@ as defined in section \ref{sec:dsdl_serialization_composite_non_final}.
 
     Once this modification is introduced, the fragile assumption about the alignment of
     \verb|A.1.0.assume_aligned| would be violated.
-    To avoid this issue, the bit length set definition of non-final types intentionally discards the information
+    To avoid this issue, the bit length set definition of delimited types intentionally discards the information
     about its field composition, forcing dependent types to avoid any non-trivial assumptions.
 \end{remark}
 

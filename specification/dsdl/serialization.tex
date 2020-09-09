@@ -579,16 +579,16 @@ the serialized representation of the currently selected field attribute value\fo
     \end{minted}
 \end{remark}
 
-\subsubsection{Non-final}\label{sec:dsdl_serialization_composite_non_final}
+\subsubsection{Delimited types}\label{sec:dsdl_serialization_composite_non_final}
 
-Objects of non-final composite types that are nested inside other objects\footnote{%
+Objects of delimited (non-final) composite types that are nested inside other objects\footnote{%
     Of any type, not necessarily composite; e.g., arrays.
 }
 are serialized into opaque containers that consist of two parts:
 the fixed-length \emph{delimiter header},
 immediately followed by the serialized representation of the object as if it was of a final type.
 
-Objects of non-final composite types that are \emph{not} nested inside other objects (i.e., top-level objects)
+Objects of delimited composite types that are \emph{not} nested inside other objects (i.e., top-level objects)
 are serialized as if they were of a final type (without the delimiter header).
 
 \begin{remark}
@@ -610,11 +610,11 @@ the implicit truncation (section \ref{sec:dsdl_serialization_implicit_truncation
 and the implicit zero extension (section \ref{sec:dsdl_serialization_implicit_zero_extension})
 rules apply.
 
-It is allowed for a final composite type to nest non-final composite types, and vice versa.
+It is allowed for a final composite type to nest delimited composite types, and vice versa.
 No special rules apply in such cases.
 
 \begin{remark}
-    The resulting serialized representation of a non-final composite is identical to \verb|uint8[<2**32]|.
+    The resulting serialized representation of a delimited composite is identical to \verb|uint8[<2**32]|.
     The implicit array length prefix here is like the delimiter header,
     and the array content is the serialized representation of the composite as if it was final.
 
@@ -670,7 +670,7 @@ No special rules apply in such cases.
             &\multicolumn{1}{c|}{$b_0$} & \multicolumn{1}{c|}{$b_1$}
             \\\cline{2-7}
         \end{tabular}
-        \caption{Extensibility of non-final types with the help of the delimiter header}
+        \caption{Extensibility of delimited types with the help of the delimiter header}
         \label{fig:dsdl_non_final_extensibility}
     \end{figure}
 
@@ -686,6 +686,6 @@ No special rules apply in such cases.
     There is an in-depth discussion of this issue (and other related matters) on the forum.
 
     The fixed-length delimiter header may be considered large,
-    but non-final types tend to also be complex, which makes the overhead comparatively insignificant,
+    but delimited types tend to also be complex, which makes the overhead comparatively insignificant,
     whereas final types that tend to be compact and overhead-sensitive do not contain the delimiter header.
 \end{remark}
