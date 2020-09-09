@@ -49,7 +49,7 @@ Textual patterns are specified using the standard
 POSIX Extended Regular Expression (ERE) syntax;
 the character set is ASCII and patterns are case sensitive, unless explicitly specified otherwise.
 
-Type parametrization expressions use subscript notation,
+Type parameterization expressions use subscript notation,
 where the parameter is specified in the subscript enclosed in angle brackets:
 $\texttt{type}_\texttt{<parameter>}$.
 
@@ -118,8 +118,6 @@ If a different base is used, it is specified after the number in the subscript\f
 
 \section{Capabilities}
 
-The capabilities may be expanded in a future version of the document.
-
 The maximum number of nodes per logical network is dependent on the transport protocol in use,
 but it is guaranteed to be not less than 128.
 
@@ -149,8 +147,11 @@ The core specification does not define nor explicitly limit any physical layers 
 properties required by UAVCAN may imply or impose constraints and/or minimum performance requirements on physical
 networks. Because of this, the core standard does not control compatibility below a supported transport layer between
 compliant nodes on a physical network (i.e. there are no, anticipated, compatibility concerns between compliant nodes
-connected to a virtual network where hardware constraints are not enforced nor emulated). Additional standards specifying
-physical-layer requirements, including connectors, may be required to utilize this standard in a vehicle system.
+connected to a virtual network where hardware constraints are not enforced nor emulated).
+Additional standards specifying physical-layer requirements, including connectors,
+may be required to utilize this standard in a vehicle system.
+
+The capabilities of the protocol will never be reduced within a major version of the specification but may be expanded.
 
 \section{Management policy}
 
