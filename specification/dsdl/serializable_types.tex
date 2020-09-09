@@ -380,7 +380,7 @@ definition are expected to be highly compact, thereby making the overhead compar
 In such cases, the designer may opt out of the extensibility by declaring the definition final.
 Serialized representations of final definitions do not incur the aforementioned overhead.
 
-The related mechanics are described in section \ref{sec:dsdl_data_serialization} dedicated to data serialization.
+The related mechanics are described in section \ref{sec:dsdl_serialization_composite_non_final}.
 
 \begin{figure}[H]
     $$
@@ -420,6 +420,8 @@ unless the definition is final.
 
 By default, a definition is not final unless explicitly indicated otherwise using the directive described in
 section \ref{sec:dsdl_directive_final}.
+
+It is allowed for a final composite type to nest non-final composite types, and vice versa.
 
 \subsubsection{Bit length set}
 

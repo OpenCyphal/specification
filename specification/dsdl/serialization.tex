@@ -94,7 +94,7 @@ Non-zero padding bits are not allowed\footnote{%
     The topic of data type compatibility is explored in detail in section~\ref{sec:dsdl_versioning}.
 \end{remark}
 
-\subsubsection{Implicit zero extension of missing data}
+\subsubsection{Implicit zero extension of missing data}\label{sec:dsdl_serialization_implicit_zero_extension}
 
 For the purposes of deserialization routines,
 the serialized representation of any instance of a data type shall \emph{implicitly} end with an
@@ -406,6 +406,7 @@ of field attribute declaration.
         saturated  int4  third   #     -5                    1011   two's complement
         saturated  int2  fourth  #     -1                      11   two's complement
         truncated uint4  fifth   #   +136               1000_1000   overflow, MSB truncated
+        @final
     \end{minted}
 
     It can be seen that the bit layout is rather complicated because the field boundaries do not align with byte
@@ -484,7 +485,7 @@ of field attribute declaration.
 
 \subsubsection{Final tagged union}
 
-Similar to variable-length arrays, a serialized representation of a tagged union consists of two segments:
+Similar to variable-length arrays, a serialized representation of a final tagged union consists of two segments:
 the implicit \emph{union tag} value followed by the selected field attribute value.
 
 The implicit union tag is an unsigned integer value whose serialized representation
@@ -520,6 +521,7 @@ the serialized representation of the currently selected field attribute value\fo
     Consider the following example:
 
     \begin{minted}{python}
+        @final
         @union           # In this case, the implicit union tag is one byte wide
         uint16 FOO = 42  # A regular constant attribute
         uint16 a         # Field index 0
@@ -532,6 +534,7 @@ the serialized representation of the currently selected field attribute value\fo
     The following data schema will have an identical layout:
 
     \begin{minted}{python}
+        @final
         uint8 implicit_union_tag  # Set to 1
         uint8 b                   # The actual value
     \end{minted}
@@ -555,11 +558,13 @@ the serialized representation of the currently selected field attribute value\fo
 
     \begin{minted}{python}
         # Empty. The only valid serialized representation is an empty bit sequence.
+        @final
     \end{minted}
 
     Consider the following union schema definition:
 
     \begin{minted}{python}
+        @final
         @union
         Empty.1.0 none
         AnyType.1.0 some
@@ -569,10 +574,118 @@ the serialized representation of the currently selected field attribute value\fo
     that of the following variable-length array:
 
     \begin{minted}{python}
+        @final
         AnyType.1.0[<=1] maybe_some
     \end{minted}
 \end{remark}
 
 \subsubsection{Non-final}\label{sec:dsdl_serialization_composite_non_final}
 
-...
+Objects of non-final composite types that are nested inside other objects\footnote{%
+    Of any type, not necessarily composite; e.g., arrays.
+}
+are serialized into opaque containers that consist of two parts:
+the fixed-length \emph{delimiter header},
+immediately followed by the serialized representation of the object as if it was of a final type.
+
+Objects of non-final composite types that are \emph{not} nested inside other objects (i.e., top-level objects)
+are serialized as if they were of a final type (without the delimiter header).
+
+\begin{remark}
+    Top-level objects do not require the delimiter header because the change in their length does not necessarily
+    affect the backward compatibility thanks to the implicit truncation rule
+    (section \ref{sec:dsdl_serialization_implicit_truncation}) and the implicit zero extension rule
+    (section \ref{sec:dsdl_serialization_implicit_zero_extension}).
+    The delimiter header, therefore, logically belongs to the container object rather than the contained one.
+\end{remark}
+
+The delimiter header is an implicit field of type \verb|uint32| that encodes the length of the following
+serialized representation in bytes\footnote{%
+    Remember that by virtue of the padding requirement (section \ref{sec:dsdl_composite_alignment_cumulative_bls}),
+    the length of the serialized representation of a composite type is always an integer number of bytes.
+}.
+During deserialization, if the length of the serialized representation reported by its delimiter header
+does not match the expectation of the deserializer,
+the implicit truncation (section \ref{sec:dsdl_serialization_implicit_truncation})
+and the implicit zero extension (section \ref{sec:dsdl_serialization_implicit_zero_extension})
+rules apply.
+
+It is allowed for a final composite type to nest non-final composite types, and vice versa.
+No special rules apply in such cases.
+
+\begin{remark}
+    The resulting serialized representation of a non-final composite is identical to \verb|uint8[<2**32]|.
+    The implicit array length prefix here is like the delimiter header,
+    and the array content is the serialized representation of the composite as if it was final.
+
+    The following illustrates why this is necessary for robust extensibility.
+    Suppose that some composite $C$ contains two fields whose types are $A$ and $B$.
+    The fields of $A$ are $a_0,\ a_1$;
+    likewise, $B$ contains $b_0,\ b_1$.
+
+    Suppose that $C^\prime$ is modified such that $A^\prime$ contains an extra field $a_2$.
+    If $A$ (and $A^\prime$) were final, this would result in the breakage of compatibility between $C$ and $C^\prime$
+    as illustrated in figure \ref{fig:dsdl_final_non_extensibility} because the positions of the fields of $B$
+    (which is final) would be shifted by the size of $a_2$.
+
+    The use of opaque containers allows the implicit truncation and the implicit zero extension rules to apply
+    at any level of nesting, enabling agents expecting $C$ to truncate $a_2$ away,
+    and enabling agents expecting $C^\prime$ to zero-extend $a_2$
+    if it is not present, as shown in figure \ref{fig:dsdl_non_final_extensibility},
+    where $H_A$ is the delimiter header of $A$.
+    Observe that it is irrelevant whether $C$ (same as $C^\prime$) is final or not.
+
+    \begin{figure}[H]
+        \centering
+        \begin{tabular}{r c c c c c}
+            \cline{2-5}
+            $C$ &
+            \multicolumn{1}{|c|}{$a_0$} & \multicolumn{1}{c|}{$a_1$}
+            &\multicolumn{1}{c|}{$b_0$} & \multicolumn{1}{c|}{$b_1$} &
+            \\\cline{2-5}
+            & $\checkmark$ & $\checkmark$ & $\times$ & $\times$ & $\times$ \\
+            \cline{2-6}
+            $C^\prime$ &
+            \multicolumn{1}{|c|}{$a_0$} & \multicolumn{1}{c|}{$a_1$} & \multicolumn{1}{c|}{$a_2$}
+            &\multicolumn{1}{c|}{$b_0$} & \multicolumn{1}{c|}{$b_1$}
+            \\\cline{2-6}
+        \end{tabular}
+        \caption{Non-extensibility of final types}
+        \label{fig:dsdl_final_non_extensibility}
+    \end{figure}
+
+    \begin{figure}[H]
+        \centering
+        \begin{tabular}{r c c c c c c}
+            \cline{2-7}
+            $C$ &
+            \multicolumn{1}{|c|}{$H_A$} & \multicolumn{1}{c|}{$a_0$} & \multicolumn{1}{c|}{$a_1$}
+            &\multicolumn{1}{c|}{\footnotesize{$\ldots$}}
+            &\multicolumn{1}{c|}{$b_0$} & \multicolumn{1}{c|}{$b_1$}
+            \\\cline{2-7}
+            & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+            \cline{2-7}
+            $C^\prime$ &
+            \multicolumn{1}{|c|}{$H_A$} & \multicolumn{1}{c|}{$a_0$} & \multicolumn{1}{c|}{$a_1$} & \multicolumn{1}{c|}{$a_2$}
+            &\multicolumn{1}{c|}{$b_0$} & \multicolumn{1}{c|}{$b_1$}
+            \\\cline{2-7}
+        \end{tabular}
+        \caption{Extensibility of non-final types with the help of the delimiter header}
+        \label{fig:dsdl_non_final_extensibility}
+    \end{figure}
+
+    The design decision to make the delimiter header of a fixed width may not be obvious so it's worth explaining.
+    There are two alternatives: making it variable-length and making the length a function of the extent
+    (section \ref{sec:dsdl_composite_extent_and_finality}).
+    The first option does not align with the rest of the specification because DSDL does not make use of
+    variable-length integers (unlike some other formats, like Google Protobuf, for example),
+    and because a variable-length length prefix would have somewhat complicated the bit length set computation.
+    The second option would make nested hierarchies (composites that nest other composites) possibly highly fragile
+    because the change of the extent of a deeply nested type may inadvertently move the delimiter header of an
+    outer type into a different length category, which would be disastrous for compatibility and hard to spot.
+    There is an in-depth discussion of this issue (and other related matters) on the forum.
+
+    The fixed-length delimiter header may be considered large,
+    but non-final types tend to also be complex, which makes the overhead comparatively insignificant,
+    whereas final types that tend to be compact and overhead-sensitive do not contain the delimiter header.
+\end{remark}
