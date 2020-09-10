@@ -131,11 +131,7 @@ reliance on any particular vendor-specific data types.
 
 The namespace \DSDLReference{uavcan.si.unit} contains basic units that can be used as type-safe wrappers
 over \verb|float32| and other scalar and array types.
-
-The namespace \DSDLReference{uavcan.si.sample} contains time-stamped versions of the above,
-where the timestamp field is always located at the end in order to make the time-stamped types
-structural sub-types of the non-timestamped ones.
-The structural sub-typing enhances interoperability.
+The namespace \DSDLReference{uavcan.si.sample} contains time-stamped versions of the same.
 
 Each message type defined in the namespace \verb|uavcan.si.sample| contains a timestamp field of type
 \DSDLReference{uavcan.time.SynchronizedTimestamp}.
