@@ -512,6 +512,11 @@ as defined in section \ref{sec:dsdl_serialization_composite_non_final}.
     about its field composition, forcing dependent types to avoid any non-trivial assumptions.
 \end{remark}
 
+When serializing an object, the amount of memory needed for storing its serialized representation
+may be taken as the maximal value of its bit length set minus the size of the delimiter header,
+since this bound is tighter than the extent yet guaranteed to be sufficient.
+This optimization is not applicable to deserialization since the actual type of the object may not be known.
+
 \subsubsection{Type polymorphism and equivalency}
 
 Type polymorphism is supported in DSDL through structural subtyping.
