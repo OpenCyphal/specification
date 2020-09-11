@@ -53,48 +53,28 @@ def get_dsdl_submodule_commit_hash() -> str:
                                    cwd=ROOT_NAMESPACE_SUPERDIRECTORY).decode('ascii').strip()
 
 
-def render_dsdl_length_table(t: pydsdl.CompositeType) -> str:
-    def bit_to_byte(val: tuple) -> tuple:
-        return tuple((x + 7) // 8 for x in val)
-
-    def bit_to_can(val: tuple, mtu: int) -> tuple:
-        def once(x: int) -> int:
-            true_mtu = mtu - 1      # Minus one accounts for the tail byte
-            x = (x + 7) // 8        # To bytes
-            if x <= true_mtu:
-                return 1
-            else:
-                return (x + 2 + (true_mtu - 1)) // true_mtu     # Plus two for Transfer CRC
-
-        return tuple(once(x) for x in val)
-
-    def rlen_group(bit_length_set: pydsdl.BitLengthSet) -> list:
-        blr = min(bit_length_set), max(bit_length_set)
-        return [
-            str(x[0]) if x[0] == x[1] else ('[%d, %d]' % x)
-            for x in [
-                blr,
-                bit_to_byte(blr),
-                bit_to_can(blr, 8),
-                bit_to_can(blr, 64),
-            ]
-        ]
-
+def render_dsdl_info(t: pydsdl.CompositeType) -> str:
     if isinstance(t, pydsdl.ServiceType):
-        length_table_rows = 'Request length  &' + '&'.join(rlen_group(t.request_type.bit_length_set)) + r'\\' +\
-                            'Response length &' + '&'.join(rlen_group(t.response_type.bit_length_set)) + r'\\'
+        return (
+            r'\begin{itemize}' +
+            r'\item Request:  ' + render_dsdl_info(t.request_type) +
+            r'\item Response: ' + render_dsdl_info(t.response_type) +
+            r'\end{itemize}'
+        )
+
+    fin = t.inner_type if isinstance(t, pydsdl.DelimitedType) else t
+    bls_bytes = {(x + 7) // 8 for x in fin.bit_length_set}
+    length = str(max(bls_bytes)) if len(bls_bytes) == 1 else (r'$%d\ldots{}%d$' % (min(bls_bytes), max(bls_bytes)))
+
+    if isinstance(t, pydsdl.DelimitedType):
+        return 'Size without delimiter header: %s bytes; extent %d bytes.' % (
+            length,
+            t.extent / 8,
+        )
     else:
-        length_table_rows = 'Message length &' + '&'.join(rlen_group(t.bit_length_set)) + r'\\'
-
-    return '\n'.join([
-        r'{\footnotesize',
-        r'\begin{tabu}{|r|c c c c|}\hline',
-        r'Length unit & Bit & Byte (octet) & CAN MTU 8 & CAN MTU 64 \\\hline',
-        length_table_rows,
-        r'\hline\end{tabu}',
-        r'}'
-    ])
-
+        return 'Size %s bytes; final.' % (
+            length,
+        )
 
 def render_dsdl_definition(t: pydsdl.CompositeType) -> str:
     minted_params = r'fontsize=\scriptsize, numberblanklines=true, baselinestretch=0.9, autogobble=false'
@@ -311,6 +291,6 @@ for namespace, children in grouped.items():
                 title += ', DEPRECATED'
 
             print(r'\subsubsection{%s}' % title)
-            print(render_dsdl_length_table(t))
+            print(render_dsdl_info(t))
             print(r'\pagebreak[2]{}')           # This is needed to discourage page breaks within the listings
             print(render_dsdl_definition(t))
