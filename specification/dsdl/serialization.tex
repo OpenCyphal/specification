@@ -65,6 +65,9 @@ When a serialized representation is deserialized, implementations shall ignore
 any excessive (unused) data or padding bits remaining upon deserialization\footnote{%
     The presence of unused data should not be considered an error.
 }.
+The total size of the serialized representation is reported either by the underlying transport layer, or,
+in the case of nested objects, by the \emph{delimiter header}
+(section \ref{sec:dsdl_serialization_composite_non_final}).
 
 As a consequence of the above requirement the transport layer can introduce
 additional zero padding bits at the end of a serialized representation
@@ -111,6 +114,10 @@ upon construction of a serialized representation of an object\footnote{%
     If intentional truncation were allowed, removal of this rule would break backward compatibility.
 }.
 
+The total size of the serialized representation is reported either by the underlying transport layer, or,
+in the case of nested objects, by the \emph{delimiter header}
+(section \ref{sec:dsdl_serialization_composite_non_final}).
+
 \begin{remark}
     The implicit zero extension rule enables extension of data types by introducing additional fields
     without breaking backward compatibility with existing deployments.
@@ -151,7 +158,7 @@ Correct UAVCAN types shall have no other deserialization error states.
 The serialized representation of a void-typed field attribute is constructed as a sequence of zero bits.
 The length of the sequence equals the numeric suffix of the type name.
 
-When a void-typed field attribute is decoded, the values of respective bits are ignored;
+When a void-typed field attribute is deserialized, the values of respective bits are ignored;
 in other words, any bit sequence of correct length is a valid serialized representation
 of a void-typed field attribute.
 This behavior facilitates usage of void fields as placeholders for non-void fields
@@ -318,7 +325,7 @@ a sequence of $n$ field attributes of type $T$ are equivalent.
 \subsubsection{Variable-length array types}\label{sec:dsdl_serialized_variable_length_array}
 
 A serialized representation of a variable-length array consists of two segments:
-the implicit length field followed by the array elements.
+the implicit length field immediately followed by the array elements.
 
 The implicit length field is of an unsigned integer type.
 The serialized representation of the implicit length field
@@ -345,6 +352,7 @@ The rest of the serialized representation is constructed as if the variable-leng
 a fixed-length array of $n$ elements\footnote{%
     Observe that the implicit array length field, per its definition,
     is guaranteed to never break the alignment of the following array elements.
+    There may be no padding between the implicit array length field and its elements.
 }.
 
 \begin{remark}
@@ -510,6 +518,7 @@ The serialized representation of the implicit union tag is immediately followed 
 the serialized representation of the currently selected field attribute value\footnote{%
     Observe that the implicit union tag field, per its definition,
     is guaranteed to never break the alignment of the following field.
+    There may be no padding between the implicit union tag field and the selected field.
 }.
 
 \begin{remark}
@@ -525,7 +534,7 @@ the serialized representation of the currently selected field attribute value\fo
         float64 c        # Field index 2
     \end{minted}
 
-    In order to encode the field \verb|b|, the implicit union tag shall be assigned the value 1.
+    In order to serialize the field \verb|b|, the implicit union tag shall be assigned the value 1.
     The following type will have an identical layout:
 
     \begin{minted}{python}
@@ -585,13 +594,13 @@ immediately followed by the serialized representation of the object as if it was
 
 Objects of delimited composite types that are \emph{not} nested inside other objects (i.e., top-level objects)
 are serialized as if they were of a final type (without the delimiter header).
+The delimiter header, therefore, logically belongs to the container object rather than the contained one.
 
 \begin{remark}
     Top-level objects do not require the delimiter header because the change in their length does not necessarily
     affect the backward compatibility thanks to the implicit truncation rule
     (section \ref{sec:dsdl_serialization_implicit_truncation}) and the implicit zero extension rule
     (section \ref{sec:dsdl_serialization_implicit_zero_extension}).
-    The delimiter header, therefore, logically belongs to the container object rather than the contained one.
 \end{remark}
 
 The delimiter header is an implicit field of type \verb|uint32| that encodes the length of the following
@@ -605,11 +614,12 @@ the implicit truncation (section \ref{sec:dsdl_serialization_implicit_truncation
 and the implicit zero extension (section \ref{sec:dsdl_serialization_implicit_zero_extension})
 rules apply.
 
-It is allowed for a final composite type to nest delimited composite types, and vice versa.
+It is allowed for a final composite type to nest non-final composite types, and vice versa.
 No special rules apply in such cases.
 
 \begin{remark}
-    The resulting serialized representation of a delimited composite is identical to \verb|uint8[<2**32]|.
+    The resulting serialized representation of a delimited composite is identical to \verb|uint8[<2**32]|
+    (sans the higher alignment requirement).
     The implicit array length prefix here is like the delimiter header,
     and the array content is the serialized representation of the composite as if it was final.
 
@@ -675,7 +685,8 @@ No special rules apply in such cases.
     (section \ref{sec:dsdl_composite_extent_and_finality}).
     The first option does not align with the rest of the specification because DSDL does not make use of
     variable-length integers (unlike some other formats, like Google Protobuf, for example),
-    and because a variable-length length prefix would have somewhat complicated the bit length set computation.
+    and because a variable-length length {\footnotesize{(sic!)}} prefix would have somewhat complicated the
+    bit length set computation.
     The second option would make nested hierarchies (composites that nest other composites) possibly highly fragile
     because the change of the extent of a deeply nested type may inadvertently move the delimiter header of an
     outer type into a different length category, which would be disastrous for compatibility and hard to spot.
@@ -684,4 +695,33 @@ No special rules apply in such cases.
     The fixed-length delimiter header may be considered large,
     but delimited types tend to also be complex, which makes the overhead comparatively insignificant,
     whereas final types that tend to be compact and overhead-sensitive do not contain the delimiter header.
+\end{remark}
+
+\begin{remark}
+    In order to efficiently serialize an object of a delimited type,
+    the implementation may need to perform a second pass to reach the delimiter header
+    after the object is serialized, because before that, the value of the delimiter header cannot be known
+    unless the object is of a fixed-size (i.e., the cardinality of the bit length set is one).
+
+    Consider:
+    \begin{minted}{python}
+        uint8[<=4] x
+    \end{minted}
+    Let $\texttt{x} = \left[ 4, 2 \right]$,
+    then the nested serialized representation would be constructed as:
+    \begin{enumerate}
+        \item Memorize the current memory address $M_\text{origin}$.
+        \item Skip 32 bits.
+        \item Encode the length: 2 elements.
+        \item Encode $x_0 = 4$.
+        \item Encode $x_1 = 2$.
+        \item Memorize the current memory address $M_\text{current}$.
+        \item Go back to $M_\text{origin}$.
+        \item Encode a 32-bit wide value of $(M_\text{current} - M_\text{origin})$.
+        \item Go back to $M_\text{current}$.
+    \end{enumerate}
+
+    However, if the object is known to be of a constant size, the above can be simplified,
+    because there may be only one possible value of the delimiter header.
+    Automatic code generation tools should take advantage of this knowledge for best result.
 \end{remark}

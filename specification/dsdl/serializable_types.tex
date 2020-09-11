@@ -9,7 +9,8 @@ The data serialization rules are defined in section~\ref{sec:dsdl_data_serializa
 
 \subsubsection{Alignment and padding}\label{sec:dsdl_serializable_alignment_padding}
 
-For any type, its \emph{alignment} $A$ is defined as some positive integer number of bits such that the offset of a
+For any serializable type,
+its \emph{alignment} $A$ is defined as some positive integer number of bits such that the offset of a
 serialized representation of an instance of this type relative to the origin of the
 containing serialized representation (if any) is an integer multiple of $A$.
 
@@ -237,7 +238,7 @@ All versions of a data type shall be of the same kind\footnote{%
     For example, if a data type version 0.1 is of a message kind, all later versions of it shall be messages, too.
 }.
 
-A service type defines two inferior data types:
+A service type defines two unutterable inferior data types:
 one for service request object, and one for service response object, in that order.
 The two inferiors are separated by the service response marker (``\verb|---|'') on a separate line.
 
@@ -339,11 +340,13 @@ after its last element until the resulting length is a multiple of 8 bits.
 
 Given a set of field attributes, their \emph{cumulative bit length set} is computed
 by evaluating every permutation of their respective bit length sets plus the required padding.
-For tagged unions, this amounts to the union of the bit length sets of each field
-plus the bit length set of the implicit union tag prefix.
-Otherwise, the cumulative bit length set is the Cartesian product of the bit length sets of each field
-plus the required inter-field padding.
-The specifics are given in section \ref{sec:dsdl_data_serialization}.
+\begin{itemize}
+    \item For tagged unions, this amounts to the union of the bit length sets of each field
+    plus the bit length set of the implicit union tag prefix.
+    \item Otherwise, the cumulative bit length set is the Cartesian product of the bit length sets of each field
+    plus the required inter-field padding.
+\end{itemize}
+Related specifics are given in section \ref{sec:dsdl_data_serialization} on data serialization.
 
 \subsubsection{Extent and finality}\label{sec:dsdl_composite_extent_and_finality}
 
@@ -368,10 +371,9 @@ In this context there are two related concepts:
 \end{description}
 
 The extent is the growth limit for the maximal bit length of the type as it evolves.
-The requirement that the extent is at least as large as the longest serialized representation of
-any version of the type ensures that an agent leveraging any of its versions can
-correctly process any other compatible version due to the avoidance of unintended truncation of
-serialized representations.
+The extent should be at least as large as the longest serialized representation of any compatible version of the type,
+which ensures that an agent leveraging a particular version can correctly process any other compatible
+version due to the avoidance of unintended truncation of serialized representations.
 
 Serialized representations of evolvable definitions carry additional metadata which introduces a certain overhead.
 This may be undesirable in some scenarios, especially in cases where serialized representations of the
@@ -407,6 +409,27 @@ $$
 X_\text{default}\left(B\right) =
 \left\lceil{}\left\lfloor{}\frac{3}{2} \max{}\left(B\right)\right\rfloor{}/8\right\rceil{}8
 $$
+
+\begin{remark}
+    The extent of the following structure is 96 bits (12 bytes):
+    \begin{minted}{python}
+        uint16 foo
+        uint8[<=5] bar
+        @assert _offset_ == {24, 32, 40, 48, 56, 64}
+    \end{minted}
+    How it was computed: \verb|foo| is fixed-size at 16 bits,
+    the implicit array length prefix of \verb|bar| is 8 bits,
+    the maximum array body length is $8 \times 5$ bits:
+    $(16 + 8 + 8 \times 5) \times \frac{3}{2} = 96$ bits.
+
+    The extent of the following union is 88 bits (11 bytes):
+    \begin{minted}{python}
+        @union
+        uint16 foo
+        uint8[<=5] bar
+        @assert _offset_ == {16, 24, 32, 40, 48, 56}
+    \end{minted}
+\end{remark}
 
 The extent can be set explicitly\footnote{
     Observe that when composites are nested,
@@ -513,6 +536,7 @@ Let each field attribute be assigned a sequential index according to its positio
             (containing) type (if any).
             This circumstance effectively renders them non-modifiable because that may break the bit layout
             of the outer types (if any).
+            More on this in section \ref{sec:dsdl_serialization_composite_non_final}.
         };
         \item the extent of $B$ is not less than the extent of $D$\footnote{%
             This is to uphold the Liskov substitution principle.

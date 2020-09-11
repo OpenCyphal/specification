@@ -144,6 +144,16 @@ In other words, if the first released definition of a data type is of the messag
 all other versions shall also be of the message kind.
 
 All data types under the same name and major version number should share the same extent and the same finality status.
+It is therefore advised to:
+\begin{itemize}
+    \item Avoid marking types final, especially complex types,
+    because it is likely to render their evolution impossible.
+
+    \item When the first version is released, its extent should be sufficiently large
+    to permit addition of new fields in the future.
+    Since the value of extent does not affect the network traffic, it is safe to pick a large value
+    without compromising the temporal properties of the system.
+\end{itemize}
 
 \subsubsection{Fixed port identifier assignment constraints}
 
@@ -296,7 +306,9 @@ The minor versions may differ, which is acceptable due to the major version comp
 
     Imagine that later it was determined that the module should report additional status information
     relating to the coolant pump.
-    Thanks to the implicit truncation and the implicit zero extension rules,
+    Thanks to the implicit truncation (section \ref{sec:dsdl_serialization_implicit_truncation}),
+    implicit zero extension (section \ref{sec:dsdl_serialization_implicit_zero_extension}),
+    and the delimited serialization (section \ref{sec:dsdl_serialization_composite_non_final}),
     the new fields can be introduced in a semantically-compatible way without releasing
     a new major version of the data type:
 
@@ -319,6 +331,8 @@ The minor versions may differ, which is acceptable due to the major version comp
         float32 volumetric_flow_rate    # [meter^3/second]
         # Coolant pump fields (extension over v2.0; implicit truncation/extension rules apply)
         # If zero, assume that the values are unavailable.
+
+        @extent 32*8  # Set the extent manually so that it is the same as in the previous version v2.0.
     \end{minted}
 
     It is also possible to add an optional field at the end wrapped into a variable-length

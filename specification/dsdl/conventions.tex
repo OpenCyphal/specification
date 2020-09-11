@@ -60,14 +60,13 @@ even if not populated, and special case values undermine type safety.
     Array-based optional field:
 
     \begin{minted}{python}
-        @final
         MyType[<=1] optional_field
     \end{minted}
 
     Union-based optional field:
 
     \begin{minted}{python}
-        @final
+        @final                          # Sic!
         @union                          # The implicit tag is one byte long.
         uavcan.primitive.Empty none     # Represents lack of value, unpopulated field.
         MyType some                     # The field of interest; field ordering is important.
