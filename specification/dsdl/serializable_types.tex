@@ -342,7 +342,7 @@ Given a set of field attributes, their \emph{cumulative bit length set} is compu
 by evaluating every permutation of their respective bit length sets plus the required padding.
 \begin{itemize}
     \item For tagged unions, this amounts to the union of the bit length sets of each field
-    plus the bit length set of the implicit union tag prefix.
+    plus the bit length set of the implicit union tag.
     \item Otherwise, the cumulative bit length set is the Cartesian product of the bit length sets of each field
     plus the required inter-field padding.
 \end{itemize}
