@@ -2,14 +2,5 @@
 
 cd specification
 
-rm -f *.aux
-rm -f *.lof
-rm -f *.lot
-rm -f *.out
-rm -f *.toc
-rm -f *.log
-rm -f *.gz
-rm -f *-converted-to.*
-rm -f *.cache
-
+rm -f *.aux *.lof *.lot *.out *.toc *.log *.tmp *.gz *.cache *-converted-to.*
 rm -rf _minted-*
