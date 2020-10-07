@@ -620,7 +620,7 @@ No special rules apply in such cases.
 \begin{remark}
     The resulting serialized representation of a delimited composite is identical to \verb|uint8[<2**32]|
     (sans the higher alignment requirement).
-    The implicit array length prefix here is like the delimiter header,
+    The implicit array length field is like the delimiter header,
     and the array content is the serialized representation of the composite as if it was final.
 
     The following illustrates why this is necessary for robust extensibility.
