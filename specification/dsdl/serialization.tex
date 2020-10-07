@@ -603,8 +603,8 @@ The delimiter header, therefore, logically belongs to the container object rathe
     (section \ref{sec:dsdl_serialization_implicit_zero_extension}).
 \end{remark}
 
-The delimiter header is an implicit field of type \verb|uint32| that encodes the length of the following
-serialized representation in bytes\footnote{%
+The delimiter header is an implicit field of type \verb|uint32| that encodes the length of the
+serialized representation it preceeds in bytes\footnote{%
     Remember that by virtue of the padding requirement (section \ref{sec:dsdl_composite_alignment_cumulative_bls}),
     the length of the serialized representation of a composite type is always an integer number of bytes.
 }.
