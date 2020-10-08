@@ -29,7 +29,8 @@ During deserialization, the padding bits are ignored (skipped) irrespective of t
     followed by a field whose type has the alignment requirement of 8,
     one may end up with 5, 6, or 7 bits of padding inserted before the second field at runtime.
 
-    The exact amount of such padding cannot always be determined statically because it depends on a runtime value;
+    The exact amount of such padding cannot always be determined statically because it depends on the size of the
+    preceding entity;
     however, it is guaranteed that it is always strictly less than the alignment requirement of the following field
     or, if this is the last field in a group, the alignment requirement of its container.
 \end{remark}
