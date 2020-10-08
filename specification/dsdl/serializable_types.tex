@@ -376,7 +376,7 @@ The extent should be at least as large as the longest serialized representation 
 which ensures that an agent leveraging a particular version can correctly process any other compatible
 version due to the avoidance of unintended truncation of serialized representations.
 
-Serialized representations of evolvable definitions carry additional metadata which introduces a certain overhead.
+Serialized representations of evolvable definitions may carry additional metadata which introduces a certain overhead.
 This may be undesirable in some scenarios, especially in cases where serialized representations of the
 definition are expected to be highly compact, thereby making the overhead comparatively more significant.
 In such cases, the designer may opt out of the extensibility by declaring the definition sealed.
