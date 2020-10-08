@@ -589,6 +589,14 @@ Let each field attribute be assigned a sequential index according to its positio
         \item the extent of $B$ is not less than the extent of $D$;
         \item $B$ is not $D$.
     \end{itemize}
+
+    % -----------------------------------------------------------------------------------------------------------------
+    \item Header subtyping rule --- $D$ is a structural subtype of $B$ if all conditions are satisfied:
+    \begin{itemize}
+        \item neither $B$ nor $D$ define a tagged union;
+        \item both $B$ and $D$ are sealed;
+        \item the first field attribute of $D$ is of type $B$.
+    \end{itemize}
 \end{enumerate}
 
 If $D$ is a structural subtype of $B$, then $B$ is a \emph{structural supertype} of $D$.
@@ -636,6 +644,22 @@ one type is a subtype of another, and for any member its supertypes are located 
     A message type that defines zero fields is a structural supertype of any other message type, regardless of either
     or both being a union.
     A message type may have an arbitrary number of supertypes as long as the field equality constraint is satisfied.
+
+    Header subtyping example. The first type is named \verb|A.1.0|:
+
+    \begin{minted}{python}
+        float64 a
+        int16[<=9] b
+        @sealed
+    \end{minted}
+
+    The second type is a structural subtype of the first type:
+
+    \begin{minted}{python}
+        A.1.0 base
+        uint8 foo
+        @sealed
+    \end{minted}
 \end{remark}
 
 \begin{remark}[breakable]
