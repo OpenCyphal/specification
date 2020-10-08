@@ -8,8 +8,8 @@ If the expectation of an associated directive expression or lack thereof is viol
 the containing DSDL definition is malformed.
 
 The effect of a directive is confined to the data type definition that contains it.
-That means that for service types, a directive only affects its inferior,
-unless specifically stated otherwise.
+That means that for service types, unless specifically stated otherwise,
+a directive placed in the request (response) type affects only the request (response) type.
 
 \subsection{Tagged union marker}
 
@@ -69,7 +69,7 @@ Usage of this directive is subject to the following constraints (otherwise, the 
     \end{minted}
 \end{remark}
 
-\subsection{Sealing marker}\label{sec:dsdl_directive_sealing}
+\subsection{Sealing marker}\label{sec:dsdl_directive_sealed}
 
 The identifier of the sealing marker directive is ``\verb|sealed|''.
 This directive marks the current data type sealed (section \ref{sec:dsdl_composite_extent_and_sealing})
@@ -106,8 +106,8 @@ Usage of this directive is subject to the following constraints:
 \begin{itemize}
     \item The directive shall not be used more than once per data type definition.
     \item The directive shall be placed before the first composite type attribute definition in the definition.
-    \item In case of service types, this directive may only be placed in the request inferior,
-    and it affects the response inferior as well.
+    \item In case of service types, this directive may only be placed in the request type,
+    and it affects the response type as well.
 \end{itemize}
 
 \begin{remark}
@@ -116,7 +116,7 @@ Usage of this directive is subject to the following constraints:
         uint8 FOO = 123
         #@deprecated        # Would fail - shall be placed before the first attribute definition
         ---
-        #@deprecated        # Would fail - shall be placed in the request inferior
+        #@deprecated        # Would fail - shall be placed in the request type
     \end{minted}
 
     A C++ class generated from the above definition could be annotated with the \verb|[[deprecated]]| attribute.

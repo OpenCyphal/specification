@@ -238,9 +238,9 @@ All versions of a data type shall be of the same kind\footnote{%
     For example, if a data type version 0.1 is of a message kind, all later versions of it shall be messages, too.
 }.
 
-A service type defines two unutterable inferior data types:
+A service type defines two inner data types:
 one for service request object, and one for service response object, in that order.
-The two inferiors are separated by the service response marker (``\verb|---|'') on a separate line.
+The two types are separated by the service response marker (``\verb|---|'') on a separate line.
 
 The presence of the service response marker indicates that the data type definition at hand is of the service kind.
 At most one service response marker shall appear in a given definition.
