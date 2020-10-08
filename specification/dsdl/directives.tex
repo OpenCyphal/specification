@@ -38,7 +38,7 @@ Usage of this directive is subject to the following constraints:
 \subsection{Explicit extent specifier}\label{sec:dsdl_directive_extent}
 
 The identifier of the explicit extent specification directive is ``\verb|extent|''.
-This directive overrides the default extent of its data type (section \ref{sec:dsdl_composite_extent_and_finality})
+This directive overrides the default extent of its data type (section \ref{sec:dsdl_composite_extent_and_sealing})
 with the value obtained by evaluating the provided expression.
 The expression shall be present and it shall yield a non-negative integer value of type
 ``\verb|rational|'' (section~\ref{sec:dsdl_primitive_types}) upon its evaluation.
@@ -50,15 +50,15 @@ Usage of this directive is subject to the following constraints (otherwise, the 
               This constraint is to help avoid issues where the extent is defined as a function of the offset past
               the last field of the type, and a new field is mistakenly added after the extent directive.
           }.
-    \item The value shall satisfy the constraints given in section \ref{sec:dsdl_composite_extent_and_finality}.
-    \item The data type shall not be final.
+    \item The value shall satisfy the constraints given in section \ref{sec:dsdl_composite_extent_and_sealing}.
+    \item The data type shall not be sealed.
 \end{itemize}
 
 \begin{remark}
     \begin{minted}{python}
         uint64 foo
         @extent 256 * 8  # Make the extent 256 bytes large
-        #@final          # Would fail -- mutually exclusive directives
+        #@sealed         # Would fail -- mutually exclusive directives
     \end{minted}
 
     \begin{minted}{python}
@@ -69,11 +69,11 @@ Usage of this directive is subject to the following constraints (otherwise, the 
     \end{minted}
 \end{remark}
 
-\subsection{Finality marker}\label{sec:dsdl_directive_final}
+\subsection{Sealing marker}\label{sec:dsdl_directive_sealing}
 
-The identifier of the finality marker directive is ``\verb|final|''.
-This directive marks the current data type final (section \ref{sec:dsdl_composite_extent_and_finality})
-(if not provided, the data type is non-final).
+The identifier of the sealing marker directive is ``\verb|sealed|''.
+This directive marks the current data type sealed (section \ref{sec:dsdl_composite_extent_and_sealing})
+(if not provided, the data type is non-sealed).
 
 Usage of this directive is subject to the following constraints (otherwise, the definition is malformed):
 \begin{itemize}
@@ -84,10 +84,10 @@ Usage of this directive is subject to the following constraints (otherwise, the 
 \begin{remark}
     \begin{minted}{python}
         uint64 foo
-        @final        # The request type is final.
-        #@extent 128  # Would fail -- cannot specify extent for final type
+        @sealed       # The request type is sealed.
+        #@extent 128  # Would fail -- cannot specify extent for sealed type
         ---
-        float64 bar   # The response type is not final.
+        float64 bar   # The response type is not sealed.
         @extent 4000 * 8
     \end{minted}
 \end{remark}

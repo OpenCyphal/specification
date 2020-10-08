@@ -105,7 +105,7 @@ the version numbers of its first definition shall be assigned ``1.0'' (major 1, 
 
 In order to ensure predictability and functional safety of applications that leverage UAVCAN,
 it is required that once a data type definition is released,
-its DSDL source text, name, version numbers, fixed port-ID, extent, finality, and other properties cannot undergo any
+its DSDL source text, name, version numbers, fixed port-ID, extent, sealing, and other properties cannot undergo any
 modifications whatsoever, with the following exceptions:
 \begin{itemize}
     \item Whitespace changes of the DSDL source text are allowed,
@@ -143,10 +143,10 @@ All data types under the same name shall be also of the same kind.
 In other words, if the first released definition of a data type is of the message kind,
 all other versions shall also be of the message kind.
 
-All data types under the same name and major version number should share the same extent and the same finality status.
+All data types under the same name and major version number should share the same extent and the same sealing status.
 It is therefore advised to:
 \begin{itemize}
-    \item Avoid marking types final, especially complex types,
+    \item Avoid marking types sealed, especially complex types,
     because it is likely to render their evolution impossible.
 
     \item When the first version is released, its extent should be sufficiently large
@@ -308,7 +308,7 @@ The minor versions may differ, which is acceptable due to the major version comp
     relating to the coolant pump.
     Thanks to the implicit truncation (section \ref{sec:dsdl_serialization_implicit_truncation}),
     implicit zero extension (section \ref{sec:dsdl_serialization_implicit_zero_extension}),
-    and the delimited serialization (section \ref{sec:dsdl_serialization_composite_non_final}),
+    and the delimited serialization (section \ref{sec:dsdl_serialization_composite_non_sealed}),
     the new fields can be introduced in a semantically-compatible way without releasing
     a new major version of the data type:
 

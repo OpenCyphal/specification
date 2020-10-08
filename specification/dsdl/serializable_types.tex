@@ -348,7 +348,7 @@ by evaluating every permutation of their respective bit length sets plus the req
 \end{itemize}
 Related specifics are given in section \ref{sec:dsdl_data_serialization} on data serialization.
 
-\subsubsection{Extent and finality}\label{sec:dsdl_composite_extent_and_finality}
+\subsubsection{Extent and sealing}\label{sec:dsdl_composite_extent_and_sealing}
 
 As detailed in section \ref{sec:dsdl_versioning},
 data types may evolve over time to accommodate new design requirements, new features, to rectify issues, etc.
@@ -363,11 +363,11 @@ In this context there are two related concepts:
     The extent of any type is always greater than or equal the maximal value of its bit length set.
     It is always a multiple of 8.
 
-    \item[Finality] --- denotes whether a type is \emph{final}.
-    A type that is final is non-evolvable and its extent equals the maximal value of its bit length set\footnote{%
+    \item[Sealing] --- a type that is \emph{sealed} is non-evolvable and its extent equals the maximal value
+    of its bit length set\footnote{%
         I.e., the smallest possible extent.
     }.
-    A type that is not final is also referred to as \emph{delimited}.
+    A type that is not sealed is also referred to as \emph{delimited}.
 \end{description}
 
 The extent is the growth limit for the maximal bit length of the type as it evolves.
@@ -378,10 +378,10 @@ version due to the avoidance of unintended truncation of serialized representati
 Serialized representations of evolvable definitions carry additional metadata which introduces a certain overhead.
 This may be undesirable in some scenarios, especially in cases where serialized representations of the
 definition are expected to be highly compact, thereby making the overhead comparatively more significant.
-In such cases, the designer may opt out of the extensibility by declaring the definition final.
-Serialized representations of final definitions do not incur the aforementioned overhead.
+In such cases, the designer may opt out of the extensibility by declaring the definition sealed.
+Serialized representations of sealed definitions do not incur the aforementioned overhead.
 
-The related mechanics are described in section \ref{sec:dsdl_serialization_composite_non_final}.
+The related mechanics are described in section \ref{sec:dsdl_serialization_composite_non_sealed}.
 
 \begin{figure}[H]
     $$
@@ -392,7 +392,7 @@ The related mechanics are described in section \ref{sec:dsdl_serialization_compo
         }_{\substack{\text{Longest serialized} \\ \text{representation}}}%
         \underbrace{%
             \boxtimes\boxtimes\boxtimes\boxtimes\boxtimes\boxtimes\boxtimes\boxtimes%
-        }_{\substack{\text{Memory reserve} \\ \text{(none if final)}}}%
+        }_{\substack{\text{Memory reserve} \\ \text{(none if sealed)}}}%
     }^{\substack{%
         \text{Extent} \\
         \text{(memory requirement)}
@@ -401,7 +401,7 @@ The related mechanics are described in section \ref{sec:dsdl_serialization_compo
     \caption{Serialized representation and extent\label{fig:dsdl_extent}}
 \end{figure}
 
-The default extent of a non-final (delimited) definition is the following function
+The default extent of a non-sealed (delimited) definition is the following function
 of the cumulative bit length set\footnote{Section \ref{sec:dsdl_composite_alignment_cumulative_bls}.}
 of its fields $B$:
 
@@ -438,46 +438,46 @@ The extent can be set explicitly\footnote{
     Therefore, it is advised to specify the extent manually to manage the memory requirement.
 }
 using the directive described in section \ref{sec:dsdl_directive_extent},
-unless the definition is final.
+unless the definition is sealed.
 
-By default, a definition is not final unless explicitly indicated otherwise using the directive described in
-section \ref{sec:dsdl_directive_final}.
+By default, a definition is not sealed unless explicitly indicated otherwise using the directive described in
+section \ref{sec:dsdl_directive_sealed}.
 
-It is allowed for a final composite type to nest non-final (delimited) composite types, and vice versa.
+It is allowed for a sealed composite type to nest non-sealed (delimited) composite types, and vice versa.
 
 \subsubsection{Bit length set}
 
-The bit length set of a final composite type equals the cumulative bit length set
+The bit length set of a sealed composite type equals the cumulative bit length set
 of its fields plus the final padding (see section \ref{sec:dsdl_composite_alignment_cumulative_bls}).
 
 \begin{remark}
     The bit length set of the following is $\left\{ 8, 24, 40, 56 \right\}$:
     \begin{minted}{python}
         uint16[<=3] foo
-        @final
+        @sealed
     \end{minted}
 
     The bit length set of the following is $\left\{ 16, 32, 48, 64 \right\}$:
     \begin{minted}{python}
         uint16[<=3] foo
         int2 bar
-        @final
+        @sealed
     \end{minted}
 
     The bit length set of the following is $\left\{ 8, 16 \right\}$:
     \begin{minted}{python}
         bool[<=3] foo
-        @final
+        @sealed
     \end{minted}
 \end{remark}
 
-The bit length set of a non-final (delimited) composite type is dependent only on its extent $X$,
+The bit length set of a non-sealed (delimited) composite type is dependent only on its extent $X$,
 and is defined as follows:
 $$
     \left\{ B_\text{DH} + 8b \mid b \in \mathbb{Z},\ 0 \leq b \leq \frac{X}{8} \right\}
 $$
 where $B_\text{DH}$ is the bit length of the \emph{delimiter header}
-as defined in section \ref{sec:dsdl_serialization_composite_non_final}.
+as defined in section \ref{sec:dsdl_serialization_composite_non_sealed}.
 
 \begin{remark}
     This is intentionally not dependent on the fields of the composite because the definition of delimited
@@ -536,12 +536,12 @@ Let each field attribute be assigned a sequential index according to its positio
         \item neither $B$ nor $D$ define a tagged union\footnote{%
             This is because tagged unions are serialized differently.
         };
-        \item neither $B$ nor $D$ are final\footnote{%
-            Final types are serialized in-place as if their definition was directly copied into the outer
+        \item neither $B$ nor $D$ are sealed\footnote{%
+            Sealed types are serialized in-place as if their definition was directly copied into the outer
             (containing) type (if any).
             This circumstance effectively renders them non-modifiable because that may break the bit layout
             of the outer types (if any).
-            More on this in section \ref{sec:dsdl_serialization_composite_non_final}.
+            More on this in section \ref{sec:dsdl_serialization_composite_non_sealed}.
         };
         \item the extent of $B$ is not less than the extent of $D$\footnote{%
             This is to uphold the Liskov substitution principle.
@@ -563,7 +563,7 @@ Let each field attribute be assigned a sequential index according to its positio
     \item Tagged union subtyping rule --- $D$ is a structural subtype of $B$ if all conditions are satisfied:
     \begin{itemize}
         \item both $B$ and $D$ define tagged unions;
-        \item neither $B$ nor $D$ are final;
+        \item neither $B$ nor $D$ are sealed;
         \item the extent of $B$ is not less than the extent of $D$;
         \item $B$ is not $D$;
         \item $b \leq d$;
@@ -584,7 +584,7 @@ Let each field attribute be assigned a sequential index according to its positio
             If $B$ contains no field attributes, the applicability of the Liskov substitution principle is invariant to
             whether its subtypes are tagged union types or not.
         };
-        \item neither $B$ nor $D$ are final;
+        \item neither $B$ nor $D$ are sealed;
         \item the extent of $B$ is not less than the extent of $D$;
         \item $B$ is not $D$.
     \end{itemize}
