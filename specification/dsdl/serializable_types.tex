@@ -402,7 +402,7 @@ The related mechanics are described in section \ref{sec:dsdl_serialization_compo
     \caption{Serialized representation and extent\label{fig:dsdl_extent}}
 \end{figure}
 
-The default extent of a non-sealed (delimited) definition is the following function
+Where a non-sealed (delimited) type is defined \emph{without} an explicit extent value a default memory reserve is implied using the following function
 of the cumulative bit length set\footnote{Section \ref{sec:dsdl_composite_alignment_cumulative_bls}.}
 of its fields $B$:
 
