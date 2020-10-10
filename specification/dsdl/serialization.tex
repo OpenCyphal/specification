@@ -680,6 +680,14 @@ No special rules apply in such cases.
         \label{fig:dsdl_non_sealed_extensibility}
     \end{figure}
 
+    This example also illustrates why the extent is necessary.
+    Per the rules set forth in \ref{sec:dsdl_composite_extent_and_sealing},
+    it is required that the extent (i.e., the buffer memory requirement) of $A$ shall be large enough to accommodate
+    serialized representations of $A^\prime$, and, therefore,
+    the extent of $C$ is large enough to accommodate serialized representations of $C^\prime$.
+    If that were not the case, then an implementation expecting $C$ would be unable to correctly process $C^\prime$
+    because the implicit truncation rule would have cut off $b_1$, which is unexpected.
+
     The design decision to make the delimiter header of a fixed width may not be obvious so it's worth explaining.
     There are two alternatives: making it variable-length and making the length a function of the extent
     (section \ref{sec:dsdl_composite_extent_and_sealing}).

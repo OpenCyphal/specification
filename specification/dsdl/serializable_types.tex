@@ -412,6 +412,25 @@ X_\text{default}\left(B\right) =
 $$
 
 \begin{remark}
+    Because of UAVCAN's commitment to determinism, memory buffer allocation can become an issue.
+    When using a flat composite type (where each field is of a primitive type) with the implicit truncation rule,
+    it is clear that the last defined fields are to be truncated out shall the allocated buffer be too small
+    to accommodate the serialized representation in its entirety.
+    If there is a composite-typed field, this behavior can no longer be relied on.
+    The technical details explaining this are given in section \ref{sec:dsdl_serialization_composite_non_sealed}.
+
+    Conventional protocols manage this simply by delaying the memory requirement identification until runtime,
+    which is unacceptable to UAVCAN.
+    The solution for UAVCAN is to require implementations to reserve more memory than required
+    by the data type definition unless it is \verb|@sealed|
+    (or unless the implementation does use dynamic memory allocation).
+    The multiplier chosen to define the \emph{default} amount of reserve memory
+    (i.e., the amount if a specific extent value is not provided) was chosen arbitrarily
+    and is considered a common-sense default that is not optimized for any specific property of a system.
+    This approach allows for limited extensibility while enabling deterministic memory requirements.
+\end{remark}
+
+\begin{remark}
     The extent of the following structure is 96 bits (12 bytes):
     \begin{minted}{python}
         uint16 foo
