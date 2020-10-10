@@ -221,6 +221,9 @@ Compared to v1.0-alpha, the differences are as follows (the motivation is provid
     \item Added support for delimited serialization; introduced related concepts of \emph{extent} and \emph{sealing}
           (section \ref{sec:dsdl_composite_extent_and_sealing}).
           This change enables one to easily evolve networked services in a backward-compatible way.
+
+    \item Enabled the automatic runtime adjustment of the transfer-ID timeout on a per-subject basis
+          as a function of the transfer reception rate (section \ref{sec:transport_transfer_reception}).
 \end{itemize}
 
 \subsection{v1.0-alpha -- Jan 2020}
