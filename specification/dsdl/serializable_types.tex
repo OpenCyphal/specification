@@ -1,15 +1,44 @@
 \section{Serializable types}\label{sec:dsdl_serializable_types}
 
+\subsection{General principles}
+
 Values of the serializable type category can be exchanged between nodes over the UAVCAN network.
 This is opposed to the expression types (section~\ref{sec:dsdl_expression_types}),
 instances of which can only exist while DSDL definitions are being evaluated.
 The data serialization rules are defined in section~\ref{sec:dsdl_data_serialization}.
 
+\subsubsection{Alignment and padding}\label{sec:dsdl_serializable_alignment_padding}
+
+For any serializable type,
+its \emph{alignment} $A$ is defined as some positive integer number of bits such that the offset of a
+serialized representation of an instance of this type relative to the origin of the
+containing serialized representation (if any) is an integer multiple of $A$.
+
+Given an instance of type whose alignment is $A$,
+it is guaranteed that its serialized representation is always an integer multiple of $A$ bits long.
+
+When constructing a serialized representation,
+the alignment and length requirements are satisfied by means of \emph{padding},
+which refers to the extension of a bit sequence with zero bits until
+the resulting alignment or length requirements are satisfied.
+During deserialization, the padding bits are ignored (skipped) irrespective of their value
+(also see related section \ref{sec:dsdl_serialization_implicit_truncation}).
+
+\begin{remark}
+    For example, given a variable-length entity whose length varies between 1 and 3 bits,
+    followed by a field whose type has the alignment requirement of 8,
+    one may end up with 5, 6, or 7 bits of padding inserted before the second field at runtime.
+
+    The exact amount of such padding cannot always be determined statically because it depends on the size of the
+    preceding entity;
+    however, it is guaranteed that it is always strictly less than the alignment requirement of the following field
+    or, if this is the last field in a group, the alignment requirement of its container.
+\end{remark}
+
 \subsection{Void types}
 
 Void types are used for padding purposes.
-As will be explained in later sections, it is desirable to align field attributes at byte boundaries;
-void types can be used to facilitate that.
+The alignment of void types is 1 bit (i.e., no alignment).
 
 Void-typed field attributes are set to zero when an object is serialized and ignored when it is deserialized.
 Void types can be used to reserve space in data type definitions for possible use in later versions of the data type.
@@ -25,6 +54,8 @@ Void types can be referred to directly by their name from any namespace.
 Primitive types are assumed to be known to DSDL processing tools a priori,
 and as such, they need not be defined by the user.
 Primitive types can be referred to directly by their name from any namespace.
+
+The alignment of primitive types is 1 bit (i.e., no alignment).
 
 \subsubsection{Hierarchy}
 
@@ -195,20 +226,22 @@ a variable-length array:
 \end{itemize}
 If neither of the above prefixes are provided, the resultant definition is that of a fixed-length array.
 
+The alignment of an array equals the alignment of its element type\footnote{
+    E.g., the alignment of \texttt{uint5[<=3]} or \texttt{int64[3]} is 1 bit (that is, no alignment).
+}.
+
 \subsection{Composite types}\label{sec:dsdl_composite_types}
 
 \subsubsection{Kinds}
 
-There are two kinds of composite data type definitions: message types and service types.
+There are two kinds of composite type definitions: message types and service types.
 All versions of a data type shall be of the same kind\footnote{%
     For example, if a data type version 0.1 is of a message kind, all later versions of it shall be messages, too.
 }.
 
-A message data type defines one data schema.
-
-A service data type contains two data schema definitions:
+A service type defines two inner data types:
 one for service request object, and one for service response object, in that order.
-The two schemas are separated by the service response marker (``\verb|---|'') on a separate line.
+The two types are separated by the service response marker (``\verb|---|'') on a separate line.
 
 The presence of the service response marker indicates that the data type definition at hand is of the service kind.
 At most one service response marker shall appear in a given definition.
@@ -281,16 +314,228 @@ The available attributes and their semantics are documented in the section~\ref{
     \end{minted}
 \end{remark}
 
-\subsubsection{Unions}\label{sec:dsdl_composite_tagged_unions}
+\subsubsection{Tagged unions}\label{sec:dsdl_composite_tagged_unions}
 
-Any data schema definition can be supplied with a special directive (section~\ref{sec:dsdl_directives})
+Any data type definition can be supplied with a special directive (section~\ref{sec:dsdl_directives})
 indicating that it forms a tagged union.
 
-A tagged union schema shall contain at least two field attributes.
+A tagged union type shall contain at least two field attributes.
 A tagged union shall not contain padding field attributes.
 
 The value of a tagged union object is a function of the field attribute which value it is currently holding
 and the value of the field attribute itself.
+
+To avoid ambiguity, a data type that is not a tagged union is referred to as a \emph{structure}.
+
+\subsubsection{Alignment and cumulative bit length set}\label{sec:dsdl_composite_alignment_cumulative_bls}
+
+The alignment of composite types is one byte (8 bits)\footnote{%
+    Regardless of the content.
+    It follows that empty composites can be inserted arbitrarily to force byte alignment
+    of the next field(s) at runtime.
+}.
+
+Per the definitions given in \ref{sec:dsdl_serializable_alignment_padding},
+a serialized representation of a composite type is padded to 8 bits by inserting padding bits
+after its last element until the resulting length is a multiple of 8 bits.
+
+Given a set of field attributes, their \emph{cumulative bit length set} is computed
+by evaluating every permutation of their respective bit length sets plus the required padding.
+\begin{itemize}
+    \item For tagged unions, this amounts to the union of the bit length sets of each field
+    plus the bit length set of the implicit union tag.
+    \item Otherwise, the cumulative bit length set is the Cartesian product of the bit length sets of each field
+    plus the required inter-field padding.
+\end{itemize}
+Related specifics are given in section \ref{sec:dsdl_data_serialization} on data serialization.
+
+\subsubsection{Extent and sealing}\label{sec:dsdl_composite_extent_and_sealing}
+
+As detailed in section \ref{sec:dsdl_versioning},
+data types may evolve over time to accommodate new design requirements, new features, to rectify issues, etc.
+In order to allow gradual migration of deployed systems to revised data types,
+it is desirable to ensure that they can be modified in a way that does not render new definitions
+incompatible with their earlier versions.
+In this context there are two related concepts:
+
+\begin{description}
+    \item[Extent] --- the minimum amount of memory, in bits, that shall be allocated to store the serialized
+    representation of the type.
+    The extent of any type is always greater than or equal the maximal value of its bit length set.
+    It is always a multiple of 8.
+
+    \item[Sealing] --- a type that is \emph{sealed} is non-evolvable and its extent equals the maximal value
+    of its bit length set\footnote{%
+        I.e., the smallest possible extent.
+    }.
+    A type that is not sealed is also referred to as \emph{delimited}.
+\end{description}
+
+The extent is the growth limit for the maximal bit length of the type as it evolves.
+The extent should be at least as large as the longest serialized representation of any compatible version of the type,
+which ensures that an agent leveraging a particular version can correctly process any other compatible
+version due to the avoidance of unintended truncation of serialized representations.
+
+Serialized representations of evolvable definitions may carry additional metadata which introduces a certain overhead.
+This may be undesirable in some scenarios, especially in cases where serialized representations of the
+definition are expected to be highly compact, thereby making the overhead comparatively more significant.
+In such cases, the designer may opt out of the extensibility by declaring the definition sealed.
+Serialized representations of sealed definitions do not incur the aforementioned overhead.
+
+The related mechanics are described in section \ref{sec:dsdl_serialization_composite_non_sealed}.
+
+\begin{figure}[H]
+    $$
+    \overbrace{%
+        \underbrace{%
+            \blacksquare\blacksquare\blacksquare\blacksquare\blacksquare\blacksquare%
+            \blacksquare\blacksquare\blacksquare\blacksquare\blacksquare\blacksquare%
+        }_{\substack{\text{Longest serialized} \\ \text{representation}}}%
+        \underbrace{%
+            \boxtimes\boxtimes\boxtimes\boxtimes\boxtimes\boxtimes\boxtimes\boxtimes%
+        }_{\substack{\text{Memory reserve} \\ \text{(none if sealed)}}}%
+    }^{\substack{%
+        \text{Extent} \\
+        \text{(memory requirement)}
+    }}
+    $$
+    \caption{Serialized representation and extent\label{fig:dsdl_extent}}
+\end{figure}
+
+Where a non-sealed (delimited) type is defined \emph{without} an explicit extent value a default memory reserve is implied using the following function
+of the cumulative bit length set\footnote{Section \ref{sec:dsdl_composite_alignment_cumulative_bls}.}
+of its fields $B$:
+
+$$
+X_\text{default}\left(B\right) =
+\left\lceil{}\left\lfloor{}\frac{3}{2} \max{}\left(B\right)\right\rfloor{}/8\right\rceil{}8
+$$
+
+\begin{remark}
+    Because of UAVCAN's commitment to determinism, memory buffer allocation can become an issue.
+    When using a flat composite type (where each field is of a primitive type) with the implicit truncation rule,
+    it is clear that the last defined fields are to be truncated out shall the allocated buffer be too small
+    to accommodate the serialized representation in its entirety.
+    If there is a composite-typed field, this behavior can no longer be relied on.
+    The technical details explaining this are given in section \ref{sec:dsdl_serialization_composite_non_sealed}.
+
+    Conventional protocols manage this simply by delaying the memory requirement identification until runtime,
+    which is unacceptable to UAVCAN.
+    The solution for UAVCAN is to require implementations to reserve more memory than required
+    by the data type definition unless it is \verb|@sealed|
+    (or unless the implementation does use dynamic memory allocation).
+    The multiplier chosen to define the \emph{default} amount of reserve memory
+    (i.e., the amount if a specific extent value is not provided) was chosen arbitrarily
+    and is considered a common-sense default that is not optimized for any specific property of a system.
+    This approach allows for limited extensibility while enabling deterministic memory requirements.
+\end{remark}
+
+\begin{remark}
+    The extent of the following structure is 96 bits (12 bytes):
+    \begin{minted}{python}
+        uint16 foo
+        uint8[<=5] bar
+        @assert _offset_ == {24, 32, 40, 48, 56, 64}
+    \end{minted}
+    How it was computed: \verb|foo| is fixed-size at 16 bits,
+    the implicit array length prefix of \verb|bar| is 8 bits,
+    the maximum array body length is $8 \times 5$ bits:
+    $(16 + 8 + 8 \times 5) \times \frac{3}{2} = 96$ bits.
+
+    The extent of the following union is 88 bits (11 bytes):
+    \begin{minted}{python}
+        @union
+        uint16 foo
+        uint8[<=5] bar
+        @assert _offset_ == {16, 24, 32, 40, 48, 56}
+    \end{minted}
+\end{remark}
+
+The extent can be set explicitly\footnote{
+    Observe that when composites are nested,
+    the default extent of an outer composite will be increasing as an exponential
+    function of the number of levels of nesting (because each level introduces the fixed multiplier).
+    Therefore, it is advised to specify the extent manually to manage the memory requirement.
+}
+using the directive described in section \ref{sec:dsdl_directive_extent},
+unless the definition is sealed.
+
+By default, a definition is not sealed unless explicitly indicated otherwise using the directive described in
+section \ref{sec:dsdl_directive_sealed}.
+
+It is allowed for a sealed composite type to nest non-sealed (delimited) composite types, and vice versa.
+
+\subsubsection{Bit length set}
+
+The bit length set of a sealed composite type equals the cumulative bit length set
+of its fields plus the final padding (see section \ref{sec:dsdl_composite_alignment_cumulative_bls}).
+
+\begin{remark}
+    The bit length set of the following is $\left\{ 8, 24, 40, 56 \right\}$:
+    \begin{minted}{python}
+        uint16[<=3] foo
+        @sealed
+    \end{minted}
+
+    The bit length set of the following is $\left\{ 16, 32, 48, 64 \right\}$:
+    \begin{minted}{python}
+        uint16[<=3] foo
+        int2 bar
+        @sealed
+    \end{minted}
+
+    The bit length set of the following is $\left\{ 8, 16 \right\}$:
+    \begin{minted}{python}
+        bool[<=3] foo
+        @sealed
+    \end{minted}
+\end{remark}
+
+The bit length set of a non-sealed (delimited) composite type is dependent only on its extent $X$,
+and is defined as follows:
+$$
+    \left\{ B_\text{DH} + 8b \mid b \in \mathbb{Z},\ 0 \leq b \leq \frac{X}{8} \right\}
+$$
+where $B_\text{DH}$ is the bit length of the \emph{delimiter header}
+as defined in section \ref{sec:dsdl_serialization_composite_non_sealed}.
+
+\begin{remark}
+    This is intentionally not dependent on the fields of the composite because the definition of delimited
+    composites should be possible to change without violating the backward compatibility.
+
+    If the bit length set was dependent on the field composition, then a composite $A$ that nests another composite
+    $B$ could have made a fragile assumption about the offset of the fields that follow $B$
+    that could be broken when $B$ is modified. Example:
+
+    \begin{minted}{python}
+        # A.1.0
+        B.1.0 x
+        float32 assume_aligned  # B.1.0 contains a single uint64, assume this field is 32-bit aligned?
+    \end{minted}
+
+    \begin{minted}{python}
+        # B.1.0
+        uint64 x
+    \end{minted}
+
+    Imagine then that \verb|B.1.0| is replaced with the following:
+
+    \begin{minted}{python}
+        # B.1.1
+        uint64 x
+        bool[<=64] y
+    \end{minted}
+
+    Once this modification is introduced, the fragile assumption about the alignment of
+    \verb|A.1.0.assume_aligned| would be violated.
+    To avoid this issue, the bit length set definition of delimited types intentionally discards the information
+    about its field composition, forcing dependent types to avoid any non-trivial assumptions.
+\end{remark}
+
+When serializing an object, the amount of memory needed for storing its serialized representation
+may be taken as the maximal value of its bit length set minus the size of the delimiter header,
+since this bound is tighter than the extent yet guaranteed to be sufficient.
+This optimization is not applicable to deserialization since the actual type of the object may not be known.
 
 \subsubsection{Type polymorphism and equivalency}
 
@@ -298,34 +543,80 @@ Type polymorphism is supported in DSDL through structural subtyping.
 The following definition relies on the concept of \emph{field attribute},
 which is introduced in section~\ref{sec:dsdl_attributes}.
 
-Let $B$ and $D$ be DSDL message types whose data schemas define $b$ and $d$ field attributes, respectively.
+Polymorphic relations are not defined on service types.
+
+Let $B$ and $D$ be DSDL types that define $b$ and $d$ field attributes, respectively.
 Let each field attribute be assigned a sequential index according to its position in the DSDL definition
 (see section~\ref{sec:dsdl_grammar} on statement ordering).
 
-$D$ is a \emph{structural subtype} of $B$ if all conditions are satisfied:
-\begin{itemize}
-    \item neither $B$ nor $D$ define a tagged union;
-    \item $B$ is not $D$;
-    \item $b \leq d$;
-    \item for each field attribute of $B$ at index $i$ there is an equal\footnote{%
-              Field attribute equality is defined in section~\ref{sec:dsdl_attributes}.
-          } field attribute in $D$ at index $i$.
-\end{itemize}
+\begin{enumerate}
+    % -----------------------------------------------------------------------------------------------------------------
+    \item Structure subtyping rule --- $D$ is a \emph{structural subtype} of $B$ if all conditions are satisfied:
+    \begin{itemize}
+        \item neither $B$ nor $D$ define a tagged union\footnote{%
+            This is because tagged unions are serialized differently.
+        };
+        \item neither $B$ nor $D$ are sealed\footnote{%
+            Sealed types are serialized in-place as if their definition was directly copied into the outer
+            (containing) type (if any).
+            This circumstance effectively renders them non-modifiable because that may break the bit layout
+            of the outer types (if any).
+            More on this in section \ref{sec:dsdl_serialization_composite_non_sealed}.
+        };
+        \item the extent of $B$ is not less than the extent of $D$\footnote{%
+            This is to uphold the Liskov substitution principle.
+            A deserializer expecting an instance of $B$ in a serialized representation should be invariant
+            to the replacement $B \leftarrow{} D$.
+            If the extent of $D$ was larger, then its serialized representation could spill beyond the allocated
+            container, possibly resulting in the truncation of the following data, which in turn could result in
+            incorrect deserialization.
+            See \ref{sec:dsdl_data_serialization}.
+        };
+        \item $B$ is not $D$;
+        \item $b \leq d$;
+        \item for each field attribute of $B$ at index $i$ there is an equal\footnote{%
+            Field attribute equality is defined in section~\ref{sec:dsdl_attributes}.
+        } field attribute in $D$ at index $i$.
+    \end{itemize}
 
-$D$ is a structural subtype of $B$ if all conditions are satisfied:
-\begin{itemize}
-    \item both $B$ and $D$ define tagged unions;
-    \item $B$ is not $D$;
-    \item $b \leq d$;
-    \item $2^{\lceil\log_2 \text{max}\left(8, \lceil\log_2 b\rceil\right)\rceil} =
-           2^{\lceil\log_2 \text{max}\left(8, \lceil\log_2 d\rceil\right)\rceil}$;
-    \item for $i \in \left[0, b\right)$, the type of the field attribute of $D$ at index $i$
-          is the same or is a subtype of the type of the field attribute of $B$ at index $i$.
-    \item for $i \in \left[0, b\right)$, the name of the field attribute of $D$ at index $i$
-          is the same as the name of the field attribute of $B$ at index $i$.
-\end{itemize}
+    % -----------------------------------------------------------------------------------------------------------------
+    \item Tagged union subtyping rule --- $D$ is a structural subtype of $B$ if all conditions are satisfied:
+    \begin{itemize}
+        \item both $B$ and $D$ define tagged unions;
+        \item neither $B$ nor $D$ are sealed;
+        \item the extent of $B$ is not less than the extent of $D$;
+        \item $B$ is not $D$;
+        \item $b \leq d$;
+        \item $2^{\lceil\log_2 \text{max}\left(8, \lceil\log_2 b\rceil\right)\rceil} =
+               2^{\lceil\log_2 \text{max}\left(8, \lceil\log_2 d\rceil\right)\rceil}$\footnote{%
+            I.e., the length of the implicit union tag field should be the same.
+        };
+        \item for $i \in \left[0, b\right)$, the type of the field attribute of $D$ at index $i$
+        is the same or is a subtype of the type of the field attribute of $B$ at index $i$.
+        \item for $i \in \left[0, b\right)$, the name of the field attribute of $D$ at index $i$
+        is the same as the name of the field attribute of $B$ at index $i$.
+    \end{itemize}
 
-$D$ is a structural subtype of $B$ if $b = 0$.
+    % -----------------------------------------------------------------------------------------------------------------
+    \item Empty type subtyping rule --- $D$ is a structural subtype of $B$ if all conditions are satisfied:
+    \begin{itemize}
+        \item $b = 0$\footnote{%
+            If $B$ contains no field attributes, the applicability of the Liskov substitution principle is invariant to
+            whether its subtypes are tagged union types or not.
+        };
+        \item neither $B$ nor $D$ are sealed;
+        \item the extent of $B$ is not less than the extent of $D$;
+        \item $B$ is not $D$.
+    \end{itemize}
+
+    % -----------------------------------------------------------------------------------------------------------------
+    \item Header subtyping rule --- $D$ is a structural subtype of $B$ if all conditions are satisfied:
+    \begin{itemize}
+        \item neither $B$ nor $D$ define a tagged union;
+        \item both $B$ and $D$ are sealed;
+        \item the first field attribute of $D$ is of type $B$.
+    \end{itemize}
+\end{enumerate}
 
 If $D$ is a structural subtype of $B$, then $B$ is a \emph{structural supertype} of $D$.
 
@@ -373,8 +664,21 @@ one type is a subtype of another, and for any member its supertypes are located 
     or both being a union.
     A message type may have an arbitrary number of supertypes as long as the field equality constraint is satisfied.
 
-    Polymorphic relations are not defined on service types;
-    however, this may change in a future revision of the standard.
+    Header subtyping example. The first type is named \verb|A.1.0|:
+
+    \begin{minted}{python}
+        float64 a
+        int16[<=9] b
+        @sealed
+    \end{minted}
+
+    The second type is a structural subtype of the first type:
+
+    \begin{minted}{python}
+        A.1.0 base
+        uint8 foo
+        @sealed
+    \end{minted}
 \end{remark}
 
 \begin{remark}[breakable]

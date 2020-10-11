@@ -9,12 +9,10 @@ Regulated non-standard definitions\footnote{%
     of the specification, as explained in section~\ref{sec:basic_data_type_regulation}.
 } are not included in this list.
 
-Each definition is provided with a length information table for convenience,
-where the minimum and maximum serialized length is shown in several units:
-bits, bytes (octets), and transport frames for some of the supported transport protocols.
-The acronym \emph{MTU} used in the length information tables stands for
-\emph{maximum transmission unit}, which is the maximum amount of data, in bytes (octets, eight bits per byte),
-that fits into one transport frame for the specific transport protocol.
+In the table, \emph{BLS} stands for bit length set.
+The extent is not shown for sealed entities -- that would be redundant because sealing implies
+that the extent equals the maximum bit length set.
+For service types, the parameters pertaining to the request and response are shown separately.
 
 The index table~\ref{table:dsdl:uavcan} is provided before the definitions for ease of navigation.
 

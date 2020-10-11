@@ -76,13 +76,13 @@ Without strict conventions in place, they quickly become unmanageable.
 - There shall be one blank line above and below a section header,
 unless the section header is at the top of the source file.
 - Multi-line content enclosed in curly braces should be indented.
-- If a list item spills on the next line, the spilled text should be indented on the same level with the first line.
+- If a list item spills on the next line, the spilled text should be indented on the same level with `\item`.
 
 ```tex
 \begin{itemize}
     \item This list item is sufficiently long to exceed the limit of 120 characters per line,
-          so it has to spill onto the next line.
-          The spilled part is indented correctly.
+    so it has to spill onto the next line.
+    The spilled part is indented correctly.
 
     \item Another item.
 \end{itemize}
@@ -102,21 +102,15 @@ A GNU/Linux-based operating system is assumed.
 The described instructions may be valid for other operating systems but this is not guaranteed.
 
 In order to compile the document, install TeX Live
-(Ubuntu packages: [`texlive-full`](https://packages.ubuntu.com/xenial/texlive-full) and `lyx`),
-and make sure that the version of pdfLaTeX is `3.14159265-2.6-1.40.16`.
-Any other version may miscompile the document with subtle typographical defects.
-Install the Python packages listed in `requirements.txt`.
+(Ubuntu packages: [`texlive-full`](https://packages.ubuntu.com/xenial/texlive-full) and `lyx`)
+and the Python packages listed in `requirements.txt`.
 
 When done, run `./compile.sh`.
 
 #### Using texer
 
 You can use our Docker container to build the specification if you don't want to setup your own build environment.
-
-1. pull [texer container](https://hub.docker.com/r/uavcan/texer)
-2. `docker run --rm -it -v ${PWD}:/repo:delegated uavcan/texer:ubuntu-16.04`
-3. `pip3 install pydsdl`
-4. `./compile.sh`
+Build `.devcontainer/Dockerfile` and run `./compile.sh` inside the container.
 
 ### IDE setup
 
@@ -131,6 +125,6 @@ the `.vscode/spellright.dict` to squelch bogus spelling errors from Spellright.
 
 #### L33t IDE Setup
 
-If you want to use our [texer container](https://hub.docker.com/repository/docker/uavcan/texer) with vscode then install the ["ms-vscode-remote.vscode-remote-extensionpack"](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack) and Docker. When you open vscode in this repostory it should prompt you to "open this folder in container?". Otherwise `F1` or `CMD+SHIFT+P` and select `Remote-Containers: Reopen Locally`. Once within the container you can simply `F1` or `CMD+SHIFT+P` and `LaTeX Workshop: Build LaTeX project` to build the specification PDF.
+If you want to use our [texer container](https://hub.docker.com/repository/docker/uavcan/texer) with vscode then install the ["ms-vscode-remote.vscode-remote-extensionpack"](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack) and Docker. When you open vscode in this repository it should prompt you to "open this folder in container?". Otherwise `F1` or `CMD+SHIFT+P` and select `Remote-Containers: Reopen Locally`. Once within the container you can simply `F1` or `CMD+SHIFT+P` and `LaTeX Workshop: Build LaTeX project` to build the specification PDF.
 
 The above [may not work](https://github.com/microsoft/vscode-remote-release/issues/1097) if you are running an OSS build of VSCode (e.g., from Arch AUR). It is recommended to use the official binaries from Micro$oft.

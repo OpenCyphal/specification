@@ -59,35 +59,15 @@ such format is also known as little-endian.
     \caption{Bit and byte ordering\label{fig:dsdl_serialization_bit_ordering}}
 \end{figure}
 
-\subsubsection{Implicit padding}
-
-Excepting one edge case reviewed below,
-serialized representations of DSDL entities never include implicit data padding.
-Unaligned data may lead to suboptimal serialization and deserialization performance;
-therefore, the data type designer should manually align elements as necessary to prevent performance degradation.
-It is guaranteed, however, that unaligned data cannot result in unspecified or otherwise unexpected behavior
-of the data handling routines.
-The manual approach to data alignment allows the data type designer to trade-off serialization efficiency
-over network bandwidth utilization and data transfer latency as necessary without compromising functional safety.
-
-The exceptional edge case mentioned above when implicit padding is introduced is as follows.
-Serialized representations of DSDL entities operate at the bit level,
-whereas the transport protocols supported by UAVCAN\footnote{As well as the majority of network protocols in general.}
-use bytes as the smallest atomic data element.
-The resulting mismatch of the data granularity levels is resolved by
-appending the serialized representation of the top-level composite type object with zero (0) bits
-until the length of its bit sequence is an integer multiple of eight (8).
-The term \emph{top-level object} denotes an object that is not nested inside another DSDL entity.
-In other words, padding bits may only be added before a fully constructed serialized representation is
-handed over for transmission over the UAVCAN network
-(or any other destination which does not support bit-level data granularity).
-
-\subsubsection{Implicit truncation of excessive data}
+\subsubsection{Implicit truncation of excessive data}\label{sec:dsdl_serialization_implicit_truncation}
 
 When a serialized representation is deserialized, implementations shall ignore
-any excessive (unused) data remaining upon deserialization\footnote{%
+any excessive (unused) data or padding bits remaining upon deserialization\footnote{%
     The presence of unused data should not be considered an error.
 }.
+The total size of the serialized representation is reported either by the underlying transport layer, or,
+in the case of nested objects, by the \emph{delimiter header}
+(section \ref{sec:dsdl_serialization_composite_non_sealed}).
 
 As a consequence of the above requirement the transport layer can introduce
 additional zero padding bits at the end of a serialized representation
@@ -117,7 +97,7 @@ Non-zero padding bits are not allowed\footnote{%
     The topic of data type compatibility is explored in detail in section~\ref{sec:dsdl_versioning}.
 \end{remark}
 
-\subsubsection{Implicit zero extension of missing data}
+\subsubsection{Implicit zero extension of missing data}\label{sec:dsdl_serialization_implicit_zero_extension}
 
 For the purposes of deserialization routines,
 the serialized representation of any instance of a data type shall \emph{implicitly} end with an
@@ -133,6 +113,10 @@ upon construction of a serialized representation of an object\footnote{%
     extension rule.
     If intentional truncation were allowed, removal of this rule would break backward compatibility.
 }.
+
+The total size of the serialized representation is reported either by the underlying transport layer, or,
+in the case of nested objects, by the \emph{delimiter header}
+(section \ref{sec:dsdl_serialization_composite_non_sealed}).
 
 \begin{remark}
     The implicit zero extension rule enables extension of data types by introducing additional fields
@@ -174,18 +158,18 @@ Correct UAVCAN types shall have no other deserialization error states.
 The serialized representation of a void-typed field attribute is constructed as a sequence of zero bits.
 The length of the sequence equals the numeric suffix of the type name.
 
-When a void-typed field attribute is decoded, the values of respective bits are ignored;
+When a void-typed field attribute is deserialized, the values of respective bits are ignored;
 in other words, any bit sequence of correct length is a valid serialized representation
 of a void-typed field attribute.
 This behavior facilitates usage of void fields as placeholders for non-void fields
 introduced in newer versions of the data type (section~\ref{sec:dsdl_versioning}).
 
 \begin{remark}
-    The following data schema will be serialized as a sequence of three zero bits $000_2$:
+    The following data type will be serialized as a sequence of three zero bits $000_2$:
     \begin{minted}{python}
         void3
     \end{minted}
-    The following bit sequences are valid serialized representations of the schema:
+    The following bit sequences are valid serialized representations of the type:
     $000_2$,
     $001_2$,
     $010_2$,
@@ -325,7 +309,7 @@ Serialized representations of a fixed-length array of $n$ elements of type $T$ a
 a sequence of $n$ field attributes of type $T$ are equivalent.
 
 \begin{remark}
-    Serialized representations of the following two data schema definitions are equivalent:
+    Serialized representations of the following two data type definitions are equivalent:
 
     \begin{minted}{python}
         AnyType[3] array
@@ -341,7 +325,7 @@ a sequence of $n$ field attributes of type $T$ are equivalent.
 \subsubsection{Variable-length array types}\label{sec:dsdl_serialized_variable_length_array}
 
 A serialized representation of a variable-length array consists of two segments:
-the implicit length field followed by the array elements.
+the implicit length field immediately followed by the array elements.
 
 The implicit length field is of an unsigned integer type.
 The serialized representation of the implicit length field
@@ -365,11 +349,16 @@ By definition, $n \leq c$; therefore, bit sequences where the implicit length fi
 greater than $c$ do not belong to the set of serialized representations of the array.
 
 The rest of the serialized representation is constructed as if the variable-length array was
-a fixed-length array of $n$ elements.
+a fixed-length array of $n$ elements\footnote{%
+    Observe that the implicit array length field, per its definition,
+    is guaranteed to never break the alignment of the following array elements.
+    There may be no padding between the implicit array length field and its elements.
+}.
 
 \begin{remark}
-    Datatype authors must take into account that dynamic arrays with a capacity of $\leq{}255$ elements will
-    consume an additional 8-bits of the serialized representation (where a capacity of $\leq 65535$ will consume 16-bits and so on).
+    Data type authors must take into account that variable-length arrays with a capacity of $\leq{}255$ elements will
+    consume an additional 8 bits of the serialized representation
+    (where a capacity of $\leq 65535$ will consume 16 bits and so on).
     For example:
 
     \begin{minted}{python}
@@ -399,20 +388,18 @@ a fixed-length array of $n$ elements.
     \end{minted}
 \end{remark}
 
-\subsection{Composite types}
+\subsection{Composite types}\label{sec:dsdl_serialization_composite}
 
-As explained in the section~\ref{sec:dsdl_composite_types}, a data type of the service kind contains
-two data schema definitions: one for the request object and one for the response object.
-Unless explicitly specified otherwise, any reference to serialized representations of a service type
-implies either or both of its data schema definitions, depending on context.
+\subsubsection{Sealed structure}
 
-A serialized representation of an object of a composite type is a sequence of serialized representations of
-its field attribute values joined into a bit sequence.
+A serialized representation of an object of a sealed composite type that is not a tagged union
+is a sequence of serialized representations of its field attribute values joined into a bit sequence,
+separated by padding if such is necessary to satisfy the alignment requirements.
 The ordering of the serialized representations of the field attribute values follows the order
 of field attribute declaration.
 
 \begin{remark}
-    Consider the following data schema definition,
+    Consider the following definition,
     where the fields are assigned runtime values shown in the comments:
 
     \begin{minted}{python}
@@ -422,6 +409,7 @@ of field attribute declaration.
         saturated  int4  third   #     -5                    1011   two's complement
         saturated  int2  fourth  #     -1                      11   two's complement
         truncated uint4  fifth   #   +136               1000_1000   overflow, MSB truncated
+        @sealed
     \end{minted}
 
     It can be seen that the bit layout is rather complicated because the field boundaries do not align with byte
@@ -498,9 +486,9 @@ of field attribute declaration.
     not recommended because the convention is deeply ingrained in most readers, tools, and technologies.
 \end{remark}
 
-\subsubsection{Tagged unions}
+\subsubsection{Sealed tagged union}
 
-Similar to variable-length arrays, a serialized representation of a tagged union consists of two segments:
+Similar to variable-length arrays, a serialized representation of a sealed tagged union consists of two segments:
 the implicit \emph{union tag} value followed by the selected field attribute value.
 
 The implicit union tag is an unsigned integer value whose serialized representation
@@ -527,12 +515,17 @@ therefore, bit sequences where the implicit union tag field contains values
 that are greater than or equal $n$ do not belong to the set of serialized representations of the tagged union.
 
 The serialized representation of the implicit union tag is immediately followed by
-the serialized representation of the currently selected field attribute value.
+the serialized representation of the currently selected field attribute value\footnote{%
+    Observe that the implicit union tag field, per its definition,
+    is guaranteed to never break the alignment of the following field.
+    There may be no padding between the implicit union tag field and the selected field.
+}.
 
 \begin{remark}
     Consider the following example:
 
     \begin{minted}{python}
+        @sealed
         @union           # In this case, the implicit union tag is one byte wide
         uint16 FOO = 42  # A regular constant attribute
         uint16 a         # Field index 0
@@ -541,10 +534,11 @@ the serialized representation of the currently selected field attribute value.
         float64 c        # Field index 2
     \end{minted}
 
-    In order to encode the field \verb|b|, the implicit union tag shall be assigned the value 1.
-    The following data schema will have an identical layout:
+    In order to serialize the field \verb|b|, the implicit union tag shall be assigned the value 1.
+    The following type will have an identical layout:
 
     \begin{minted}{python}
+        @sealed
         uint8 implicit_union_tag  # Set to 1
         uint8 b                   # The actual value
     \end{minted}
@@ -568,20 +562,174 @@ the serialized representation of the currently selected field attribute value.
 
     \begin{minted}{python}
         # Empty. The only valid serialized representation is an empty bit sequence.
+        @sealed
     \end{minted}
 
-    Consider the following union schema definition:
+    Consider the following union:
 
     \begin{minted}{python}
+        @sealed
         @union
         Empty.1.0 none
         AnyType.1.0 some
     \end{minted}
 
-    The set of serialized representations of the union schema definition given above is equivalent to
+    The set of serialized representations of the union given above is equivalent to
     that of the following variable-length array:
 
     \begin{minted}{python}
+        @sealed
         AnyType.1.0[<=1] maybe_some
     \end{minted}
+\end{remark}
+
+\subsubsection{Delimited types}\label{sec:dsdl_serialization_composite_non_sealed}
+
+Objects of delimited (non-sealed) composite types that are nested inside other objects\footnote{%
+    Of any type, not necessarily composite; e.g., arrays.
+}
+are serialized into opaque containers that consist of two parts:
+the fixed-length \emph{delimiter header},
+immediately followed by the serialized representation of the object as if it was of a sealed type.
+
+Objects of delimited composite types that are \emph{not} nested inside other objects (i.e., top-level objects)
+are serialized as if they were of a sealed type (without the delimiter header).
+The delimiter header, therefore, logically belongs to the container object rather than the contained one.
+
+\begin{remark}
+    Top-level objects do not require the delimiter header because the change in their length does not necessarily
+    affect the backward compatibility thanks to the implicit truncation rule
+    (section \ref{sec:dsdl_serialization_implicit_truncation}) and the implicit zero extension rule
+    (section \ref{sec:dsdl_serialization_implicit_zero_extension}).
+\end{remark}
+
+The delimiter header is an implicit field of type \verb|uint32| that encodes the length of the
+serialized representation it precedes in bytes\footnote{%
+    Remember that by virtue of the padding requirement (section \ref{sec:dsdl_composite_alignment_cumulative_bls}),
+    the length of the serialized representation of a composite type is always an integer number of bytes.
+}.
+During deserialization, if the length of the serialized representation reported by its delimiter header
+does not match the expectation of the deserializer,
+the implicit truncation (section \ref{sec:dsdl_serialization_implicit_truncation})
+and the implicit zero extension (section \ref{sec:dsdl_serialization_implicit_zero_extension})
+rules apply.
+
+It is allowed for a sealed composite type to nest non-sealed composite types, and vice versa.
+No special rules apply in such cases.
+
+\begin{remark}
+    The resulting serialized representation of a delimited composite is identical to \verb|uint8[<2**32]|
+    (sans the higher alignment requirement).
+    The implicit array length field is like the delimiter header,
+    and the array content is the serialized representation of the composite as if it was sealed.
+
+    The following illustrates why this is necessary for robust extensibility.
+    Suppose that some composite $C$ contains two fields whose types are $A$ and $B$.
+    The fields of $A$ are $a_0,\ a_1$;
+    likewise, $B$ contains $b_0,\ b_1$.
+
+    Suppose that $C^\prime$ is modified such that $A^\prime$ contains an extra field $a_2$.
+    If $A$ (and $A^\prime$) were sealed, this would result in the breakage of compatibility between $C$ and $C^\prime$
+    as illustrated in figure \ref{fig:dsdl_sealed_non_extensibility} because the positions of the fields of $B$
+    (which is sealed) would be shifted by the size of $a_2$.
+
+    The use of opaque containers allows the implicit truncation and the implicit zero extension rules to apply
+    at any level of nesting, enabling agents expecting $C$ to truncate $a_2$ away,
+    and enabling agents expecting $C^\prime$ to zero-extend $a_2$
+    if it is not present, as shown in figure \ref{fig:dsdl_non_sealed_extensibility},
+    where $H_A$ is the delimiter header of $A$.
+    Observe that it is irrelevant whether $C$ (same as $C^\prime$) is sealed or not.
+
+    \begin{figure}[H]
+        \centering
+        \begin{tabular}{r c c c c c}
+            \cline{2-5}
+            $C$ &
+            \multicolumn{1}{|c|}{$a_0$} & \multicolumn{1}{c|}{$a_1$}
+            &\multicolumn{1}{c|}{$b_0$} & \multicolumn{1}{c|}{$b_1$} &
+            \\\cline{2-5}
+            & $\checkmark$ & $\checkmark$ & $\times$ & $\times$ & $\times$ \\
+            \cline{2-6}
+            $C^\prime$ &
+            \multicolumn{1}{|c|}{$a_0$} & \multicolumn{1}{c|}{$a_1$} & \multicolumn{1}{c|}{$a_2$}
+            &\multicolumn{1}{c|}{$b_0$} & \multicolumn{1}{c|}{$b_1$}
+            \\\cline{2-6}
+        \end{tabular}
+        \caption{Non-extensibility of sealed types}
+        \label{fig:dsdl_sealed_non_extensibility}
+    \end{figure}
+
+    \begin{figure}[H]
+        \centering
+        \begin{tabular}{r c c c c c c}
+            \cline{2-7}
+            $C$ &
+            \multicolumn{1}{|c|}{$H_A$} & \multicolumn{1}{c|}{$a_0$} & \multicolumn{1}{c|}{$a_1$}
+            &\multicolumn{1}{c|}{\footnotesize{$\ldots$}}
+            &\multicolumn{1}{c|}{$b_0$} & \multicolumn{1}{c|}{$b_1$}
+            \\\cline{2-7}
+            & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+            \cline{2-7}
+            $C^\prime$ &
+            \multicolumn{1}{|c|}{$H_A$} & \multicolumn{1}{c|}{$a_0$} & \multicolumn{1}{c|}{$a_1$} &
+            \multicolumn{1}{c|}{$a_2$}
+            &\multicolumn{1}{c|}{$b_0$} & \multicolumn{1}{c|}{$b_1$}
+            \\\cline{2-7}
+        \end{tabular}
+        \caption{Extensibility of delimited types with the help of the delimiter header}
+        \label{fig:dsdl_non_sealed_extensibility}
+    \end{figure}
+
+    This example also illustrates why the extent is necessary.
+    Per the rules set forth in \ref{sec:dsdl_composite_extent_and_sealing},
+    it is required that the extent (i.e., the buffer memory requirement) of $A$ shall be large enough to accommodate
+    serialized representations of $A^\prime$, and, therefore,
+    the extent of $C$ is large enough to accommodate serialized representations of $C^\prime$.
+    If that were not the case, then an implementation expecting $C$ would be unable to correctly process $C^\prime$
+    because the implicit truncation rule would have cut off $b_1$, which is unexpected.
+
+    The design decision to make the delimiter header of a fixed width may not be obvious so it's worth explaining.
+    There are two alternatives: making it variable-length and making the length a function of the extent
+    (section \ref{sec:dsdl_composite_extent_and_sealing}).
+    The first option does not align with the rest of the specification because DSDL does not make use of
+    variable-length integers (unlike some other formats, like Google Protobuf, for example),
+    and because a variable-length length {\footnotesize{(sic!)}} prefix would have somewhat complicated the
+    bit length set computation.
+    The second option would make nested hierarchies (composites that nest other composites) possibly highly fragile
+    because the change of the extent of a deeply nested type may inadvertently move the delimiter header of an
+    outer type into a different length category, which would be disastrous for compatibility and hard to spot.
+    There is an in-depth discussion of this issue (and other related matters) on the forum.
+
+    The fixed-length delimiter header may be considered large,
+    but delimited types tend to also be complex, which makes the overhead comparatively insignificant,
+    whereas sealed types that tend to be compact and overhead-sensitive do not contain the delimiter header.
+\end{remark}
+
+\begin{remark}
+    In order to efficiently serialize an object of a delimited type,
+    the implementation may need to perform a second pass to reach the delimiter header
+    after the object is serialized, because before that, the value of the delimiter header cannot be known
+    unless the object is of a fixed-size (i.e., the cardinality of the bit length set is one).
+
+    Consider:
+    \begin{minted}{python}
+        uint8[<=4] x
+    \end{minted}
+    Let $\texttt{x} = \left[ 4, 2 \right]$,
+    then the nested serialized representation would be constructed as:
+    \begin{enumerate}
+        \item Memorize the current memory address $M_\text{origin}$.
+        \item Skip 32 bits.
+        \item Encode the length: 2 elements.
+        \item Encode $x_0 = 4$.
+        \item Encode $x_1 = 2$.
+        \item Memorize the current memory address $M_\text{current}$.
+        \item Go back to $M_\text{origin}$.
+        \item Encode a 32-bit wide value of $(M_\text{current} - M_\text{origin})$.
+        \item Go back to $M_\text{current}$.
+    \end{enumerate}
+
+    However, if the object is known to be of a constant size, the above can be simplified,
+    because there may be only one possible value of the delimiter header.
+    Automatic code generation tools should take advantage of this knowledge.
 \end{remark}
