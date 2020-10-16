@@ -697,7 +697,9 @@ any other successfully reassembled transfer under the same session specifier by 
 is considered unique regardless of its transfer-ID value.
 
 If the optimal transfer-ID timeout value for a given session cannot be known in advance,
-it can be computed at runtime as a multiple of the average transfer reception interval (on this session).
+it can be computed at runtime on a per-session basis\footnote{%
+    E.g., as a multiple of the average transfer reception interval.
+}.
 The parameters of such computation are to be chosen according to the requirements of the application,
 but they should always be documented.
 
