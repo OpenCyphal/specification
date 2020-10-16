@@ -72,7 +72,7 @@ def render_dsdl_info(t: pydsdl.CompositeType) -> str:
             t.extent / 8,
         )
     else:
-        return 'Size %s bytes; final.' % (
+        return 'Size %s bytes; sealed.' % (
             length,
         )
 
@@ -215,20 +215,20 @@ for namespace, ns_type_mapping in grouped.items():
 
             # Layout information
             b2b = lambda x: (x + 7) // 8
-            is_final = lambda t: not isinstance(t, pydsdl.DelimitedType)
-            annotate_finality = lambda t, x: r'\textit{final}' if is_final(t) else str(x)
+            is_sealed = lambda t: not isinstance(t, pydsdl.DelimitedType)
+            annotate_sealing = lambda t, x: r'\textit{sealed}' if is_sealed(t) else str(x)
             if is_service:
                 ser_max_bytes = r'$%d \rightleftharpoons{} %d$' % (
                     b2b(max(t.request_type.bit_length_set)),
                     b2b(max(t.response_type.bit_length_set))
                 )
                 extent_bytes = r'$%s \rightleftharpoons{} %s$' % (
-                    annotate_finality(t.request_type, b2b(t.request_type.extent)),
-                    annotate_finality(t.response_type, b2b(t.response_type.extent))
+                    annotate_sealing(t.request_type, b2b(t.request_type.extent)),
+                    annotate_sealing(t.response_type, b2b(t.response_type.extent))
                 )
             else:
                 ser_max_bytes = r'$%d$' % b2b(max(t.bit_length_set))
-                extent_bytes = r'$%s$' % annotate_finality(t, b2b(t.extent))
+                extent_bytes = r'$%s$' % annotate_sealing(t, b2b(t.extent))
 
             weak = lambda s: r'\emph{\color{gray}%s}' % s
 
