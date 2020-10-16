@@ -15,7 +15,7 @@ UAVCAN can be approximated as a highly deterministic decentralized object reques
 with a specialized interface description language and a highly efficient data serialization format
 suitable for use in real-time safety-critical systems with optional modular redundancy.
 
-The name UAVCAN stands for \emph{Uncomplicated Application-level Vehicular Communication And Networking}.
+The name UAVCAN stands for \emph{Uncomplicated Application-level Vehicular Computing And Networking}.
 
 UAVCAN is a standard open to everyone, and it will always remain this way.
 No authorization or approval of any kind is necessary for its implementation, distribution, or use.
@@ -206,9 +206,6 @@ The UAVCAN specification contains references to the following sources:
 
 \subsection{v1.0-beta -- Sep 2020}
 
-This version is to be followed by \emph{v1.0} upon completion of the formal standardization process
-in one of the standard bodies.
-
 Compared to v1.0-alpha, the differences are as follows (the motivation is provided on the forum):
 
 \begin{itemize}
@@ -221,6 +218,9 @@ Compared to v1.0-alpha, the differences are as follows (the motivation is provid
     \item Added support for delimited serialization; introduced related concepts of \emph{extent} and \emph{sealing}
           (section \ref{sec:dsdl_composite_extent_and_sealing}).
           This change enables one to easily evolve networked services in a backward-compatible way.
+
+    \item Enabled the automatic runtime adjustment of the transfer-ID timeout on a per-subject basis
+          as a function of the transfer reception rate (section \ref{sec:transport_transfer_reception}).
 \end{itemize}
 
 \subsection{v1.0-alpha -- Jan 2020}

@@ -662,16 +662,19 @@ the identity of the transport instance that carries the transfer\footnote{%
     in section~\ref{sec:application_functions}.
 }.
 
-\subsection{Transfer reception}
+\subsection{Transfer reception}\label{sec:transport_transfer_reception}
 
 \subsubsection{Definitions}
 
 \emph{Transfer reassembly} is the real-time process of reconstruction of the transfer payload and its metadata from
 a sequence of relevant transport frames.
 
-\emph{Transfer-ID timeout} is a time interval that is 2 (two) seconds long.
-The semantics of this entity are explained below.
-Implementations are allowed to redefine this value provided that such redefinition is explicitly documented.
+\emph{Transfer-ID timeout} is a time interval whose semantics are explained below.
+Implementations may define this value statically according to the application requirements.
+Implementations may automatically adjust this value per session at runtime as a function of the
+observed transfer reception interval.
+Transfer-ID timeout values greater than 2 (two) seconds are not recommended.
+Implementations should document the value of transfer-ID timeout or the rules of its computation.
 
 \emph{Transport frame reception timestamp} specifies the moment of time when the frame is received by a node.
 \emph{Transfer reception timestamp} is the reception timestamp of the earliest received frame of the transfer.
@@ -693,6 +696,13 @@ For a given session specifier, a successfully reassembled transfer that is tempo
 any other successfully reassembled transfer under the same session specifier by more than the transfer-ID timeout
 is considered unique regardless of its transfer-ID value.
 
+If the optimal transfer-ID timeout value for a given session cannot be known in advance,
+it can be computed at runtime on a per-session basis\footnote{%
+    E.g., as a multiple of the average transfer reception interval.
+}.
+The parameters of such computation are to be chosen according to the requirements of the application,
+but they should always be documented.
+
 \begin{remark}
     Low transfer-ID timeout values increase the risk of undetected transfer duplication when such transfers
     are significantly delayed due to network congestion,
@@ -700,6 +710,18 @@ is considered unique regardless of its transfer-ID value.
 
     High transfer-ID timeout values increase the risk of an undetected transfer loss
     when a remote node suffers a loss of state (e.g., due to a software reset).
+
+    The ability to auto-detect the optimal transfer-ID timeout value per session at runtime ensures that the
+    application can find the optimal balance even if the temporal properties of the network are not known in advance.
+    As a practical example, an implementation could compute the exponential moving average of the
+    transfer reception interval $x$ for a given session and define the transfer-ID timeout as $2x$.
+
+    It is important to note that the automatic adjustment of the transfer-ID timeout should only be done
+    on a per-session basis rather than for the entire port, because there may be multiple remote nodes
+    emitting transfers on the same port at different rates.
+    For example, if one node emits transfers at a rate $r$ transfers per second, and another node emits transfers
+    on the same port at a much higher rate $100r$, the resulting auto-detected transfer-ID timeout might be
+    too low, creating the risk of accepting duplicates.
 \end{remark}
 
 Implementations are recommended, but not required, to support reassembly of
