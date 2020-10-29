@@ -19,6 +19,7 @@ The property of semantic compatibility is commutative.
         uint16 FLAG_A = 1
         uint16 FLAG_B = 256
         uint16 flags
+        @extent 16
     \end{minted}
 
     \begin{minted}{python}
@@ -26,6 +27,7 @@ The property of semantic compatibility is commutative.
         uint8 FLAG_B = 1
         uint8 flags_a
         uint8 flags_b
+        @extent 16
     \end{minted}
 
     It should be noted here that due to different set of field and constant attributes,
@@ -39,6 +41,7 @@ The property of semantic compatibility is commutative.
     \begin{minted}{python}
         uint8 FLAG_A = 1
         uint8 flags_a
+        @extent 16
     \end{minted}
 \end{remark}
 
@@ -48,6 +51,7 @@ The property of semantic compatibility is commutative.
     \begin{minted}{python}
         float32 foo
         float64 bar
+        @extent 128
     \end{minted}
 
     Let node $B$ subscribe to the same subject using the following data type definition:
@@ -56,6 +60,7 @@ The property of semantic compatibility is commutative.
         float32 foo
         float64 bar
         int16   baz  # Extra field; implicit zero extension rule applies.
+        @extent 128
     \end{minted}
 
     Let node $C$ subscribe to the same subject using the following data type definition:
@@ -63,6 +68,7 @@ The property of semantic compatibility is commutative.
     \begin{minted}{python}
         float32 foo
         # The field 'bar' is missing; implicit truncation rule applies.
+        @extent 128
     \end{minted}
 
     Provided that the semantics of the added and omitted fields allow it,
@@ -155,14 +161,6 @@ It is therefore advised to:
     without compromising the temporal properties of the system.
 \end{itemize}
 
-\begin{remark}
-    Suppose that there is a new data type v1.0.
-    Then, v1.1 is released whose bit length set is different (for example, a field was added or removed).
-    To keep the extent compatible with v1.0,
-    the author of v1.1 should now set it explicitly using the \verb|@extent| directive.
-    It may be preferred to set the extent manually starting with v1.0 for clarity.
-\end{remark}
-
 \subsubsection{Fixed port identifier assignment constraints}
 
 The following constraints apply to fixed port-ID assignments:
@@ -224,6 +222,8 @@ The minor versions may differ, which is acceptable due to the major version comp
         uint8 FLAG_CRYOBOX_BREACH  = 128
         # Error flags in the higher bits.
         uint8 flags  # Storage for the above defined flags (this is not the recommended practice).
+
+        @extent 1024 * 8  # Pick a large extent to allow evolution. Does not affect network traffic.
     \end{minted}
 
     The definition is then deployed to the first prototype for initial laboratory testing.
@@ -256,6 +256,8 @@ The minor versions may differ, which is acceptable due to the major version comp
         uint8 FLAG_CRYOBOX_BREACH  = 128
         # Error flags in the higher bits.
         uint8 flags  # Storage for the above defined flags (this is not the recommended practice).
+
+        @extent 512 * 8  # Extent can be changed freely because v0.x does not guarantee compatibility.
     \end{minted}
 
     The last definition is deemed sufficient and is deployed to the production system
@@ -285,6 +287,8 @@ The minor versions may differ, which is acceptable due to the major version comp
         bool flag_overheating
         bool flag_cryobox_breach
         # Error flags (this is the recommended practice).
+
+        @extent 512 * 8  # Extent is to be kept unchanged now to avoid breaking compatibility.
     \end{minted}
 
     Since the definitions v1.0 and v1.1 are semantically compatible,
@@ -310,6 +314,8 @@ The minor versions may differ, which is acceptable due to the major version comp
         bool flag_psu_malfunction
         bool flag_overheating
         bool flag_cryobox_breach
+
+        @extent 768 * 8  # Since the major version number is different, extent can be changed.
     \end{minted}
 
     Imagine that later it was determined that the module should report additional status information
@@ -340,7 +346,7 @@ The minor versions may differ, which is acceptable due to the major version comp
         # Coolant pump fields (extension over v2.0; implicit truncation/extension rules apply)
         # If zero, assume that the values are unavailable.
 
-        @extent 32*8  # Set the extent manually so that it is the same as in the previous version v2.0.
+        @extent 768 * 8
     \end{minted}
 
     It is also possible to add an optional field at the end wrapped into a variable-length
