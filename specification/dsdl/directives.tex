@@ -35,11 +35,12 @@ Usage of this directive is subject to the following constraints:
     \end{minted}
 \end{remark}
 
-\subsection{Explicit extent specifier}\label{sec:dsdl_directive_extent}
+\subsection{Extent specifier}\label{sec:dsdl_directive_extent}
 
-The identifier of the explicit extent specification directive is ``\verb|extent|''.
-This directive overrides the default extent of its data type (section \ref{sec:dsdl_composite_extent_and_sealing})
-with the value obtained by evaluating the provided expression.
+The identifier of the extent specification directive is ``\verb|extent|''.
+This directive declares the current data type definition to be delimited (non-sealed)
+and specifies its extent (section \ref{sec:dsdl_composite_extent_and_sealing}).
+The extent value is obtained by evaluating the provided expression.
 The expression shall be present and it shall yield a non-negative integer value of type
 ``\verb|rational|'' (section~\ref{sec:dsdl_primitive_types}) upon its evaluation.
 
@@ -72,8 +73,7 @@ Usage of this directive is subject to the following constraints (otherwise, the 
 \subsection{Sealing marker}\label{sec:dsdl_directive_sealed}
 
 The identifier of the sealing marker directive is ``\verb|sealed|''.
-This directive marks the current data type sealed (section \ref{sec:dsdl_composite_extent_and_sealing})
-(if not provided, the data type is non-sealed).
+This directive marks the current data type sealed (section \ref{sec:dsdl_composite_extent_and_sealing}).
 
 Usage of this directive is subject to the following constraints (otherwise, the definition is malformed):
 \begin{itemize}

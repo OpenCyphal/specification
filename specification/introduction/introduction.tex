@@ -61,6 +61,10 @@ If a different base is used, it is specified after the number in the subscript\f
     E.g., $\text{BADC0FFEE}_{16} = 50159747054$, $10101_2 = 21$.
 }.
 
+DSDL definition examples provided in the document are illustrative and may be incomplete or invalid.
+This is to ensure that the examples are not cluttered by irrelevant details.
+For example, \verb|@extent| or \verb|@sealed| directives may be omitted if not relevant.
+
 \section{Design principles}
 
 \begin{description}
@@ -208,6 +212,9 @@ The UAVCAN specification contains references to the following sources:
 
 \begin{itemize}
     \item The maximum data type name length has been increased from 50 to 255 characters.
+
+    \item The default extent function has been removed (section \ref{sec:dsdl_composite_extent_and_sealing}).
+    The extent now has to be specified explicitly always unless the data type is sealed.
 \end{itemize}
 
 \subsection{v1.0-beta -- Sep 2020}
@@ -216,17 +223,17 @@ Compared to v1.0-alpha, the differences are as follows (the motivation is provid
 
 \begin{itemize}
     \item The physical layer specification has been removed.
-          It is now up to the domain-specific UAVCAN-based standards to define the physical layer.
+    It is now up to the domain-specific UAVCAN-based standards to define the physical layer.
 
     \item The subject-ID range reduced from $[0, 32767]$ down to $[0, 8191]$.
-          This change may be reverted in a future edition of the standard, if found practical.
+    This change may be reverted in a future edition of the standard, if found practical.
 
     \item Added support for delimited serialization; introduced related concepts of \emph{extent} and \emph{sealing}
-          (section \ref{sec:dsdl_composite_extent_and_sealing}).
-          This change enables one to easily evolve networked services in a backward-compatible way.
+    (section \ref{sec:dsdl_composite_extent_and_sealing}).
+    This change enables one to easily evolve networked services in a backward-compatible way.
 
     \item Enabled the automatic runtime adjustment of the transfer-ID timeout on a per-subject basis
-          as a function of the transfer reception rate (section \ref{sec:transport_transfer_reception}).
+    as a function of the transfer reception rate (section \ref{sec:transport_transfer_reception}).
 \end{itemize}
 
 \subsection{v1.0-alpha -- Jan 2020}

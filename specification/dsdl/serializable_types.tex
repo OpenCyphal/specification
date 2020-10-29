@@ -402,15 +402,6 @@ The related mechanics are described in section \ref{sec:dsdl_serialization_compo
     \caption{Serialized representation and extent\label{fig:dsdl_extent}}
 \end{figure}
 
-Where a non-sealed (delimited) type is defined \emph{without} an explicit extent value a default memory reserve is implied using the following function
-of the cumulative bit length set\footnote{Section \ref{sec:dsdl_composite_alignment_cumulative_bls}.}
-of its fields $B$:
-
-$$
-X_\text{default}\left(B\right) =
-\left\lceil{}\left\lfloor{}\frac{3}{2} \max{}\left(B\right)\right\rfloor{}/8\right\rceil{}8
-$$
-
 \begin{remark}
     Because of UAVCAN's commitment to determinism, memory buffer allocation can become an issue.
     When using a flat composite type (where each field is of a primitive type) with the implicit truncation rule,
@@ -421,47 +412,14 @@ $$
 
     Conventional protocols manage this simply by delaying the memory requirement identification until runtime,
     which is unacceptable to UAVCAN.
-    The solution for UAVCAN is to require implementations to reserve more memory than required
-    by the data type definition unless it is \verb|@sealed|
+    The solution for UAVCAN is to allow the data type author to require implementations to reserve more memory
+    than required by the data type definition unless it is \verb|@sealed|
     (or unless the implementation does use dynamic memory allocation).
-    The multiplier chosen to define the \emph{default} amount of reserve memory
-    (i.e., the amount if a specific extent value is not provided) was chosen arbitrarily
-    and is considered a common-sense default that is not optimized for any specific property of a system.
-    This approach allows for limited extensibility while enabling deterministic memory requirements.
 \end{remark}
 
-\begin{remark}
-    The extent of the following structure is 96 bits (12 bytes):
-    \begin{minted}{python}
-        uint16 foo
-        uint8[<=5] bar
-        @assert _offset_ == {24, 32, 40, 48, 56, 64}
-    \end{minted}
-    How it was computed: \verb|foo| is fixed-size at 16 bits,
-    the implicit array length prefix of \verb|bar| is 8 bits,
-    the maximum array body length is $8 \times 5$ bits:
-    $(16 + 8 + 8 \times 5) \times \frac{3}{2} = 96$ bits.
-
-    The extent of the following union is 88 bits (11 bytes):
-    \begin{minted}{python}
-        @union
-        uint16 foo
-        uint8[<=5] bar
-        @assert _offset_ == {16, 24, 32, 40, 48, 56}
-    \end{minted}
-\end{remark}
-
-The extent can be set explicitly\footnote{
-    Observe that when composites are nested,
-    the default extent of an outer composite will be increasing as an exponential
-    function of the number of levels of nesting (because each level introduces the fixed multiplier).
-    Therefore, it is advised to specify the extent manually to manage the memory requirement.
-}
-using the directive described in section \ref{sec:dsdl_directive_extent},
-unless the definition is sealed.
-
-By default, a definition is not sealed unless explicitly indicated otherwise using the directive described in
-section \ref{sec:dsdl_directive_sealed}.
+The extent shall be set explicitly using the directive described in section \ref{sec:dsdl_directive_extent},
+unless the definition is declared sealed using the directive described in section \ref{sec:dsdl_directive_sealed}.
+The directives are mutually exclusive.
 
 It is allowed for a sealed composite type to nest non-sealed (delimited) composite types, and vice versa.
 
@@ -511,11 +469,13 @@ as defined in section \ref{sec:dsdl_serialization_composite_non_sealed}.
         # A.1.0
         B.1.0 x
         float32 assume_aligned  # B.1.0 contains a single uint64, assume this field is 32-bit aligned?
+        @sealed
     \end{minted}
 
     \begin{minted}{python}
         # B.1.0
         uint64 x
+        @extent 8 * 8
     \end{minted}
 
     Imagine then that \verb|B.1.0| is replaced with the following:
@@ -524,6 +484,7 @@ as defined in section \ref{sec:dsdl_serialization_composite_non_sealed}.
         # B.1.1
         uint64 x
         bool[<=64] y
+        @extent 8 * 8
     \end{minted}
 
     Once this modification is introduced, the fragile assumption about the alignment of
@@ -631,6 +592,7 @@ one type is a subtype of another, and for any member its supertypes are located 
     \begin{minted}{python}
         float64 a       # Index 0
         int16[<=9] b    # Index 1
+        @extent 32 * 8
     \end{minted}
 
     The second type is a structural subtype of the first type:
@@ -639,6 +601,7 @@ one type is a subtype of another, and for any member its supertypes are located 
         float64 a       # Index 0
         int16[<=9] b    # Index 1
         uint8 foo       # Index 2
+        @extent 32 * 8
     \end{minted}
 
     Subtyping example for union types. First type:
@@ -648,6 +611,7 @@ one type is a subtype of another, and for any member its supertypes are located 
         uavcan.primitive.Empty.1.0 foo
         float16 bar
         uint8 zoo
+        @extent 128 * 8
     \end{minted}
 
     The second type is a structural subtype of the first type:
@@ -658,11 +622,12 @@ one type is a subtype of another, and for any member its supertypes are located 
         float16 bar                       # Same
         uint8 zoo                         # Same
         int64[<=64] baz                   # New field
+        @extent 128 * 8
     \end{minted}
 
-    A message type that defines zero fields is a structural supertype of any other message type, regardless of either
-    or both being a union.
-    A message type may have an arbitrary number of supertypes as long as the field equality constraint is satisfied.
+    A structure type that defines zero fields is a structural supertype of any other structure type,
+    regardless of either or both being a union, provided that its extent is sufficient.
+    A structure type may have an arbitrary number of supertypes as long as the field equality constraint is satisfied.
 
     Header subtyping example. The first type is named \verb|A.1.0|:
 
