@@ -475,3 +475,4 @@ deserializer
 BLS
 evolvable
 Protobuf
+deserialize
