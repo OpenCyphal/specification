@@ -143,7 +143,10 @@ in the case of nested objects, by the \emph{delimiter header}
     \verb|array| contains a sequence of four zeros: $0, 0, 0, 0$.
 \end{remark}
 
-\subsubsection{Error handling}
+\subsubsection{Error handling}\label{sec:dsdl_serialized_error}
+
+In this section and further, an object that nests other objects is referred to as an \emph{outer object}
+in relation to the nested object.
 
 Correct UAVCAN types shall have no serialization error states.
 
@@ -152,6 +155,12 @@ set of serialized representations of the data type at hand.
 In such case, the invalid serialized representation shall be discarded and the implementation
 shall explicitly report its inability to complete the deserialization process for the given input.
 Correct UAVCAN types shall have no other deserialization error states.
+
+Failure to deserialize a nested object renders the outer object invalid\footnote{%
+    Therefore, failure in a single deeply nested object propagates upward, rendering the entire structure invalid.
+    The motivation for such behavior is that it is likely that if an inner object cannot be deserialized,
+    then the outer object is likely to be also invalid.
+}.
 
 \subsection{Void types}\label{sec:dsdl_serialized_void}
 
@@ -613,6 +622,11 @@ does not match the expectation of the deserializer,
 the implicit truncation (section \ref{sec:dsdl_serialization_implicit_truncation})
 and the implicit zero extension (section \ref{sec:dsdl_serialization_implicit_zero_extension})
 rules apply.
+
+The length encoded in a delimiter header cannot exceed the number of bytes remaining between the delimiter header
+and the end of the serialized representation of the outer object.
+Otherwise, the serialized representation of the outer object is invalid and is to be discarded
+(section \ref{sec:dsdl_serialized_error}).
 
 It is allowed for a sealed composite type to nest non-sealed composite types, and vice versa.
 No special rules apply in such cases.
