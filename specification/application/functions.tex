@@ -41,36 +41,12 @@ since it is instrumental for network discovery, firmware update, and various mai
 
 \subsection{Bus data flow monitoring}
 
-The combination of the following three services defined in the namespace \DSDLReference{uavcan.node.port}
-(see table~\ref{table:dsdl:uavcan.node.port}) enables a highly capable tool of network inspection and monitoring:
-\begin{itemize}
-    \item \DSDLReference{uavcan.node.port.List} --- designed for obtaining the full set of subjects and services
-          implemented by the server node.
+Interfaces defined in the namespace \DSDLReference{uavcan.node.port} (see table~\ref{table:dsdl:uavcan.node.port})
+facilitate network inspection and monitoring.
 
-    \item \DSDLReference{uavcan.node.port.GetInfo} --- returns the static (unchanging or infrequently changing)
-          information about the selected subject or service.
-
-    \item \DSDLReference{uavcan.node.port.GetStatistics} --- returns the transfer event counters of
-          the selected subject or service.
-\end{itemize}
-
-The first service \verb|List| allows the caller to construct a list of all subjects and services used by the
-server node (i.e., the node that the request was sent to).
-The second service \verb|GetInfo| allows the caller to map each subject or service to a particular data type,
-and understand the role of the server node in relation to said subject or service
-(publisher, subscriber, or server).
-
-By comparing the data obtained with the help of these two services from each node on the bus,
-the caller can reconstruct the data exchange graph for the entire bus,
-thus enabling advanced network monitoring and diagnostics
+By comparing the data obtained with the help of these interfaces from each node on the bus,
+the caller can reconstruct the data exchange graph for the entire bus
 (assuming that every node on the bus supports the services in question; they are not mandatory).
-
-The last service \verb|GetStatistics| can be used to sample the number of transfers and errors observed
-on the specified port.
-When invoked periodically, this service allows the caller to observe the real time intensity of data exchange
-for each port independently.
-In combination with the data exchange graph reconstruction described earlier,
-this service allows the caller to build a sophisticated real-time view of the bus.
 
 \DSDL{uavcan.node.port.* --index-only}
 
