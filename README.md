@@ -1,5 +1,6 @@
 # UAVCAN specification
 
+[![CI](https://github.com/UAVCAN/specification/actions/workflows/build.yml/badge.svg)](https://github.com/UAVCAN/specification/actions)
 [![Forum](https://img.shields.io/discourse/https/forum.uavcan.org/users.svg)](https://forum.uavcan.org)
 
 The sources of the UAVCAN specification and other related documents are contained here.
