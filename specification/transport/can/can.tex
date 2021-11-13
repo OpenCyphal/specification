@@ -446,15 +446,15 @@ public:
 
 \begin{remark}[breakable]
     Heartbeat from node-ID 42, nominal priority level,
-    uptime starting from 0 and then incrementing by one every transfer,
-    vendor-specific status code 3471:
+    uptime starting from 0 and then incrementing by one every transfer, health status is 0, 
+    operating mode is 1, vendor-specific status code 161 ($A1_{16}$):
 
     \begin{UAVCANCompactTable}{|l l|}
         CAN ID (hex)      & CAN data (hex)          \\
-        \texttt{107D552A} & \texttt{00 00 00 00 E0 B1 01 E0} \\
-        \texttt{107D552A} & \texttt{01 00 00 00 E0 B1 01 E1} \\
-        \texttt{107D552A} & \texttt{02 00 00 00 E0 B1 01 E2} \\
-        \texttt{107D552A} & \texttt{03 00 00 00 E0 B1 01 E3} \\
+        \texttt{107D552A} & \texttt{00 00 00 00 00 01 A1 E0} \\
+        \texttt{107D552A} & \texttt{01 00 00 00 00 01 A1 E1} \\
+        \texttt{107D552A} & \texttt{02 00 00 00 00 01 A1 E2} \\
+        \texttt{107D552A} & \texttt{03 00 00 00 00 01 A1 E3} \\
     \end{UAVCANCompactTable}
 
     \verb|uavcan.primitive.String.1.0| under subject-ID 4919 ($1337_{16}$) published by an anonymous node,
