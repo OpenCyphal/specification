@@ -356,7 +356,7 @@
 
 \newcommand\CyphalLogo[1][15mm]{\includegraphics[width=#1]{cyphal_logo}}
 
-\newcommand\VerboseLinkToSupportForum{Support \& feedback: \href{http://uavcan.org}{uavcan.org}}
+\newcommand\VerboseLinkToSupportForum{Support \& feedback: \href{http://opencyphal.org}{opencyphal.org}}
 
 \newcommand\TitleWithDateBefore{\begin{footnotesize}\today\quad\end{footnotesize}{\@title}}
 \newcommand\TitleWithDateAfter{{\@title}\begin{footnotesize}\quad\today\end{footnotesize}}
