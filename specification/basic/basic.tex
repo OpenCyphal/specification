@@ -6,13 +6,13 @@
 
 \subsubsection{Architecture}
 
-A UAVCAN network is a decentralized peer network, where each peer (node) has a unique
+A Cyphal network is a decentralized peer network, where each peer (node) has a unique
 numeric identifier\footnote{%
     Here and elsewhere in this specification, \emph{ID} and \emph{identifier} are used
     interchangeably unless specifically indicated otherwise.
 } --- \emph{node-ID} --- ranging from 0 up to a transport-specific upper boundary which is guaranteed to be
 not less than 127.
-Nodes of a UAVCAN network can communicate using the following communication methods:
+Nodes of a Cyphal network can communicate using the following communication methods:
 
 \begin{description}
     \item[Message publication] --- The primary method of data exchange with one-to-many publish/subscribe semantics.
@@ -55,7 +55,7 @@ at a data type definition time,
 in which case such port identifiers are called \emph{fixed port identifiers};
 their usage is governed by rules and regulations described in later sections.
 
-A port-ID used in a given UAVCAN network shall not be shared between functions, processes, or data streams
+A port-ID used in a given Cyphal network shall not be shared between functions, processes, or data streams
 that have different semantic meaning.
 
 A data type of a given major version can be used simultaneously with
@@ -74,10 +74,10 @@ Service types define two inner data types: one for request, and the other for re
 
 \subsubsection{Regulation}\label{sec:basic_data_type_regulation}
 
-Data type definitions can be created by the UAVCAN specification maintainers or by its users,
+Data type definitions can be created by the Cyphal specification maintainers or by its users,
 such as equipment vendors or application designers.
 Irrespective of the origin, data types can be included into the set of data type definitions maintained
-and distributed by the UAVCAN specification maintainers;
+and distributed by the Cyphal specification maintainers;
 definitions belonging to this set are termed \emph{regulated data type definitions}.
 The specification maintainers undertake to keep regulated definitions well-maintained and may occasionally
 amend them and release new versions, if such actions are believed to benefit the protocol.
@@ -113,14 +113,14 @@ systems\footnote{%
     be avoided unless there are very strong reasons for their usage and the authors fully understand the risks.
 }.
 
-\begin{UAVCANSimpleTable}{Data type taxonomy}{|l|X|X|}
+\begin{CyphalSimpleTable}{Data type taxonomy}{|l|X|X|}
     & Regulated & Unregulated \\
     \bfseries{Public}
     &
     Standard and contributed (e.g., vendor-specific) definitions.\newline
     Fixed port identifiers are allowed; they are called \emph{regulated port-ID}.
     &
-    Definitions distributed separately from the UAVCAN specification.\newline
+    Definitions distributed separately from the Cyphal specification.\newline
     Fixed port identifiers are \emph{not allowed}.
     \\
 
@@ -132,7 +132,7 @@ systems\footnote{%
     Fixed port identifiers are permitted (although not recommended);
     they are called \emph{unregulated fixed port-ID}.
     \\
-\end{UAVCANSimpleTable}
+\end{CyphalSimpleTable}
 
 DSDL processing tools shall prohibit unregulated fixed port identifiers by default,
 unless they are explicitly configured otherwise.
@@ -156,12 +156,12 @@ segregated into three categories:
 \end{itemize}
 
 Data type authors that want to release regulated data type definitions or contribute to the standard data
-type set should contact the UAVCAN maintainers for coordination.
+type set should contact the Cyphal maintainers for coordination.
 The maintainers will choose unoccupied fixed port identifiers for use with the new definitions, if necessary.
 Since the set of regulated definitions is maintained in a highly centralized manner,
 it can be statically ensured that no identifier collisions will take place within it;
 also, since the identifier ranges used with regulated definitions are segregated,
-regulated port-IDs will not conflict with any other compliant UAVCAN node or system\footnote{%
+regulated port-IDs will not conflict with any other compliant Cyphal node or system\footnote{%
     The motivation for the prohibition of fixed port identifiers in unregulated public data types is
     derived directly from the above: since there is no central repository of unregulated definitions,
     collisions would be likely.
@@ -189,7 +189,7 @@ of any object of any data type is always known statically).
 
 \subsection{High-level functions}
 
-On top of the standard data types, UAVCAN defines a set of standard high-level functions including:
+On top of the standard data types, Cyphal defines a set of standard high-level functions including:
 node health monitoring, node discovery, time synchronization, firmware update,
 plug-and-play node support, and more (section~\ref{sec:application_functions}).
 
@@ -212,13 +212,13 @@ plug-and-play node support, and more (section~\ref{sec:application_functions}).
 
         \multicolumn{6}{|c|}{Transport} \\ \hline
     \end{tabular}
-    \caption{UAVCAN architectural diagram\label{fig:basic_architecture}}
+    \caption{Cyphal architectural diagram\label{fig:basic_architecture}}
 \end{figure}
 
 \section{Message publication}
 
 Message publication refers to the transmission of a serialized message object over the network to other nodes.
-This is the primary data exchange mechanism used in UAVCAN;
+This is the primary data exchange mechanism used in Cyphal;
 it is functionally similar to raw data exchange with minimal overhead,
 additional communication integrity guarantees, and automatic decomposition and reassembly of long payloads
 across multiple transport frames.
@@ -227,7 +227,7 @@ sensor measurements, actuator commands, equipment status information, and more.
 
 Information contained in a published message is summarized in table~\ref{table:basic_message}.
 
-\begin{UAVCANSimpleTable}{Published message properties}{|l X|}\label{table:basic_message}
+\begin{CyphalSimpleTable}{Published message properties}{|l X|}\label{table:basic_message}
     Property        & Description \\
     Payload         & The serialized message object. \\
     Subject-ID      & Numerical identifier that indicates how the payload should be interpreted. \\
@@ -235,14 +235,14 @@ Information contained in a published message is summarized in table~\ref{table:b
     Transfer-ID     & An integer value that is used for message sequence monitoring,
                       multi-frame transfer reassembly, deduplication, automatic management of redundant transports,
                       and other purposes (section~\ref{sec:transport_transfer_id}). \\
-\end{UAVCANSimpleTable}
+\end{CyphalSimpleTable}
 
 \subsection{Anonymous message publication}
 
 Nodes that don't have a unique node-ID can publish only \emph{anonymous messages}.
 An anonymous message is different from a regular message in that it doesn't contain a source node-ID.
 
-UAVCAN nodes will not have an identifier initially until they are assigned one,
+Cyphal nodes will not have an identifier initially until they are assigned one,
 either statically (which is generally the preferred option for applications where a high degree of
 determinism and high safety assurances are required) or automatically (i.e., plug-and-play).
 Anonymous messages are used to facilitate the plug-and-play function (section~\ref{sec:application_functions_pnp}).
@@ -269,7 +269,7 @@ Information contained in service requests and responses is summarized in table~\
 Both the request and the response contain same values for all listed fields except payload,
 where the content is application-defined.
 
-\begin{UAVCANSimpleTable}{Service request/response properties}{|l X|}\label{table:basic_service}
+\begin{CyphalSimpleTable}{Service request/response properties}{|l X|}\label{table:basic_service}
     Property        & Description \\
     Payload         & The serialized request/response object. \\
     Service-ID      & Numerical identifier that indicates how the service should be handled. \\
@@ -278,4 +278,4 @@ where the content is application-defined.
     Transfer-ID     & An integer value that is used for request/response matching,
                       multi-frame transfer reassembly, deduplication, automatic management of redundant transports,
                       and other purposes (section~\ref{sec:transport_transfer_id}). \\
-\end{UAVCANSimpleTable}
+\end{CyphalSimpleTable}

@@ -2,7 +2,7 @@
 
 \subsection{General principles}
 
-Values of the serializable type category can be exchanged between nodes over the UAVCAN network.
+Values of the serializable type category can be exchanged between nodes over the Cyphal network.
 This is opposed to the expression types (section~\ref{sec:dsdl_expression_types}),
 instances of which can only exist while DSDL definitions are being evaluated.
 The data serialization rules are defined in section~\ref{sec:dsdl_data_serialization}.
@@ -90,7 +90,7 @@ The hierarchy of primitive types is documented below.
     \end{itemize}
 \end{itemize}
 
-\begin{UAVCANSimpleTable}{Properties of integer types}{|l X l|}%
+\begin{CyphalSimpleTable}{Properties of integer types}{|l X l|}%
     \label{table:dsd_integer_properties}%
     Category &
     DSDL names &
@@ -103,16 +103,16 @@ The hierarchy of primitive types is documented below.
     Unsigned integers &
     \texttt{uint1}, \texttt{uint2}, \texttt{uint3} \ldots{} \texttt{uint62}, \texttt{uint63}, \texttt{uint64} &
     $\left[0,2^{X}-1\right]$ \\
-\end{UAVCANSimpleTable}
+\end{CyphalSimpleTable}
 
-\begin{UAVCANSimpleTable}{Properties of floating point types}{|X X X X|}
+\begin{CyphalSimpleTable}{Properties of floating point types}{|X X X X|}
     DSDL name        & Representation    & Approximate epsilon   & Approximate range
     \label{table:dsd_floating_point_properties} \\
 
     \texttt{float16} & IEEE 754 binary16 & $0.001$               & $\pm{}65504$      \\
     \texttt{float32} & IEEE 754 binary32 & $10^{-7}$             & $\pm{}10^{39}$    \\
     \texttt{float64} & IEEE 754 binary64 & $2 \times{} 10^{-16}$ & $\pm{}10^{308}$   \\
-\end{UAVCANSimpleTable}
+\end{CyphalSimpleTable}
 
 \subsubsection{Cast mode}
 
@@ -134,7 +134,7 @@ the resulting value is chosen according to the lossy assignment rules
 specified in table~\ref{table:dsdl_cast_mode}.
 Cases that are marked as illegal are not permitted in DSDL definitions.
 
-\begin{UAVCANSimpleTable}[wide]{Lossy assignment rules per cast mode}{|l X X|}
+\begin{CyphalSimpleTable}[wide]{Lossy assignment rules per cast mode}{|l X X|}
     Type category & Truncated mode & Saturated mode (default)
     \label{table:dsdl_cast_mode} \\
 
@@ -154,7 +154,7 @@ Cases that are marked as illegal are not permitted in DSDL definitions.
     Infinity with the same sign, unless the original value is not-a-number, in which case it will be preserved. &
     If the original value is finite, the nearest finite value will be used.
     Otherwise, in the case of infinity or not-a-number, the original value will be preserved. \\
-\end{UAVCANSimpleTable}
+\end{CyphalSimpleTable}
 
 Rules of conversion between values of different type categories do not affect compatibility at the protocol level,
 and as such, they are to be implementation-defined.
@@ -166,7 +166,7 @@ values of primitive types are represented as instances of the \verb|rational| ty
 with the exception of the type \verb|bool|,
 instances of which are usable in DSDL expressions as-is.
 
-\begin{UAVCANSimpleTable}{Operators defined on instances of type boolean}{|l X X|}
+\begin{CyphalSimpleTable}{Operators defined on instances of type boolean}{|l X X|}
     Op & Type & Description \\
 
     \texttt{\textbf{!}}     & $(\texttt{bool}) \rightarrow \texttt{bool}$ & Logical not. \\
@@ -177,7 +177,7 @@ instances of which are usable in DSDL expressions as-is.
     \texttt{\textbf{==}}    & $(\texttt{bool}, \texttt{bool}) \rightarrow \texttt{bool}$ & Equality. \\
     \texttt{\textbf{!=}}    & $(\texttt{bool}, \texttt{bool}) \rightarrow \texttt{bool}$ & Inequality. \\
 
-\end{UAVCANSimpleTable}
+\end{CyphalSimpleTable}
 
 \subsubsection{Reference list}
 
@@ -403,7 +403,7 @@ The related mechanics are described in section \ref{sec:dsdl_serialization_compo
 \end{figure}
 
 \begin{remark}
-    Because of UAVCAN's commitment to determinism, memory buffer allocation can become an issue.
+    Because of Cyphal's commitment to determinism, memory buffer allocation can become an issue.
     When using a flat composite type (where each field is of a primitive type) with the implicit truncation rule,
     it is clear that the last defined fields are to be truncated out shall the allocated buffer be too small
     to accommodate the serialized representation in its entirety.
@@ -411,8 +411,8 @@ The related mechanics are described in section \ref{sec:dsdl_serialization_compo
     The technical details explaining this are given in section \ref{sec:dsdl_serialization_composite_non_sealed}.
 
     Conventional protocols manage this simply by delaying the memory requirement identification until runtime,
-    which is unacceptable to UAVCAN.
-    The solution for UAVCAN is to allow the data type author to require implementations to reserve more memory
+    which is unacceptable to Cyphal.
+    The solution for Cyphal is to allow the data type author to require implementations to reserve more memory
     than required by the data type definition unless it is \verb|@sealed|
     (or unless the implementation does use dynamic memory allocation).
 \end{remark}

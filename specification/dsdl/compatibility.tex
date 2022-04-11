@@ -3,7 +3,7 @@
 \subsection{Rationale}
 
 Data type definitions may evolve over time as they are refined to better address the needs of their applications.
-UAVCAN defines a set of rules that allow data type designers to modify and advance their
+Cyphal defines a set of rules that allow data type designers to modify and advance their
 data type definitions while ensuring backward compatibility and functional safety.
 
 \subsection{Semantic compatibility}\label{sec:dsdl_semantic_compatibility}
@@ -109,7 +109,7 @@ which relieves its designer from all compatibility requirements.
 When a new data type is first released,
 the version numbers of its first definition shall be assigned ``1.0'' (major 1, minor 0).
 
-In order to ensure predictability and functional safety of applications that leverage UAVCAN,
+In order to ensure predictability and functional safety of applications that leverage Cyphal,
 it is recommended that once a data type definition is released,
 its DSDL source text, name, version numbers, fixed port-ID, extent, sealing, and other properties cannot undergo any
 modifications whatsoever, with the following exceptions:
@@ -292,7 +292,7 @@ The minor versions may differ, which is acceptable due to the major version comp
     \end{minted}
 
     Since the definitions v1.0 and v1.1 are semantically compatible,
-    UAVCAN nodes using either of them can successfully interoperate on the same bus.
+    Cyphal nodes using either of them can successfully interoperate on the same bus.
 
     Suppose further that at some point a newer version of the cryopod module,
     equipped with better temperature sensors, is released.

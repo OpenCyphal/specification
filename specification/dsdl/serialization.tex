@@ -11,7 +11,7 @@ the maximization of compatibility with native representations used by currently 
 likely future computer microarchitectures.
 The goal is to ensure that the serialized representations defined by DSDL match internal data representations of
 modern computers, so that, ideally, a typical system will not have to perform any data conversion whatsoever while
-exchanging data over a UAVCAN network.
+exchanging data over a Cyphal network.
 
 The implicit truncation and implicit zero extension rules introduced in this section are designed to
 facilitate structural subtyping and to enable extensibility of data types while retaining backward compatibility.
@@ -148,13 +148,13 @@ in the case of nested objects, by the \emph{delimiter header}
 In this section and further, an object that nests other objects is referred to as an \emph{outer object}
 in relation to the nested object.
 
-Correct UAVCAN types shall have no serialization error states.
+Correct Cyphal types shall have no serialization error states.
 
 A deserialization process may encounter a serialized representation that does not belong to the
 set of serialized representations of the data type at hand.
 In such case, the invalid serialized representation shall be discarded and the implementation
 shall explicitly report its inability to complete the deserialization process for the given input.
-Correct UAVCAN types shall have no other deserialization error states.
+Correct Cyphal types shall have no other deserialization error states.
 
 Failure to deserialize a nested object renders the outer object invalid\footnote{%
     Therefore, failure in a single deeply nested object propagates upward, rendering the entire structure invalid.
@@ -210,8 +210,8 @@ introduced in newer versions of the data type (section~\ref{sec:dsdl_versioning}
 
 \subsubsection{General principles}
 
-Implementations where native data formats are incompatible with those adopted by UAVCAN shall perform
-conversions between the native formats and the corresponding UAVCAN formats during
+Implementations where native data formats are incompatible with those adopted by Cyphal shall perform
+conversions between the native formats and the corresponding Cyphal formats during
 serialization and deserialization.
 Implementations shall avoid or minimize information loss and/or distortion caused by such conversions.
 

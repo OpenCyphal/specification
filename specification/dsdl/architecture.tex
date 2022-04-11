@@ -2,7 +2,7 @@
 
 \subsection{General principles}
 
-In accordance with the UAVCAN architecture, DSDL allows users to define data types of two kinds:
+In accordance with the Cyphal architecture, DSDL allows users to define data types of two kinds:
 message types and service types.
 Message types are used to exchange data over publish-subscribe one-to-many message links identified by subject-ID,
 and service types are used to perform request-response one-to-one exchanges (like RPC) identified by service-ID.
@@ -10,7 +10,7 @@ A service type is composed of exactly two inner data types:
 one of them is the request type (its instances are transferred from client to server),
 and the other is the response type (its instances are transferred from the server back to the client).
 
-Following the deterministic nature of UAVCAN, the size of a serialized representation of any
+Following the deterministic nature of Cyphal, the size of a serialized representation of any
 message or service object is bounded within statically known limits.
 Variable-size entities always have a fixed size limit defined by the data type designer.
 
@@ -244,7 +244,7 @@ from their \emph{parent service type}.
 
 \subsection{Serialization}
 
-Every object that can be exchanged between UAVCAN nodes has a well-defined \emph{serialized representation}.
+Every object that can be exchanged between Cyphal nodes has a well-defined \emph{serialized representation}.
 The value and meaning of an object can be unambiguously recovered from its serialized representation,
 provided that the type of the object is known.
 Such recovery process is called \emph{deserialization}.

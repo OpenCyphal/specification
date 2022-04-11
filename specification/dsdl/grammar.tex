@@ -14,7 +14,7 @@ notation described in table~\ref{table:dsdl_grammar_definition_notation}%
 }.
 The text of the formal definition contains comments which begin with an octothorp and last until the end of the line.
 
-\begin{UAVCANSimpleTable}{Notation used in the formal grammar definition}{|l X|}
+\begin{CyphalSimpleTable}{Notation used in the formal grammar definition}{|l X|}
     \label{table:dsdl_grammar_definition_notation}
     Pattern & Description \\
 
@@ -52,7 +52,7 @@ The text of the formal definition contains comments which begin with an octothor
 
     \texttt{(abc xyz)} &
     Parentheses are used for grouping. \\
-\end{UAVCANSimpleTable}
+\end{CyphalSimpleTable}
 
 \subsection{Definition}
 
@@ -83,14 +83,14 @@ The attribute reference operator is not explicitly documented for any data type;
 instead, the documentation specifies the set of available attributes for instances of said type,
 if there are any.
 
-\begin{UAVCANSimpleTable}{Unary operators}{|l l X|}
+\begin{CyphalSimpleTable}{Unary operators}{|l l X|}
     Symbol                             & Precedence & Description \\
     \texttt{\textbf{+}}                         & 3 & Unary plus \\
     \texttt{\textbf{-}} (hyphen-minus)          & 3 & Unary minus \\
     \texttt{\textbf{!}}                         & 8 & Logical not \\
-\end{UAVCANSimpleTable}
+\end{CyphalSimpleTable}
 
-\begin{UAVCANSimpleTable}{Binary operators}{|l l X|}
+\begin{CyphalSimpleTable}{Binary operators}{|l l X|}
     Symbol                                          & Precedence & Description \\
     \texttt{\textbf{.}} (full stop)                          & 1 & Attribute reference
                                                                    (parent object on the left side,
@@ -119,7 +119,7 @@ if there are any.
 
     \texttt{\textbf{||}} (dual vertical line)                & 9 & Logical or \\
     \texttt{\textbf{\&\&}}                                   & 9 & Logical and \\
-\end{UAVCANSimpleTable}
+\end{CyphalSimpleTable}
 
 \subsection{Literals}
 
@@ -162,7 +162,7 @@ excepting escape sequences defined in table~\ref{table:dsdl_string_literal_escap
 which shall follow one of the specified therein forms.
 An escape sequence begins with the ASCII backslash character ``\verb|\|''.
 
-\begin{UAVCANSimpleTable}{String literal escape sequences}{|l X|}
+\begin{CyphalSimpleTable}{String literal escape sequences}{|l X|}
     Sequence & Interpretation
     \label{table:dsdl_string_literal_escape} \\
 
@@ -184,7 +184,7 @@ An escape sequence begins with the ASCII backslash character ``\verb|\|''.
     \texttt{\textbackslash{}U????????} &
     Like above, the code point is specified by an eight-digit hexadecimal number. \\
 
-\end{UAVCANSimpleTable}
+\end{CyphalSimpleTable}
 
 \begin{remark}
     \begin{minted}{python}
@@ -219,7 +219,7 @@ and as such, they cannot be used for other purposes.
 Some of the reserved identifiers do not have any functions associated with them
 in this version of the DSDL specification, but this may change in the future.
 
-\begin{UAVCANSimpleTable}{Reserved identifier patterns (POSIX ERE notation, ASCII character set, case-insensitive)}%
+\begin{CyphalSimpleTable}{Reserved identifier patterns (POSIX ERE notation, ASCII character set, case-insensitive)}%
     {|l l X|}%
     \label{table:dsdl_reserved_word_patterns}%
     POSIX ERE ASCII pattern                            & Example            & Special meaning \\
@@ -252,4 +252,4 @@ in this version of the DSDL specification, but this may change in the future.
     \texttt{com\textbackslash{}d}                      & \texttt{com1}      & Compatibility with Microsoft Windows \\
     \texttt{lpt\textbackslash{}d}                      & \texttt{lpt9}      & Compatibility with Microsoft Windows \\
     \texttt{\_.*\_}                                    & \texttt{\_offset\_}& Special-purpose intrinsic entities \\
-\end{UAVCANSimpleTable}
+\end{CyphalSimpleTable}
