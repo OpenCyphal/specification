@@ -2,7 +2,7 @@
 
 \subsection{General principles}
 
-In accordance with the UAVCAN architecture, DSDL allows users to define data types of two kinds:
+In accordance with the Cyphal architecture, DSDL allows users to define data types of two kinds:
 message types and service types.
 Message types are used to exchange data over publish-subscribe one-to-many message links identified by subject-ID,
 and service types are used to perform request-response one-to-one exchanges (like RPC) identified by service-ID.
@@ -10,7 +10,7 @@ A service type is composed of exactly two inner data types:
 one of them is the request type (its instances are transferred from client to server),
 and the other is the response type (its instances are transferred from the server back to the client).
 
-Following the deterministic nature of UAVCAN, the size of a serialized representation of any
+Following the deterministic nature of Cyphal, the size of a serialized representation of any
 message or service object is bounded within statically known limits.
 Variable-size entities always have a fixed size limit defined by the data type designer.
 
@@ -105,7 +105,7 @@ A data type version where both major and minor components are zero is not allowe
 
 \subsection{File hierarchy}
 
-DSDL data type definitions are contained in UTF-8 encoded text files with a file name extension \verb|.uavcan|.
+DSDL data type definitions are contained in UTF-8 encoded text files with a file name extension \verb|.dsdl|.
 
 One file defines exactly one version of a data type,
 meaning that each combination of major and minor version numbers shall be unique per data type name.
@@ -123,7 +123,7 @@ joined via the ASCII dot character ``\verb|.|'' (ASCII code 46), in the specifie
     \item Short name of the data type (mandatory, always non-empty).
     \item Major version number in decimal notation (mandatory).
     \item Minor version number in decimal notation (mandatory).
-    \item File name extension ``\verb|uavcan|'' (mandatory).
+    \item File name extension ``\verb|dsdl|'' (mandatory).
 \end{itemize}
 
 \begin{figure}[H]
@@ -137,7 +137,7 @@ joined via the ASCII dot character ``\verb|.|'' (ASCII code 46), in the specifie
         \texttt{\huge{.}}%
         \underbrace{\texttt{\huge{1.0}}}_{\substack{\text{version} \\ \text{numbers}}}%
         \texttt{\huge{.}}%
-        \underbrace{\texttt{\huge{uavcan}}}_{\text{file extension}}%
+        \underbrace{\texttt{\huge{dsdl}}}_{\text{file extension}}%
     }^{\text{mandatory}}
     $$
     \caption{Data type definition file name structure\label{fig:dsdl_definition_file_name_structure}}
@@ -165,28 +165,28 @@ nesting\footnote{%
             \texttt{\qquad{}foo/} &
             Nested namespace (also sub-root) \texttt{vendor\_x.foo}. \\\cline{2-2}
 
-            \texttt{\qquad{}\qquad{}100.Run.1.0.uavcan} &
+            \texttt{\qquad{}\qquad{}100.Run.1.0.dsdl} &
             Data type definition v1.0 with fixed service-ID 100. \\\cline{2-2}
 
-            \texttt{\qquad{}\qquad{}100.Status.1.0.uavcan} &
+            \texttt{\qquad{}\qquad{}100.Status.1.0.dsdl} &
             Data type definition v1.0 with fixed subject-ID 100. \\\cline{2-2}
 
-            \texttt{\qquad{}\qquad{}ID.1.0.uavcan} &
+            \texttt{\qquad{}\qquad{}ID.1.0.dsdl} &
             Data type definition v1.0 without fixed port-ID. \\\cline{2-2}
 
-            \texttt{\qquad{}\qquad{}ID.1.1.uavcan} &
+            \texttt{\qquad{}\qquad{}ID.1.1.dsdl} &
             Data type definition v1.1 without fixed port-ID. \\\cline{2-2}
 
             \texttt{\qquad{}\qquad{}bar\_42/} &
             Nested namespace \texttt{vendor\_x.foo.bar\_42}. \\\cline{2-2}
 
-            \texttt{\qquad{}\qquad{}\qquad{}101.List.1.0.uavcan} &
+            \texttt{\qquad{}\qquad{}\qquad{}101.List.1.0.dsdl} &
             Data type definition v1.0 with fixed service-ID 101. \\\cline{2-2}
 
-            \texttt{\qquad{}\qquad{}\qquad{}102.List.2.0.uavcan} &
+            \texttt{\qquad{}\qquad{}\qquad{}102.List.2.0.dsdl} &
             Data type definition v2.0 with fixed service-ID 102. \\\cline{2-2}
 
-            \texttt{\qquad{}\qquad{}\qquad{}ID.1.0.uavcan} &
+            \texttt{\qquad{}\qquad{}\qquad{}ID.1.0.dsdl} &
             Data type definition v1.0 without fixed port-ID. \\\hline
         \end{tabu}
         \caption{DSDL directory structure example}\label{fig:dsdl_directory_structure_example}
@@ -244,7 +244,7 @@ from their \emph{parent service type}.
 
 \subsection{Serialization}
 
-Every object that can be exchanged between UAVCAN nodes has a well-defined \emph{serialized representation}.
+Every object that can be exchanged between Cyphal nodes has a well-defined \emph{serialized representation}.
 The value and meaning of an object can be unambiguously recovered from its serialized representation,
 provided that the type of the object is known.
 Such recovery process is called \emph{deserialization}.

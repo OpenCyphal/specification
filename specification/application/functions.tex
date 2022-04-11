@@ -1,28 +1,28 @@
 \section{Application-level functions}\label{sec:application_functions}
 
-This section documents the high-level functionality defined by UAVCAN.
+This section documents the high-level functionality defined by Cyphal.
 The common high-level functions defined by the specification span across different application domains.
 All of the functions defined in this section are optional (not mandatory to implement),
 except for the node heartbeat feature (section~\ref{sec:application_functions_heartbeat}),
-which is mandatory for all UAVCAN nodes.
+which is mandatory for all Cyphal nodes.
 
 The detailed specifications for each function are provided in the DSDL comments of the data type definitions
 they are built upon, whereas this section serves as a high-level overview and index.
 
 \subsection{Node initialization}
 
-UAVCAN does not require that nodes undergo any specific initialization upon connection to the bus ---
+Cyphal does not require that nodes undergo any specific initialization upon connection to the bus ---
 a node is free to begin functioning immediately once it is powered up.
 The operating mode of the node (such as initialization, normal operation, maintenance, and so on)
 is to be reflected via the mandatory heartbeat message described in section~\ref{sec:application_functions_heartbeat}.
 
 \subsection{Node heartbeat}\label{sec:application_functions_heartbeat}
 
-Every non-anonymous UAVCAN node shall report its status and presence by periodically publishing messages of type
+Every non-anonymous Cyphal node shall report its status and presence by periodically publishing messages of type
 \DSDLReference{uavcan.node.Heartbeat} at a fixed rate specified in the message definition using the fixed subject-ID.
 Anonymous nodes shall not publish to this subject.
 
-This is the only high-level protocol function that UAVCAN nodes are required to support.
+This is the only high-level protocol function that Cyphal nodes are required to support.
 All other data types and application-level functions are optional.
 
 \DSDL{uavcan.node.Heartbeat}
@@ -32,7 +32,7 @@ All other data types and application-level functions are optional.
 The service \DSDLReference{uavcan.node.GetInfo} can be used to obtain generic information about the node,
 such as the structured name of the node (which includes the name of its vendor),
 a 128-bit globally unique identifier, the version information about its hardware and software,
-version of the UAVCAN specification implemented on the node, and the optional certificate of authenticity.
+version of the Cyphal specification implemented on the node, and the optional certificate of authenticity.
 
 While the service is, strictly speaking, optional, omitting its support is highly discouraged,
 since it is instrumental for network discovery, firmware update, and various maintenance and diagnostic needs.
@@ -52,7 +52,7 @@ the caller can reconstruct the data exchange graph for the entire bus
 
 \subsection{Network-wide time synchronization}
 
-UAVCAN provides a simple and robust method of time synchronization%
+Cyphal provides a simple and robust method of time synchronization%
 \footnote{The ability to accurately synchronize time between nodes is instrumental for building distributed
 real-time data processing systems such as various robotic applications, autopilots, autonomous driving solutions,
 and so on.} that is built upon the work
@@ -181,7 +181,7 @@ It is recommended to support this service in all nodes.
 
 \subsection{Node software update}
 
-A simple software\footnote{Or firmware -- UAVCAN does not distinguish between the two.}
+A simple software\footnote{Or firmware -- Cyphal does not distinguish between the two.}
 update protocol is defined on top of the remote file system interface
 (section~\ref{sec:application_functions_file_system})
 and the generic node commands (section~\ref{sec:application_functions_generic_commands}).
@@ -201,9 +201,9 @@ small memory-constrained microcontrollers.
 
 \subsection{Register interface}\label{sec:application_functions_register}
 
-UAVCAN defines the concept of \emph{named register} -- a scalar, vector, or string value with an associated
-human-readable name that is stored on a UAVCAN node locally and is accessible via
-UAVCAN\footnote{And, possibly, other interfaces.} for reading and/or modification
+Cyphal defines the concept of \emph{named register} -- a scalar, vector, or string value with an associated
+human-readable name that is stored on a Cyphal node locally and is accessible via
+Cyphal\footnote{And, possibly, other interfaces.} for reading and/or modification
 by other nodes on the bus.
 
 Named registers are designed to serve the following purposes:
@@ -230,7 +230,7 @@ the namespace index is shown in table~\ref{table:dsdl:uavcan.register}.
 Data types supported by the register protocol are defined in the nested data structure
 \DSDLReference{uavcan.register.Value}.
 
-The UAVCAN specification defines several standard naming patterns to facilitate cross-vendor compatibility
+The Cyphal specification defines several standard naming patterns to facilitate cross-vendor compatibility
 and provide a framework of common basic functionality.
 
 \DSDL{uavcan.register.* --index-only}
@@ -244,18 +244,18 @@ and for long-term storage\footnote{E.g., flight data recording.}.
 
 \subsection{Plug-and-play nodes}\label{sec:application_functions_pnp}
 
-Every UAVCAN node shall have a node-ID that is unique within the network (excepting anonymous nodes).
+Every Cyphal node shall have a node-ID that is unique within the network (excepting anonymous nodes).
 Normally, such identifiers are assigned by the network designer, integrator, some automatic external tool,
 or another entity that is external to the network.
 However, there exist circumstances where such manual assignment is either difficult or undesirable.
 
-Nodes that can join any UAVCAN network automatically without any prior manual configuration
+Nodes that can join any Cyphal network automatically without any prior manual configuration
 are called \emph{plug-and-play nodes} (or \emph{PnP nodes} for brevity).
 
 Plug-and-play nodes automatically obtain a node-ID and deduce all necessary parameters of the physical layer
 such as the bit rate.
 
-UAVCAN defines an automatic node-ID allocation protocol that is built on top of the data types defined in the
+Cyphal defines an automatic node-ID allocation protocol that is built on top of the data types defined in the
 namespace \DSDLReference{uavcan.pnp} (where \emph{pnp} stands for ``plug-and-play'')
 (see table~\ref{table:dsdl:uavcan.pnp}).
 The protocol is described in the documentation for the data type \DSDLReference{uavcan.pnp.NodeIDAllocationData}.
@@ -275,7 +275,7 @@ by Diego Ongaro and John Ousterhout.
 \subsection{Internet/LAN forwarding interface}
 
 Data types defined in the namespace \DSDLReference{uavcan.internet} (see table~\ref{table:dsdl:uavcan.internet})
-are designed for establishing robust direct connectivity between local UAVCAN nodes and hosts on the Internet
+are designed for establishing robust direct connectivity between local Cyphal nodes and hosts on the Internet
 or on a local area network (LAN) using \emph{modem nodes}\footnote{%
       Usually such modem nodes are implemented using on-board cellular, radio frequency,
       or satellite communication hardware.
@@ -292,7 +292,7 @@ The set of supported Internet/LAN protocols may be extended in future revisions 
 \begin{remark}
     Some of the major applications for this feature are as follows:
     \begin{enumerate}
-        \item Direct telemetry transmission from UAVCAN nodes to a remote data collection server.
+        \item Direct telemetry transmission from Cyphal nodes to a remote data collection server.
         \item Implementation of remote API for on-board equipment (e.g., web interface).
         \item Reception of real-time correction data streams (e.g., RTCM RC-104)
               for precise positioning applications.
@@ -307,7 +307,7 @@ The set of supported Internet/LAN protocols may be extended in future revisions 
 Data types defined in the namespace \DSDLReference{uavcan.metatransport}
 (see table~\ref{table:dsdl:uavcan.metatransport})
 are designed for tunneling transport frames\footnote{Section~\ref{sec:transport_model}.}
-over UAVCAN subjects,
-as well as logging UAVCAN traffic in the form of serialized UAVCAN message objects.
+over Cyphal subjects,
+as well as logging Cyphal traffic in the form of serialized Cyphal message objects.
 
 \DSDL{uavcan.metatransport.* --index-only}

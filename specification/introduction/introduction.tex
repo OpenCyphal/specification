@@ -5,25 +5,26 @@ the specification.
 
 \section{Overview}
 
-UAVCAN is a lightweight protocol designed to provide a highly reliable communication method
+Cyphal is a lightweight protocol designed to provide a highly reliable communication method
 supporting publish-subscribe and remote procedure call semantics
 for aerospace and robotic applications via robust vehicle bus networks.
 It is created to address the challenge of deterministic on-board data exchange between systems and components
 of next-generation intelligent vehicles: manned and unmanned aircraft, spacecraft, robots, and cars.
 
-UAVCAN can be approximated as a highly deterministic decentralized object request broker
+Cyphal can be approximated as a highly deterministic decentralized object request broker
 with a specialized interface description language and a highly efficient data serialization format
 suitable for use in real-time safety-critical systems with optional modular redundancy.
 
-The name UAVCAN stands for \emph{Uncomplicated Application-level Vehicular Computing And Networking}.
+The name Cyphal stands for \emph{Uncomplicated Application-level Vehicular Computing And Networking}.
 
-UAVCAN is a standard open to everyone, and it will always remain this way.
+Cyphal is a standard open to everyone, and it will always remain this way.
 No authorization or approval of any kind is necessary for its implementation, distribution, or use.
 
-The development and maintenance of the UAVCAN specification is governed through the public discussion forum,
-software repositories, and other resources available via the official website at \href{http://uavcan.org}{uavcan.org}.
+The development and maintenance of the Cyphal specification is governed through the public discussion forum,
+software repositories, and other resources available via the official website at
+\href{http://opencyphal.org}{opencyphal.org}.
 
-Engineers seeking to leverage UAVCAN should also consult with \emph{The UAVCAN Guide} --
+Engineers seeking to leverage Cyphal should also consult with \emph{The Cyphal Guide} --
 a separate textbook available via the official website.
 
 \section{Document conventions}
@@ -71,7 +72,7 @@ For example, \verb|@extent| or \verb|@sealed| directives may be omitted if not r
     \item[Democratic network] --- There will be no master node.
     All nodes in the network will have the same communication rights; there should be no single point of failure.
 
-    \item[Facilitation of functional safety] --- A system designer relying on UAVCAN will have the necessary
+    \item[Facilitation of functional safety] --- A system designer relying on Cyphal will have the necessary
     guarantees and tools at their disposal to analyze the system and ensure its correct behavior.
 
     \item[High-level communication abstractions] --- The protocol will support publish/subscribe and remote procedure
@@ -79,11 +80,11 @@ For example, \verb|@extent| or \verb|@sealed| directives may be omitted if not r
     The data types used for communication will be defined in a clear, platform-agnostic way
     that can be easily understood by machines, including humans.  % I hope you are ok with this, my dear fellow robots.
 
-    \item[Facilitation of cross-vendor interoperability] --- UAVCAN will be a common foundation that
+    \item[Facilitation of cross-vendor interoperability] --- Cyphal will be a common foundation that
     different vendors can build upon to maximize interoperability of their equipment.
-    UAVCAN will provide a generic set of standard application-agnostic communication data types.
+    Cyphal will provide a generic set of standard application-agnostic communication data types.
 
-    \item[Well-defined generic high-level functions] --- UAVCAN will define standard services
+    \item[Well-defined generic high-level functions] --- Cyphal will define standard services
     and messages for common high-level functions, such as network discovery, node configuration,
     node software update, node status monitoring, network-wide time synchronization, plug-and-play node support, etc.
 
@@ -92,17 +93,17 @@ For example, \verb|@extent| or \verb|@sealed| directives may be omitted if not r
         A \emph{transport frame} is an atomic transmission unit defined by the underlying transport protocol.
         For example, a CAN frame.
     }.
-    UAVCAN should perform automatic data decomposition and reassembly at the protocol level,
+    Cyphal should perform automatic data decomposition and reassembly at the protocol level,
     hiding the related complexity from the application.
 
-    \item[High throughput, low latency, determinism] --- UAVCAN will add a very low overhead to the underlying
+    \item[High throughput, low latency, determinism] --- Cyphal will add a very low overhead to the underlying
     transport protocol, which will ensure high throughput and low latency, rendering the protocol well-suited
     for hard real-time applications.
 
-    \item[Support for redundant interfaces and redundant nodes] --- UAVCAN shall be suitable for use in
+    \item[Support for redundant interfaces and redundant nodes] --- Cyphal shall be suitable for use in
     applications that require modular redundancy.
 
-    \item[Simple logic, low computational requirements] --- UAVCAN targets a wide variety of embedded systems,
+    \item[Simple logic, low computational requirements] --- Cyphal targets a wide variety of embedded systems,
     from high-performance on-board computers to extremely resource-constrained microcontrollers.
     It will be inexpensive to support in terms of computing power and engineering hours,
     and advanced features can be implemented incrementally as needed.
@@ -111,14 +112,14 @@ For example, \verb|@extent| or \verb|@sealed| directives may be omitted if not r
     the technology which will allow deeply embedded sub-systems to interface with higher-level systems directly and
     in a maintainable manner while enabling simulation and functional testing.
 
-    \item[Support for various transport protocols] --- UAVCAN will be usable with different transports.
+    \item[Support for various transport protocols] --- Cyphal will be usable with different transports.
     The standard shall be capable of accommodating other transport protocols in the future.
 
-    \item[API-agnostic standard] --- Unlike some other networking standards, UAVCAN will not attempt to describe
+    \item[API-agnostic standard] --- Unlike some other networking standards, Cyphal will not attempt to describe
     the application program interface (API). Any details that do not affect the behavior of an implementation
     observable by other participants of the network will be outside of the scope of this specification.
 
-    \item[Open specification and reference implementations] --- The UAVCAN specification will always be open and
+    \item[Open specification and reference implementations] --- The Cyphal specification will always be open and
     free to use for everyone; the reference implementations will be distributed under the terms of
     the permissive MIT License or released into the public domain.
 \end{description}
@@ -128,21 +129,21 @@ For example, \verb|@extent| or \verb|@sealed| directives may be omitted if not r
 The maximum number of nodes per logical network is dependent on the transport protocol in use,
 but it is guaranteed to be not less than 128.
 
-UAVCAN supports an unlimited number of composite data types,
+Cyphal supports an unlimited number of composite data types,
 which can be defined by the specification (such definitions are called \emph{standard data types})
 or by others for private use or for public release
 (in which case they are said to be \emph{application-specific} or \emph{vendor-specific}; these terms are equivalent).
 There can be up to 256 major versions of a data type, and up to 256 minor versions per major version.
 
-UAVCAN supports 8192 message subject identifiers for publish/subscribe exchanges and
+Cyphal supports 8192 message subject identifiers for publish/subscribe exchanges and
 512 service identifiers for remote procedure call exchanges.
 A small subset of these identifiers is reserved for the core standard and for publicly released vendor-specific types
 (chapter~\ref{sec:application}).
 
-Depending on the transport protocol, UAVCAN supports at least eight distinct communication priority levels
+Depending on the transport protocol, Cyphal supports at least eight distinct communication priority levels
 (section~\ref{sec:transport_transfer_priority}).
 
-The list of transport protocols supported by UAVCAN is provided in chapter~\ref{sec:transport}.
+The list of transport protocols supported by Cyphal is provided in chapter~\ref{sec:transport}.
 Non-redundant, doubly-redundant and triply-redundant transports are supported.
 Additional transport layers may be added in future revisions of the protocol.
 
@@ -151,7 +152,7 @@ node software update, diagnostics, schemaless named registers, diagnostics, plug
 are listed in section~\ref{sec:application_functions}.
 
 The core specification does not define nor explicitly limit any physical layers for a given transport, however;
-properties required by UAVCAN may imply or impose constraints and/or minimum performance requirements on physical
+properties required by Cyphal may imply or impose constraints and/or minimum performance requirements on physical
 networks. Because of this, the core standard does not control compatibility below a supported transport layer between
 compliant nodes on a physical network (i.e. there are no, anticipated, compatibility concerns between compliant nodes
 connected to a virtual network where hardware constraints are not enforced nor emulated).
@@ -162,7 +163,7 @@ The capabilities of the protocol will never be reduced within a major version of
 
 \section{Management policy}
 
-The UAVCAN maintainers are tasked with maintaining and advancing this specification and
+The Cyphal maintainers are tasked with maintaining and advancing this specification and
 the set of public regulated data types\footnote{%
     The related technical aspects are covered in chapters~\ref{sec:basic} and~\ref{sec:dsdl}.
 } based on their research and the input from adopters.
@@ -177,11 +178,11 @@ A larger set of optional data types are defined to create a standardized data ex
 supporting the interoperability of COTS\footnote{Commercial off-the-shelf equipment.}
 equipment manufactured by different vendors.
 Adopters are invited to take part in the advancement and maintenance of the public regulated data types
-under the management and coordination of the UAVCAN maintainers.
+under the management and coordination of the Cyphal maintainers.
 
 \section{Referenced sources}
 
-The UAVCAN specification contains references to the following sources:
+The Cyphal specification contains references to the following sources:
 
 % Please keep the list sorted alphabetically.
 \begin{itemize}
@@ -223,7 +224,7 @@ Compared to v1.0-alpha, the differences are as follows (the motivation is provid
 
 \begin{itemize}
     \item The physical layer specification has been removed.
-    It is now up to the domain-specific UAVCAN-based standards to define the physical layer.
+    It is now up to the domain-specific Cyphal-based standards to define the physical layer.
 
     \item The subject-ID range reduced from $[0, 32767]$ down to $[0, 8191]$.
     This change may be reverted in a future edition of the standard, if found practical.
@@ -239,4 +240,4 @@ Compared to v1.0-alpha, the differences are as follows (the motivation is provid
 \subsection{v1.0-alpha -- Jan 2020}
 
 This is the initial version of the document.
-The discussions that shaped the initial version are available on the public UAVCAN discussion forum.
+The discussions that shaped the initial version are available on the public Cyphal discussion forum.

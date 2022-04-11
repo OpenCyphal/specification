@@ -1,9 +1,9 @@
-# UAVCAN specification
+# Cyphal specification
 
-[![CI](https://github.com/UAVCAN/specification/actions/workflows/build.yml/badge.svg)](https://github.com/UAVCAN/specification/actions)
-[![Forum](https://img.shields.io/discourse/https/forum.uavcan.org/users.svg)](https://forum.uavcan.org)
+[![CI](https://github.com/OpenCyphal/specification/actions/workflows/build.yml/badge.svg)](https://github.com/OpenCyphal/specification/actions)
+[![Forum](https://img.shields.io/discourse/https/forum.opencyphal.org/users.svg)](https://forum.opencyphal.org)
 
-The sources of the UAVCAN specification and other related documents are contained here.
+The sources of the Cyphal specification and other related documents are contained here.
 
 When cloning this repository, don't forget to initialize the Git submodules:
 `git submodule update --init --recursive`.
@@ -15,7 +15,7 @@ When cloning this repository, don't forget to initialize the Git submodules:
 Follow the Zubax LaTeX guide: <https://kb.zubax.com/x/IYEh>.
 **Do not edit the document without the spell checker.**
 
-Write in American English <sub>*(don't look at me, I'm trying my best)*</sub>.
+Write in American English.
 
 Critical definitions (behaviors, constraints, assumptions, etc.) shall be written in the main body of the document.
 Optional content (clarifications, examples, elaborations) is placed either into footnotes or into blue remark boxes

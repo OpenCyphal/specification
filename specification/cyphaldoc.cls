@@ -1,16 +1,16 @@
 %
-% Copyright (c) 2018-2019  UAVCAN Development Team  <info@zubax.com>
+% Copyright (c) 2018-2019  OpenCyphal Development Team  <maintainers@opencyphal.org>
 %
-% Author: Pavel Kirienko <pavel.kirienko@zubax.com>
+% Author: Pavel Kirienko <pavel@opencyphal.org>
 %
 
 \NeedsTeXFormat{LaTeX2e}
 
-\ProvidesClass{uavcandoc}[2018/06/29 UAVCAN document class]
+\ProvidesClass{cyphaldoc}[2018/06/29 Cyphal document class]
 
 \LoadClass[a4paper,onecolumn,openany]{book}
 
-\author{UAVCAN Development Team}
+\author{OpenCyphal Development Team}
 
 \RequirePackage[pagestyles]{titlesec}
 \RequirePackage{titletoc}
@@ -43,8 +43,8 @@
 %
 % Minor definitions.
 %
-% UAVCAN color palette: #1700b3 (logo color), #0003ee, #00dac6, #007e87, #b00036
-% Also available at https://color.adobe.com/UAVCAN-color-theme-12106273/ (by Scott Dixon)
+% OpenCyphal color palette: #1700b3 (logo color), #0003ee, #00dac6, #007e87, #b00036 #fc6d09
+% Source: https://forum.opencyphal.org/t/cyphal-logo-palooza/1626/27?u=pavel.kirienko
 \definecolor{colorlogo}{HTML}{1700B3}           % from the palette
 \definecolor{colorhyperlink}{HTML}{0003EE}      % from the palette
 \definecolor{colorremarkbg}{HTML}{E6F2FF}
@@ -54,7 +54,7 @@
 
 \sisetup{range-phrase = \text{--}}
 
-\newcommand\UAVCANCopyright{\copyright{} 2015--\the\year{} \href{http://uavcan.org}{\@author}}
+\newcommand\CyphalCopyright{\copyright{} 2015--\the\year{} \href{http://opencyphal.org}{\@author}}
 
 % Deferring configuration of the PDF metadata until the point where the document title (and author) are known.
 \preto\frontmatter{\hypersetup{
@@ -288,7 +288,7 @@
 
 % Use this wrapper environment to define tables in it.
 % This environment provides proper placement of the table within the page, and the properly positioned caption.
-\NewDocumentEnvironment{UAVCANTableWrapper}{ o m }{%
+\NewDocumentEnvironment{CyphalTableWrapper}{ o m }{%
     \ifthenelse{\equal{#1}{wide}}{
         \NoLeftSkip
         \begin{minipage}{\textwidth}  % Minipage is needed to prevent page breaks after the caption
@@ -307,7 +307,7 @@
     \end{minipage}
 }
 
-\newenvironment{UAVCANCompactTable}[1]{
+\newenvironment{CyphalCompactTable}[1]{
     \begin{tabu}{#1}
         \hline
         \everyrow{\hline}
@@ -317,7 +317,7 @@
 }
 
 % Use this environment to define a table within the wrapper environment defined above.
-\newenvironment{UAVCANWrappedTable}[1]{
+\newenvironment{CyphalWrappedTable}[1]{
     \begin{tabu} to \textwidth {#1}
         \hline
         \everyrow{\hline}
@@ -331,13 +331,13 @@
 % Arguments:
 %   {Table caption}{format}
 % Example:
-%   \begin{UAVCANSimpleTable}{Firmware status indication via RGB LED}{|l l|X|}
-\newenvironment{UAVCANSimpleTable}[3][]{
-    \begin{UAVCANTableWrapper}[#1]{#2}
-        \begin{UAVCANWrappedTable}{#3}
+%   \begin{CyphalSimpleTable}{Firmware status indication via RGB LED}{|l l|X|}
+\newenvironment{CyphalSimpleTable}[3][]{
+    \begin{CyphalTableWrapper}[#1]{#2}
+        \begin{CyphalWrappedTable}{#3}
 }{
-        \end{UAVCANWrappedTable}
-    \end{UAVCANTableWrapper}
+        \end{CyphalWrappedTable}
+    \end{CyphalTableWrapper}
 }
 
 %
@@ -354,29 +354,29 @@
 
 \newcommand\PageNumberWithTotal{\thepage\if@mainmatter/\pageref*{LastPage}\fi}
 
-\newcommand\UAVCANLogo[1][15mm]{\includegraphics[width=#1]{uavcan_logo}}
+\newcommand\CyphalLogo[1][15mm]{\includegraphics[width=#1]{cyphal_logo}}
 
-\newcommand\VerboseLinkToSupportForum{Support \& feedback: \href{http://uavcan.org}{uavcan.org}}
+\newcommand\VerboseLinkToSupportForum{Support \& feedback: \href{http://opencyphal.org}{opencyphal.org}}
 
 \newcommand\TitleWithDateBefore{\begin{footnotesize}\today\quad\end{footnotesize}{\@title}}
 \newcommand\TitleWithDateAfter{{\@title}\begin{footnotesize}\quad\today\end{footnotesize}}
 
 \renewpagestyle{plain}{
     \sethead%
-        [\TitleWithDateAfter][][\UAVCANLogo]     % even
-        {\UAVCANLogo}{}{\TitleWithDateBefore}    % odd
+        [\TitleWithDateAfter][][\CyphalLogo]     % even
+        {\CyphalLogo}{}{\TitleWithDateBefore}    % odd
 
     \setfoot%
-        [\PageNumberWithTotal][\small\VerboseLinkToSupportForum][\small\UAVCANCopyright]
-        {\small\UAVCANCopyright}{\small\VerboseLinkToSupportForum}{\PageNumberWithTotal}
+        [\PageNumberWithTotal][\small\VerboseLinkToSupportForum][\small\CyphalCopyright]
+        {\small\CyphalCopyright}{\small\VerboseLinkToSupportForum}{\PageNumberWithTotal}
 
     \headrule
     \footrule
 }
 \newpagestyle{main}{
     \sethead%
-        [\TitleWithDateAfter][][\UAVCANLogo]     % even
-        {\UAVCANLogo}{}{\TitleWithDateBefore}    % odd
+        [\TitleWithDateAfter][][\CyphalLogo]     % even
+        {\CyphalLogo}{}{\TitleWithDateBefore}    % odd
 
     \setfoot%
         [\PageNumberWithTotal][][\small\ChapterTitleWithNumber]
@@ -386,7 +386,7 @@
     \footrule
 }
 \newpagestyle{titlepage}{
-    \setfoot{\UAVCANCopyright}{}{\VerboseLinkToSupportForum}
+    \setfoot{\CyphalCopyright}{}{\VerboseLinkToSupportForum}
     \footrule
 }
 
@@ -407,7 +407,7 @@
 
 \newcommand{\RenderTitlePageHeader}{%
     \renewcommand{\baselinestretch}{1}
-    \UAVCANLogo[\textwidth]\hfill\vspace{10mm}
+    \CyphalLogo[\textwidth]\hfill\vspace{10mm}
     \begin{flushleft}\begin{Huge}\@title\end{Huge}\end{flushleft}
     Revision \today\\[10mm]
 }

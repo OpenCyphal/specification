@@ -1,12 +1,12 @@
-\section{UAVCAN/CAN}\label{sec:transport_can}
+\section{Cyphal/CAN}\label{sec:transport_can}
 
-\hyphenation{UAVCAN/CAN}  % Disable hyphenation.
+\hyphenation{Cyphal/CAN}  % Disable hyphenation.
 
 This section specifies a concrete transport based on ISO 11898 CAN bus.
 Throughout this section, ``CAN'' implies both Classic CAN 2.0 and CAN FD, unless specifically noted otherwise.
 CAN FD should be considered the primary transport protocol.
 
-\begin{UAVCANSimpleTable}{UAVCAN/CAN transport capabilities}{|l X l|}
+\begin{CyphalSimpleTable}{Cyphal/CAN transport capabilities}{|l X l|}
     \label{table:transport_can_capabilities}
     Parameter & Value & References \\
 
@@ -29,27 +29,22 @@ CAN FD should be considered the primary transport protocol.
     Anonymous transfers &
     Supported with non-deterministic collision resolution policy. &
     \ref{sec:transport_route_specifier} \\
-\end{UAVCANSimpleTable}
+\end{CyphalSimpleTable}
 
 \subsection{CAN ID field}
 
-UAVCAN/CAN transport frames are CAN 2.0B frames.
+Cyphal/CAN transport frames are CAN 2.0B frames.
 The 29-bit CAN ID encodes the session specifier\footnote{Section~\ref{sec:transport_session_specifier}.}
 of the transfer it belongs to along with its priority.
 The CAN data field of every frame contains the transfer payload
 (or, in the case of multi-frame transfers, a fraction thereof), the transfer-ID, and other metadata.
 
-UAVCAN/CAN can share the same bus with other high-level CAN bus protocols provided that they
+Cyphal/CAN can share the same bus with other high-level CAN bus protocols provided that they
 do not make use of CAN 2.0B frames\footnote{For example, CANOpen or CANaerospace.}.
-However, future revisions of UAVCAN/CAN may utilize CAN 2.0A as well,
+However, future revisions of Cyphal/CAN may utilize CAN 2.0A as well,
 so backward compatibility with other high-level CAN bus protocols is not guaranteed.
 
-UAVCAN/CAN can share the same bus with UAVCAN/CAN v0 -- the earlier experimental revision of the protocol
-(not recommended for new designs).
-The protocol version can be determined at runtime on a per-frame basis as described
-in section~\ref{sec:transport_can_toggle_bit}.
-
-UAVCAN/CAN utilizes two different CAN ID bit layouts for message transfers and service transfers.
+Cyphal/CAN utilizes two different CAN ID bit layouts for message transfers and service transfers.
 The bit layouts are summarized on figure~\ref{fig:transport_can_id_structure}.
 Tables~\ref{table:transport_can_id_fields_message_transfer} and~\ref{table:transport_can_id_fields_service_transfer}
 summarize the purpose of each field and their permitted values
@@ -152,7 +147,7 @@ for message transfers and service transfers, respectively.
     \caption{CAN ID bit layout}\label{fig:transport_can_id_structure}
 \end{figure}
 
-\begin{UAVCANSimpleTable}[wide]{CAN ID bit fields for message transfers}{|l l l X|}
+\begin{CyphalSimpleTable}[wide]{CAN ID bit fields for message transfers}{|l l l X|}
     \label{table:transport_can_id_fields_message_transfer}
     Field               & Width & Valid values  & Description \\
 
@@ -186,9 +181,9 @@ for message transfers and service transfers, respectively.
                                                       For anonymous transfers, this field contains a pseudo-ID instead,
                                                       as described in
                                                       section~\ref{sec:transport_can_source_node_pseudo_id}. \\
-\end{UAVCANSimpleTable}
+\end{CyphalSimpleTable}
 
-\begin{UAVCANSimpleTable}[wide]{CAN ID bit fields for service transfers}{|l l l X|}
+\begin{CyphalSimpleTable}[wide]{CAN ID bit fields for service transfers}{|l l l X|}
     \label{table:transport_can_id_fields_service_transfer}
     Field               & Width & Valid values  & Description \\
 
@@ -208,7 +203,7 @@ for message transfers and service transfers, respectively.
 
     Source node-ID      & 7     & $[0, 127]$ (any)  & Node-ID of the origin:
                                                       client if request, server if response. \\
-\end{UAVCANSimpleTable}
+\end{CyphalSimpleTable}
 
 \subsubsection{Transfer priority}
 
@@ -223,7 +218,7 @@ In multi-frame transfers, the value of the priority field shall be identical for
     the following precedence is ensured (from higher priority to lower priority):
 
     \begin{enumerate}
-        \item Message transfers (the primary method of data exchange in UAVCAN networks).
+        \item Message transfers (the primary method of data exchange in Cyphal networks).
         \item Anonymous (message) transfers.
         \item Service response transfers (preempt requests).
         \item Service request transfers (responses take precedence over requests to make service calls more atomic
@@ -231,9 +226,9 @@ In multi-frame transfers, the value of the priority field shall be identical for
     \end{enumerate}
 
     Mnemonics for transfer priority levels are provided in section~\ref{sec:transport_transfer_priority},
-    and their mapping to the UAVCAN/CAN priority field is as follows:
+    and their mapping to the Cyphal/CAN priority field is as follows:
 
-    \begin{UAVCANCompactTable}{|l X|}
+    \begin{CyphalCompactTable}{|l X|}
         Priority field value    & Mnemonic name \\
         0                       & Exceptional   \\
         1                       & Immediate     \\
@@ -243,7 +238,7 @@ In multi-frame transfers, the value of the priority field shall be identical for
         5                       & Low           \\
         6                       & Slow          \\
         7                       & Optional      \\
-    \end{UAVCANCompactTable}
+    \end{CyphalCompactTable}
 
     Since the value of transfer priority is required to be the same for all frames in a transfer,
     it follows that the value of the CAN ID is guaranteed to be the same for all CAN frames of the transfer.
@@ -288,7 +283,7 @@ Some method of media access control should be used at the application level for 
 
     The described principles make anonymous transfers highly non-deterministic and inefficient.
     This is considered acceptable because the scope of anonymous transfers is limited to a very narrow set of use
-    cases which tolerate their downsides. The UAVCAN specification employs anonymous transfers only for the
+    cases which tolerate their downsides. The Cyphal specification employs anonymous transfers only for the
     plug-and-play feature defined in section~\ref{sec:application_functions}.
     Deterministic applications are advised to avoid reliance on anonymous transfers completely.
 
@@ -299,12 +294,12 @@ Some method of media access control should be used at the application level for 
 
 \subsubsection{Layout}
 
-UAVCAN/CAN utilizes a fixed layout of the CAN data field:
+Cyphal/CAN utilizes a fixed layout of the CAN data field:
 the last byte of the CAN data field contains the metadata, it is referred to as the \emph{tail byte}.
 The preceding bytes of the data field contain the transfer payload,
 which may be extended with padding bytes and transfer CRC.
 
-A CAN frame whose data field contains less than one byte is not a valid UAVCAN/CAN frame.
+A CAN frame whose data field contains less than one byte is not a valid Cyphal/CAN frame.
 
 The bit layout of the tail byte is shown in table~\ref{table:transport_can_tail_byte}.
 
@@ -335,26 +330,6 @@ which alternates its state every frame within the transfer for frame deduplicati
     A frame that appears valid to the receiving node may under certain conditions appear invalid to the transmitter,
     triggering the latter to retransmit the frame, in which case it will be duplicated on the side of the receiver.
 }.
-
-\begin{remark}[breakable]
-    The toggle bit can be used to facilitate operation of heterogeneous deployments where the experimental
-    UAVCAN/CAN v0 shares the same CAN bus with the current version of the standard.
-
-    Whenever a new transfer is initiated, the original state of the toggle bit reflects the protocol version.
-    Implementations that need to support simultaneous operation of two versions of the protocol can record
-    the state of the toggle bit when the ``start of transfer'' bit is set, and keep this information
-    indexed by the value of the CAN ID field (all frames of a transfer are guaranteed to share the same CAN ID).
-    The resulting mapping from CAN ID to the protocol version can be used to route incoming frames to the
-    implementation of the appropriate version of the protocol.
-
-    \begin{UAVCANSimpleTable}{Protocol version detection based on the toggle bit}{|l l X|}
-        Start of transfer   & Toggle bit    & Protocol version \\
-        1                   & 0             & UAVCAN v0 (experimental version). \\
-        1                   & 1             & UAVCAN v1 (this version). \\
-        0                   & x             & Keep the state of the toggle bit from the first frame of the transfer
-                                              to detect protocol version in multi-frame transfers. \\
-    \end{UAVCANSimpleTable}
-\end{remark}
 
 \subsubsection{Transfer payload decomposition}
 
@@ -407,7 +382,7 @@ The following code snippet provides a basic implementation of the transfer CRC a
 #include <cstdint>
 #include <cstddef>
 
-/// UAVCAN/CAN transfer CRC function implementation. License: CC0, no copyright reserved.
+/// Cyphal/CAN transfer CRC function implementation. License: CC0, no copyright reserved.
 class CANTransferCRC
 {
     std::uint16_t value_ = 0xFFFFU;
@@ -446,33 +421,33 @@ public:
 
 \begin{remark}[breakable]
     Heartbeat from node-ID 42, nominal priority level,
-    uptime starting from 0 and then incrementing by one every transfer, health status is 0, 
+    uptime starting from 0 and then incrementing by one every transfer, health status is 0,
     operating mode is 1, vendor-specific status code 161 ($A1_{16}$):
 
-    \begin{UAVCANCompactTable}{|l l|}
+    \begin{CyphalCompactTable}{|l l|}
         CAN ID (hex)      & CAN data (hex)          \\
         \texttt{107D552A} & \texttt{00 00 00 00 00 01 A1 E0} \\
         \texttt{107D552A} & \texttt{01 00 00 00 00 01 A1 E1} \\
         \texttt{107D552A} & \texttt{02 00 00 00 00 01 A1 E2} \\
         \texttt{107D552A} & \texttt{03 00 00 00 00 01 A1 E3} \\
-    \end{UAVCANCompactTable}
+    \end{CyphalCompactTable}
 
     \verb|uavcan.primitive.String.1.0| under subject-ID 4919 ($1337_{16}$) published by an anonymous node,
     the string is ``\verb|Hello world!|'' (ASCII); one byte of zero padding can be seen between
     the payload and the tail byte:
 
-    \begin{UAVCANCompactTable}{|l l|}
+    \begin{CyphalCompactTable}{|l l|}
         CAN ID (hex)      & CAN data (hex)                                           \\
         \texttt{11133775} & \texttt{0C 00 48 65 6C 6C 6F 20 77 6F 72 6C 64 21 00 E0} \\
         \texttt{11133775} & \texttt{0C 00 48 65 6C 6C 6F 20 77 6F 72 6C 64 21 00 E1} \\
         \texttt{11133775} & \texttt{0C 00 48 65 6C 6C 6F 20 77 6F 72 6C 64 21 00 E2} \\
         \texttt{11133775} & \texttt{0C 00 48 65 6C 6C 6F 20 77 6F 72 6C 64 21 00 E3} \\
-    \end{UAVCANCompactTable}
+    \end{CyphalCompactTable}
 
     Node info request from node 123 to node 42 via Classic CAN, then response;
     notice how the transfer CRC is scattered across two frames:
 
-    \begin{UAVCANCompactTable}{|l l l X|}
+    \begin{CyphalCompactTable}{|l l l X|}
         CAN ID (hex)      & CAN data (hex)                                  & ASCII             & Comment \\
 
         \texttt{136B957B} & \texttt{E1}                                     & \texttt{.}        &
@@ -510,13 +485,13 @@ public:
 
         \texttt{126BBDAA} & \texttt{\underline{E7} 61}                      & \texttt{\underline{.}a}       &
         Transfer CRC, LSB. \\
-    \end{UAVCANCompactTable}
+    \end{CyphalCompactTable}
 
     \verb|uavcan.primitive.array.Natural8.1.0| under subject-ID 4919 ($1337_{16}$) published by node 59,
     the array contains an arithmetic sequence $\left(0, 1, 2, \ldots{}, 89, 90, 91\right)$;
     the transport MTU is 64 bytes:
 
-    \begin{UAVCANCompactTable}{|l X[2] X|}
+    \begin{CyphalCompactTable}{|l X[2] X|}
         CAN ID (hex)      & CAN data (hex) & Comment \\
         \texttt{1013373B} &
         \texttt{%
@@ -533,7 +508,7 @@ public:
             \textbf{BC} \textbf{19} 40
         } &
         Last frame: 1.~payload; 2.~padding (underlined); 3.~transfer CRC (bold); 4.~tail byte. \\
-    \end{UAVCANCompactTable}
+    \end{CyphalCompactTable}
 \end{remark}
 
 \subsection{Software design considerations}
@@ -543,13 +518,13 @@ public:
 The CAN controller driver software shall guarantee that CAN frames with identical CAN ID values
 will be transmitted in their order of appearance in the transmission queue\footnote{%
     This is because multi-frame transfers use identical CAN ID for all frames of the transfer,
-    and UAVCAN requires that all frames of a multi-frame transfer shall be transmitted in the correct order.
+    and Cyphal requires that all frames of a multi-frame transfer shall be transmitted in the correct order.
 }.
 
 \subsubsection{Transmission timestamping}
 
 \begin{remark}[breakable]
-    Certain application-level functions of UAVCAN may require the driver to timestamp outgoing transport frames,
+    Certain application-level functions of Cyphal may require the driver to timestamp outgoing transport frames,
     e.g., the time synchronization function.
     A sensible approach to transmission timestamping is built around the concept of \emph{loop-back frames},
     which is described here.
@@ -668,7 +643,7 @@ Implementations should take necessary precautions against the problem of inner p
     In the case of the list-based approach, every CAN frame detected on the bus is compared
     against the set of reference CAN ID values provided by the application;
     only those frames that are found in the reference set are accepted.
-    Due to the complex structure of the CAN ID field used by UAVCAN,
+    Due to the complex structure of the CAN ID field used by Cyphal,
     usage of the list-based filtering method with this protocol is impractical.
 
     Most CAN controller vendors implement mask-based filters,
@@ -679,7 +654,7 @@ Implementations should take necessary precautions against the problem of inner p
     $$((X \land M) \oplus R) \leftrightarrow 0$$
     where $X$ is the CAN ID value of the evaluated frame.
 
-    Complex UAVCAN applications are often required to operate with more distinct transfers than there are
+    Complex Cyphal applications are often required to operate with more distinct transfers than there are
     acceptance filters available in the hardware.
     That creates the challenge of finding the optimal configuration of the available filters that meets the
     following criteria:
@@ -704,7 +679,7 @@ Implementations should take necessary precautions against the problem of inner p
     and the set of distinct transfers needed by the application.
 
     The quasi-optimal configuration can be easily found automatically.
-    Certain implementations of the UAVCAN protocol stack include this functionality,
+    Certain implementations of the Cyphal protocol stack include this functionality,
     allowing the application to easily adjust the configuration of the hardware acceptance filters
     using a very simple API.
 

@@ -1,6 +1,6 @@
 \section{Application-level requirements}\label{sec:application_requirements}
 
-This section describes a set of high-level rules that shall be obeyed by all UAVCAN implementations.
+This section describes a set of high-level rules that shall be obeyed by all Cyphal implementations.
 
 \subsection{Port identifier distribution}
 
@@ -10,8 +10,8 @@ The subject and service identifier values are segregated into three ranges:
 \begin{itemize}
     \item unregulated port identifiers that can be freely chosen by users and integrators (both fixed and non-fixed);
     \item regulated fixed identifiers for non-standard data type definitions
-          that are assigned by the UAVCAN maintainers for publicly released data types;
-    \item regulated identifiers of the standard data types that are an integral part of the UAVCAN specification.
+          that are assigned by the Cyphal maintainers for publicly released data types;
+    \item regulated identifiers of the standard data types that are an integral part of the Cyphal specification.
 \end{itemize}
 
 More information on the subject of data type regulation is provided in section~\ref{sec:basic_data_type_regulation}.
@@ -19,17 +19,17 @@ More information on the subject of data type regulation is provided in section~\
 The ranges are summarized in table~\ref{table:application_requirements_port_id_distribution}.
 The ranges may be expanded, but not contracted, in a future version of the document.
 
-\begin{UAVCANSimpleTable}{Port identifier distribution}{|l l X|}%
+\begin{CyphalSimpleTable}{Port identifier distribution}{|l l X|}%
     \label{table:application_requirements_port_id_distribution}
     Subject-ID      & Service-ID        & Purpose \\
     $[0, 6143]$     & $[0, 255]$        & Unregulated identifiers (both fixed and non-fixed). \\
     $[6144, 7167]$  & $[256, 383]$      & Non-standard fixed regulated identifiers (i.e., vendor-specific). \\
     $[7168, 8191]$  & $[384, 511]$      & Standard fixed regulated identifiers. \\
-\end{UAVCANSimpleTable}
+\end{CyphalSimpleTable}
 
 \subsection{Port compatibility}
 
-% https://github.com/UAVCAN/specification/pull/64#discussion_r357771739
+% https://github.com/OpenCyphal/specification/pull/64#discussion_r357771739
 
 The system integrator shall ensure that nodes participating in data exchange via a given port\footnote{%
     I.e., subject or service.
@@ -75,7 +75,9 @@ objects is eliminated.
 An overview of related concepts is provided in chapter~\ref{sec:dsdl}.
 
 This specification defines a set of standard regulated DSDL data types located under
-the root namespace named ``\verb"uavcan"'' (section~\ref{sec:sdt}).
+the root namespace named ``\verb"uavcan"''%
+\footnote{The standard root namespace is named \texttt{uavcan}, not \texttt{cyphal}, for historical reasons.}
+(section~\ref{sec:sdt}).
 
 Vendor-specific, user-specific, or any other data types not defined by this specification
 shall not be defined inside the standard root namespace\footnote{Custom data type definitions shall be located

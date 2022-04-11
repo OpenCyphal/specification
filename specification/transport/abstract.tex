@@ -2,11 +2,11 @@
 
 The function of the transport layer is to facilitate exchange of serialized representations of DSDL objects\footnote{%
     DSDL and data serialization are reviewed in chapter~\ref{sec:dsdl}.
-} between UAVCAN nodes over the \emph{transport network}.
+} between Cyphal nodes over the \emph{transport network}.
 
 \subsection{Transport model}\label{sec:transport_model}
 
-This section introduces an abstract implementation-agnostic model of the UAVCAN transport layer.
+This section introduces an abstract implementation-agnostic model of the Cyphal transport layer.
 The core relations are depicted in figure~\ref{fig:transport_model}.
 Some of the concepts introduced at this level may not be manifested in the design of concrete transports;
 despite that, they are convenient for an abstract discussion.
@@ -78,12 +78,12 @@ despite that, they are convenient for an abstract discussion.
             Message (subject) or service transfer.\\\hline
         \end{tabu}
     }
-    \caption{UAVCAN transport layer model}\label{fig:transport_model}
+    \caption{Cyphal transport layer model}\label{fig:transport_model}
 \end{figure}
 
 \subsubsection{Transfer}
 
-A \emph{transfer} is a singular act of data transmission from one UAVCAN node to zero or more other UAVCAN nodes
+A \emph{transfer} is a singular act of data transmission from one Cyphal node to zero or more other Cyphal nodes
 over the transport network.
 A transfer carries zero or more bytes of \emph{transfer payload} together with the associated \emph{transfer metadata},
 which encodes the semantic and temporal properties of the carried payload.
@@ -103,8 +103,8 @@ possibly extended with additional elements specific to the concrete transport --
 over the transport network.
 The exact definition of a transport frame and the mapping of the abstract transport model onto it
 are specific to concrete transports\footnote{
-    For example, UAVCAN/CAN (introduced later) defines a particular CAN frame format.
-    Frames that follow the format are UAVCAN transport frames of UAVCAN/CAN.
+    For example, Cyphal/CAN (introduced later) defines a particular CAN frame format.
+    Frames that follow the format are Cyphal transport frames of Cyphal/CAN.
 }.
 
 \subsubsection{Transfer payload}\label{sec:transport_transfer_payload}
@@ -123,7 +123,7 @@ Concrete transports may extend the payload with a \emph{transfer CRC}
 -- an additional metadata field used for validating its integrity.
 The details of its implementation are dictated by the concrete transport specification.
 
-The deterministic nature of UAVCAN in general and DSDL in particular allows implementations to statically determine
+The deterministic nature of Cyphal in general and DSDL in particular allows implementations to statically determine
 the maximum amount of memory that is required to contain the serialized representation
 of a DSDL object of a particular type.
 Consequently, an implementation that is interested in receiving data objects of a particular type
@@ -263,7 +263,7 @@ Priority of a service response transfer should match the priority of the corresp
     The priority level mnemonics and their usage recommendations are specified in the following list.
     The mapping between the mnemonics and actual numeric identifiers is transport-dependent.
 
-    % https://forum.uavcan.org/t/transfer-priority-level-mnemonics/218/6?u=pavel.kirienko
+    % https://forum.opencyphal.org/t/transfer-priority-level-mnemonics/218/6?u=pavel.kirienko
     \begin{description}
         \item[Exceptional] -- The bus designer can ignore these messages when calculating bus load since they
         should only be sent when a total system failure has occurred.
@@ -328,7 +328,7 @@ An anonymous transfer is a transfer that does not have a specific source.
 Anonymous transfers have the following limitations\footnote{%
     Anonymous transfers are intended primarily for the facilitation of the optional plug-and-play feature
     (section~\ref{sec:application_functions})
-    which enables fully automatic configuration of UAVCAN nodes upon their connection to the network.
+    which enables fully automatic configuration of Cyphal nodes upon their connection to the network.
     Some transports may provide native support for auto-configuration, rendering anonymous transfers unnecessary.
 }:
 \begin{itemize}
@@ -343,11 +343,11 @@ A message transfer can be only a broadcast transfer; unicast message transfers a
 }.
 A service transfer can be only a unicast transfer; broadcast service transfers are prohibited.
 
-\begin{UAVCANCompactTable}{|l l l|}
+\begin{CyphalCompactTable}{|l l l|}
     Transfer kind       & Unicast       & Broadcast     \\
     Message transfer    & Not defined   & Valid         \\
     Service transfer    & Valid         & Prohibited    \\
-\end{UAVCANCompactTable}
+\end{CyphalCompactTable}
 
 \subsubsection{Data specifier}\label{sec:transport_data_specifier}
 
@@ -370,14 +370,14 @@ the agents participating in its exchange while abstracting over individual trans
 
 The term \emph{session} used here denotes the node's local representation of a logical communication
 channel that it is a member of.
-Following the stateless and low-context nature of UAVCAN, this concept excludes any notion of explicit state sharing
+Following the stateless and low-context nature of Cyphal, this concept excludes any notion of explicit state sharing
 between nodes.
 
 \begin{remark}[breakable]
-    One of the key design principles is that UAVCAN is a stateless low-context protocol where collaborating agents
+    One of the key design principles is that Cyphal is a stateless low-context protocol where collaborating agents
     do not make strong assumptions about the state of each other.
     Statelessness and context invariance are important because they facilitate behavioral simplicity and robustness;
-    these properties are desirable for deterministic real-time distributed applications which UAVCAN is designed for.
+    these properties are desirable for deterministic real-time distributed applications which Cyphal is designed for.
 
     Design and verification of a system that relies on multiple agents sharing the same model of a distributed process
     necessitates careful analysis of special cases such as unintended state divergence, latency and transient states,
@@ -392,18 +392,18 @@ between nodes.
     Applications whose functionality is built on top of the protocol may engage in state sharing if such is
     found to be beneficial\footnote{%
         Related discussion in
-        \url{https://forum.uavcan.org/t/idempotent-interfaces-and-deterministic-data-loss-mitigation/643}.
+        \url{https://forum.opencyphal.org/t/idempotent-interfaces-and-deterministic-data-loss-mitigation/643}.
     }.
 \end{remark}
 
 \begin{remark}[breakable]
-    Some implementations of the UAVCAN communication stack may contain states indexed by the session specifier.
+    Some implementations of the Cyphal communication stack may contain states indexed by the session specifier.
     For example, in order to emit a transfer, the stack may need to query the appropriate transfer-ID counter
     (section~\ref{sec:transport_transfer_id}) by the session specifier of the transfer.
     Likewise, in order to process a received frame,
     the stack may need to locate the appropriate states keyed by the session specifier.
 
-    Given the intended application domains of UAVCAN,
+    Given the intended application domains of Cyphal,
     the temporal characteristics of such look-up activities should be well-characterized and predictable.
     Due to the fact that all underlying primitive parameters that form the session specifier
     (such as node-ID, port-ID, etc.) have statically defined bounds,
@@ -433,7 +433,7 @@ between nodes.
 The \emph{transfer-ID} is an unsigned integer value that is provided for every transfer.
 Barring the case of transfer-ID overflow reviewed below,
 each transfer under a given session specifier has a unique transfer-ID value.
-This parameter is crucial for many aspects of UAVCAN communication\footnote{%
+This parameter is crucial for many aspects of Cyphal communication\footnote{%
     One might be tempted to use the transfer-ID value for temporal synchronization of
     parallel message streams originating from the same node,
     where messages bearing the same transfer-ID value are supposed to correspond to the same moment in time.
@@ -506,7 +506,7 @@ to $b$ so that $a = b^\prime{}$.
     \begin{minted}{cpp}
         #include <cstdint>
         /**
-         * UAVCAN cyclic transfer-ID difference computation algorithm implemented in C++.
+         * Cyphal cyclic transfer-ID difference computation algorithm implemented in C++.
          * License: CC0, no copyright reserved.
          * @param a         Left-hand operand (minuend).
          * @param b         Right-hand operand (subtrahend).
@@ -530,7 +530,7 @@ to $b$ so that $a = b^\prime{}$.
 
 \subsection{Redundant transports}
 
-UAVCAN supports transport redundancy for the benefit of a certain class of safety-critical applications.
+Cyphal supports transport redundancy for the benefit of a certain class of safety-critical applications.
 A redundant transport interconnects nodes belonging to the same network (all or their subset)
 via more than one transport network.
 A set of such transport networks that together form a redundant transport is referred to as a
@@ -641,7 +641,7 @@ under the same transfer-ID value\footnote{%
 }.
 This tactic is referred to as \emph{deterministic data loss mitigation}\footnote{%
     Discussed in
-    \url{https://forum.uavcan.org/t/idempotent-interfaces-and-deterministic-data-loss-mitigation/643}.
+    \url{https://forum.opencyphal.org/t/idempotent-interfaces-and-deterministic-data-loss-mitigation/643}.
 }.
 
 \subsubsection{Transmission over redundant transports}
@@ -774,7 +774,7 @@ Requirements pertaining to ordering and uniqueness do not apply.
 
 \begin{remark}
     Regardless of the concrete transport in use and its capabilities,
-    UAVCAN provides the following guarantees (excluding anonymous transfers):
+    Cyphal provides the following guarantees (excluding anonymous transfers):
 
     \begin{itemize}
         \item Removal of duplicates. If a transfer is delivered, it is guaranteed that it is delivered once,

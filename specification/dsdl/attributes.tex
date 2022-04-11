@@ -54,7 +54,7 @@ the value of its constant attribute.
 The set of compatible types depends on the type of the initialized constant attribute,
 as specified in table~\ref{table:dsdl_constant_init_pattern}.
 
-\begin{UAVCANSimpleTable}[wide]{Permitted constant attribute value initialization patterns}{|l | X | X[2] | X[2]|}
+\begin{CyphalSimpleTable}[wide]{Permitted constant attribute value initialization patterns}{|l | X | X[2] | X[2]|}
     \diagbox[font=\footnotesize]{Constant\\type\\category}{Expression\\type} &
     \texttt{bool} & \texttt{rational} & \texttt{string} \\
 
@@ -76,7 +76,7 @@ as specified in table~\ref{table:dsdl_constant_init_pattern}.
     with implementation-defined accuracy. &
     Not allowed. \label{table:dsdl_constant_init_pattern}\\
 
-\end{UAVCANSimpleTable}
+\end{CyphalSimpleTable}
 
 Due to the value of a constant attribute being defined at the data type definition time,
 the cast mode of primitive-typed constants has no observable effect.
@@ -87,7 +87,7 @@ the cast mode of primitive-typed constants has no observable effect.
     resulting in $1235.0$.
 
     The specification states that the value of a floating-point constant should be computed
-    with an implementation-defined accuracy. UAVCAN avoids strict accuracy requirements in order to
+    with an implementation-defined accuracy. Cyphal avoids strict accuracy requirements in order to
     ensure compatibility with implementations that rely on non-standard floating point formats.
     Such laxity in the specification is considered acceptable since the uncertainty is always
     confined to a single division expression per constant; all preceding computations, if any,
@@ -110,7 +110,7 @@ where $A < E$ and both statements belong to the same data type definition\footno
 The representation of the referred attribute in the context of the referring DSDL expression
 is specified in table~\ref{table:dsdl_local_attribute_representation}.
 
-\begin{UAVCANSimpleTable}{Local attribute representation}{|l X X|}\label{table:dsdl_local_attribute_representation}%
+\begin{CyphalSimpleTable}{Local attribute representation}{|l X X|}\label{table:dsdl_local_attribute_representation}%
     Attribute category & Value type & Value \\
 
     Constant attribute &
@@ -124,7 +124,7 @@ is specified in table~\ref{table:dsdl_local_attribute_representation}.
     Illegal &
     Illegal \\
 
-\end{UAVCANSimpleTable}
+\end{CyphalSimpleTable}
 
 \begin{remark}
     \begin{minted}{python}

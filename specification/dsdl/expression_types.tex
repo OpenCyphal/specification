@@ -1,4 +1,3 @@
-
 \section{Expression types}\label{sec:dsdl_expression_types}
 
 Expression types are a special category of data types whose instances can only exist and be operated upon
@@ -35,7 +34,7 @@ A rational number can be used in a context where an integer value is expected on
 
 Implicit conversions between boolean-valued entities and rational numbers are not allowed.
 
-\begin{UAVCANSimpleTable}{Operators defined on instances of rational numbers}{|l l X X|}
+\begin{CyphalSimpleTable}{Operators defined on instances of rational numbers}{|l l X X|}
     Op & Type & Constraints & Description
     \label{table:dsdl_operators_rational} \\
 
@@ -88,7 +87,7 @@ Implicit conversions between boolean-valued entities and rational numbers are no
     \texttt{\textbf{<}}  & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{bool}$ & & Strictly less. \\
     \texttt{\textbf{>}}  & $(\texttt{rational}, \texttt{rational}) \rightarrow \texttt{bool}$ & & Strictly greater. \\
 
-\end{UAVCANSimpleTable}
+\end{CyphalSimpleTable}
 
 \subsection{Unicode string}\label{sec:dsdl_string}
 
@@ -101,7 +100,7 @@ A Unicode string containing one symbol whose code point is within $[0, 127]$
 (i.e., an ASCII character) is implicitly convertible into a \verb|uint8|-typed constant attribute value,
 where the value of the constant is to be equal the code point of the symbol.
 
-\begin{UAVCANSimpleTable}{Operators defined on instances of Unicode strings}{|l l X|}
+\begin{CyphalSimpleTable}{Operators defined on instances of Unicode strings}{|l l X|}
     Op & Type & Description
     \label{table:dsdl_operators_string} \\
 
@@ -116,7 +115,7 @@ where the value of the constant is to be equal the code point of the symbol.
     \texttt{\textbf{==}} & $(\texttt{string}, \texttt{string}) \rightarrow \texttt{bool}$ &
     Equality of Unicode NFC normalized forms. \\
 
-\end{UAVCANSimpleTable}
+\end{CyphalSimpleTable}
 
 The set of operations and conversions defined for Unicode strings is to be extended in future versions of
 the specification.
@@ -134,7 +133,7 @@ A set can be constructed from a set literal, in which case such set shall contai
 The attributes and operators defined on set instances are listed in the tables~\ref{table:dsdl_set_attributes}
 and~\ref{table:dsdl_set_operators}, where $E$ represents the set element type.
 
-\begin{UAVCANSimpleTable}{Attributes defined on instances of sets}{|l l X X|}
+\begin{CyphalSimpleTable}{Attributes defined on instances of sets}{|l l X X|}
     Name & Type & Constraints & Description
     \label{table:dsdl_set_attributes} \\
 
@@ -149,7 +148,7 @@ and~\ref{table:dsdl_set_operators}, where $E$ represents the set element type.
     \texttt{count} & \texttt{rational} & &
     Cardinality. \\
 
-\end{UAVCANSimpleTable}
+\end{CyphalSimpleTable}
 
 \newcommand\SetElementwiseOperator[1]{%
     \texttt{\textbf{#1}} & $(\texttt{set}_\texttt{<E>}, E) \rightarrow \texttt{set}_\texttt{<R>}$ & $E$ is not a set &
@@ -159,7 +158,7 @@ and~\ref{table:dsdl_set_operators}, where $E$ represents the set element type.
     Elementwise $(E, E) \rightarrow R$.\\
 }
 
-\begin{UAVCANSimpleTable}{Operators defined on instances of sets}{|l l l X|}%
+\begin{CyphalSimpleTable}{Operators defined on instances of sets}{|l l l X|}%
     \label{table:dsdl_set_operators}%
     Op & Type & Constraints & Description \\
 
@@ -200,7 +199,7 @@ and~\ref{table:dsdl_set_operators}, where $E$ represents the set element type.
     \SetElementwiseOperator{+}
     \SetElementwiseOperator{-}
 
-\end{UAVCANSimpleTable}
+\end{CyphalSimpleTable}
 
 \subsection{Serializable metatype}\label{sec:dsdl_metaserializable}
 
