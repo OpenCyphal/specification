@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SRC=UAVCAN_Specification
+SRC=Cyphal_Specification
 
 # https://tex.stackexchange.com/a/52994/132781
 export max_print_line=1000
