@@ -1,3 +1,3 @@
 # This file lists the Python dependencies that are necessary to build the specification.
 pygments
-pydsdl ~= 1.6
+pydsdl ~= 1.16
