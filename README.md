@@ -8,7 +8,7 @@ The sources of the Cyphal specification and other related documents are containe
 When cloning this repository, don't forget to initialize the Git submodules:
 `git submodule update --init --recursive`.
 
-## Governence
+## Governance
 
 The Cyphal specification is community-managed and completely open. Anyone can propose changes but only Cyphal maintainers may commit changes to this repository where the contents of the HEAD revision of the primary branch constitutes the latest version of the specification in-effect.
 
