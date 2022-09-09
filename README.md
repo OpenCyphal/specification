@@ -16,7 +16,7 @@ The Cyphal specification is community-managed and completely open. Anyone can pr
 
 Changes to the specification shall use the following, community-driven RFC process:
 
-1. An RFC is posted on the [OpenCyphal forum's specification topic](https://forum.opencyphal.org/c/dev/spec/15) with the details of the proposed change. The title of this post must start with "RFC: " to indicate it is the start of a proposed change to the specification.
+1. An RFC is posted on the [OpenCyphal forum's specification category](https://forum.opencyphal.org/c/dev/spec/15) with the details of the proposed change. The title of this post should start with "RFC: " to indicate it is the start of a proposed change to the specification.
 2. An OpenCyphal maintainer must sponsor new RFCs within 10 days of the posting or they expire.
     - Expired RFCs can be resubmitted after a three month cooling-off period.
 3. Once a maintainer has sponsored an RFC it remains open as long as there are active discussions.
