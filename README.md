@@ -16,18 +16,10 @@ The Cyphal specification is community-managed and completely open. Anyone can pr
 
 Changes to the specification shall use the following, community-driven RFC process:
 
-1. An RFC is posted on the [OpenCyphal forum's specification category](https://forum.opencyphal.org/c/dev/spec/15) with the details of the proposed change. The title of this post should start with "RFC: " to indicate it is the start of a proposed change to the specification.
-2. An OpenCyphal maintainer must sponsor new RFCs within 10 days of the posting or they expire.
-    - Expired RFCs can be resubmitted after a three month cooling-off period.
-3. Once a maintainer has sponsored an RFC it remains open as long as there are active discussions.
-   - After 10 days of no additional comments or after the sponsoring Maintainer deems the discussion is complete the RFC is ready to be either accepted or rejected.
-   - An RFC shall remain open for comments for at least 10 days from the date it was sponsored regardless of the sponsoring Maintainer's opinion.
-   - Any maintainer can remove any open RFC at any time, without regard to any other rule, if it or the subsequent discussion violates the forum's community standards.
-   - An open RFC can be removed from the forum, without regard to any other rule, if two or more maintainers agree to remove it.
-4. Once an RFC is ready for a final disposition at least one maintainer, _other than the sponsoring maintainer_, and the majority of active maintainers shall determine if the RFC is accepted or rejected.
-    - Rejected RFCs can be resubmitted after a 3-month cooling-off period.
-5. After an RFC is accepted on the forum the change can be made to the specification in this repository. The Pull Request must reference the forum discussion and at least one maintainer must agree that the change is correct as specified by the text of the approved RFC.
-    - If an RFC is not reified by a change to the Specification within three months of approval then it expires. Expired RFCs can be resubmitted after a 3-month cooling off period.
+1. An RFC is posted on the [OpenCyphal forum's specification topic](https://forum.opencyphal.org/c/dev/spec/15) with the details of the proposed change. The title of this post should start with "RFC: " to indicate it is the start of a proposed change to the specification.
+2. RFCs will remain on the forum for at least 10 days to ensure interested parties have time to discover and review them.
+3. After some discussion and review by the community, the RFC is either accepted or rejected by at least on OpenCyphal maintainer.
+4. Once accepted the RFC is implemented in the specification as a pull-request and is considered adopted once the PR has been merged.
 
 ## Editing guide
 
