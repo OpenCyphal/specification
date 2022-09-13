@@ -18,7 +18,7 @@ Changes to the specification shall use the following, community-driven RFC proce
 
 1. An RFC is posted on the [OpenCyphal forum's specification topic](https://forum.opencyphal.org/c/dev/spec/15) with the details of the proposed change. The title of this post should start with "RFC: " to indicate it is the start of a proposed change to the specification.
 2. RFCs will remain on the forum for at least 10 days to ensure interested parties have time to discover and review them.
-3. After some discussion and review by the community, the RFC is either accepted or rejected by at least on OpenCyphal maintainer.
+3. After some discussion and review by the community, the RFC is either accepted or rejected by at least one OpenCyphal maintainer.
 4. Once accepted the RFC is implemented in the specification as a pull-request and is considered adopted once the PR has been merged.
 
 ## Editing guide
