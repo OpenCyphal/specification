@@ -1,12 +1,13 @@
-# A workflow to create the UAVCAN Specification PDF
+# A workflow to create the Cyphal Specification PDF
 
 name: CI
-on: push
+on: [ push, pull_request ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     name: Build PDF file using LaTeX
+    if: github.event_name == 'pull_request' || contains(github.ref, '/master') || contains(github.ref, '/dev')
 
     steps:
     # Checks-out the repository under $GITHUB_WORKSPACE
@@ -15,7 +16,7 @@ jobs:
       with:
         submodules: recursive
 
-    # Compile the UAVCAN specification with texer DockerHub container
+    # Compile the Cyphal specification with texer DockerHub container
     - name: Run texer container
       uses: docker://uavcan/texer:ubuntu-18.04
       with:
@@ -26,5 +27,5 @@ jobs:
     - name: Upload pdf as an artifact
       uses: actions/upload-artifact@v2
       with:
-        name: UAVCAN Specification
-        path: specification/UAVCAN_Specification.pdf
+        name: Cyphal Specification
+        path: specification/Cyphal_Specification.pdf
