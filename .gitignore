@@ -1,4 +1,4 @@
 *.tmp
 *.cache
 .mypy_cache
-
+.DS_Store

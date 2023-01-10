@@ -216,6 +216,9 @@ The Cyphal specification contains references to the following sources:
 
     \item The default extent function has been removed (section \ref{sec:dsdl_composite_extent_and_sealing}).
     The extent now has to be specified explicitly always unless the data type is sealed.
+
+    \item The constraint on DSDL namespaces being defined in a single folder was removed. Namespaces can be hosted
+    across multiple repositories and code can be generated from a union of said folders.
 \end{itemize}
 
 \subsection{v1.0-beta -- Sep 2020}
