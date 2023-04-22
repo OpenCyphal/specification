@@ -15,7 +15,18 @@ Cyphal can be approximated as a highly deterministic decentralized object reques
 with a specialized interface description language and a highly efficient data serialization format
 suitable for use in real-time safety-critical systems with optional modular redundancy.
 
-The name Cyphal stands for \emph{Uncomplicated Application-level Vehicular Computing And Networking}.
+``Cyphal'' is an invented word; a portmanteau of ``cyber'' and ``hyphal''.
+The former references cyber-physical systems,
+which is a generalization of the type of system this new protocol is optimized for.
+The latter describes hypha --- branching structures found in the fungal symbionts of mycorrhizal networks\footnote{%
+    A mycorrhizal network is an underground network found in forests and other plant communities,
+    created by the hyphae of mycorrhizal fungi joining with plant roots.
+    This network connects individual plants together and transfers water, carbon, nitrogen,
+    and other nutrients and minerals between participants.
+    ---
+    \emph{Mycorrhizal network. (2023, April 13). In Wikipedia. \url{https://en.wikipedia.org/wiki/Mycorrhizal_network}}
+}.
+That circuitous route creates a name meaning a cyber-physical, low-level, and tightly integrated network.
 
 Cyphal is a standard open to everyone, and it will always remain this way.
 No authorization or approval of any kind is necessary for its implementation, distribution, or use.
@@ -24,7 +35,7 @@ The development and maintenance of the Cyphal specification is governed through 
 software repositories, and other resources available via the official website at
 \href{http://opencyphal.org}{opencyphal.org}.
 
-Engineers seeking to leverage Cyphal should also consult with \emph{The Cyphal Guide} --
+Engineers seeking to leverage Cyphal should also consult with the \emph{Cyphal Guide} --
 a separate textbook available via the official website.
 
 \section{Document conventions}
@@ -151,7 +162,7 @@ Application-level capabilities of the protocol (such as time synchronization, fi
 node software update, diagnostics, schemaless named registers, diagnostics, plug-and-play node insertion, etc.)
 are listed in section~\ref{sec:application_functions}.
 
-The core specification does not define nor explicitly limit any physical layers for a given transport, however;
+The core specification does not define nor explicitly limit any physical layers for a given transport; however,
 properties required by Cyphal may imply or impose constraints and/or minimum performance requirements on physical
 networks. Because of this, the core standard does not control compatibility below a supported transport layer between
 compliant nodes on a physical network (i.e. there are no, anticipated, compatibility concerns between compliant nodes
