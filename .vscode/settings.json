@@ -55,5 +55,6 @@
     ],
     "spellright.language": [
         "en_US"
-    ]
+    ],
+    "cSpell.enabled": false,
 }
