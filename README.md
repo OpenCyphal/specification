@@ -123,8 +123,13 @@ When done, run `./compile.sh`.
 
 #### Using texer
 
-You can use our Docker container to build the specification if you don't want to setup your own build environment.
-Build `.devcontainer/Dockerfile` and run `./compile.sh` inside the container.
+You can use our texer container to build the specification if you don't want to setup your own build environment.
+Please consult with the CI/CD workflow to find out which container version should be used.
+To enter the container from a local shell, go roughly like this:
+
+```sh
+docker run -it --rm -v $(pwd):/repo -e LOCAL_USER_ID=`id -u` ghcr.io/opencyphal/texer:te22.4.1 bash
+```
 
 ### IDE setup
 
