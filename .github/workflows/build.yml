@@ -26,3 +26,11 @@ jobs:
         name: Cyphal Specification
         path: specification/Cyphal_Specification.pdf
         if-no-files-found: error
+
+    - name: Upload diagnostic snapshot
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: workspace-${{github.job}}
+        path: '*'
+        retention-days: 3
