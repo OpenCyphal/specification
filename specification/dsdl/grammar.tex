@@ -260,5 +260,8 @@ Line comments that match the following regular expression are reserved for vendo
 \verb|^#\[.+\].*|
 
 \begin{remark}
-    For example, \verb|#[canadensis(enum_start)]|.
+    \begin{minted}{python}
+        #[canadensis(enum_start)] all of this line is part of the reserved form.
+        # After the newline this comment is now a regular DSDL comment.
+    \end{minted}
 \end{remark}
