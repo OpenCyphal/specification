@@ -18,7 +18,13 @@ jobs:
       uses: docker://ghcr.io/opencyphal/texer:te22.4.1
       with:
         entrypoint: /bin/bash
-        args: -c "pip install -U setuptools && pip install -r requirements.txt && ./compile.sh"
+        args: >
+          -c "
+          git config --global --add safe.directory '*'    &&
+          pip install -U setuptools                       &&
+          pip install -r requirements.txt                 &&
+          ./compile.sh
+          "
 
     - name: Upload pdf as an artifact
       uses: actions/upload-artifact@v3
