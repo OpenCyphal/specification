@@ -4,7 +4,6 @@
     "recommendations": [
         "James-Yu.latex-workshop",
         "uavcan.dsdl",
-        "ban.spellright",
         "ms-vscode-remote.vscode-remote-extensionpack"
     ]
 }

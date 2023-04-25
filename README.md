@@ -123,19 +123,21 @@ When done, run `./compile.sh`.
 
 #### Using texer
 
-You can use our Docker container to build the specification if you don't want to setup your own build environment.
-Build `.devcontainer/Dockerfile` and run `./compile.sh` inside the container.
+You can use our texer container to build the specification if you don't want to setup your own build environment.
+Please consult with the CI/CD workflow to find out which container version should be used.
+To enter the container from a local shell, go roughly like this:
+
+```sh
+docker run -it --rm -v $(pwd):/repo -e LOCAL_USER_ID=`id -u` ghcr.io/opencyphal/texer:te22.4.1 bash
+```
 
 ### IDE setup
 
 First, ensure that you can compile the document as described above.
 Do not proceed further until that requirement is satisfied.
 
-Use Visual Studio Code with extensions `James-Yu.latex-workshop` and `ban.spellright` for editing.
+Use Visual Studio Code with the recommended extensions for editing.
 More info in the [Zubax Knowledge Base](https://kb.zubax.com/x/IYEh).
-
-If you're using Visual Studio Code there are local settings for `latex-workshop` and you can use
-the `.vscode/spellright.dict` to squelch bogus spelling errors from Spellright.
 
 #### L33t IDE Setup
 

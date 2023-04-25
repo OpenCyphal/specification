@@ -1,31 +1,42 @@
 # A workflow to create the Cyphal Specification PDF
 
 name: CI
-on: [ push, pull_request ]
+on: push
 
 jobs:
   build:
     runs-on: ubuntu-latest
     name: Build PDF file using LaTeX
-    if: github.event_name == 'pull_request' || contains(github.ref, '/master') || contains(github.ref, '/dev')
 
     steps:
-    # Checks-out the repository under $GITHUB_WORKSPACE
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         submodules: recursive
 
-    # Compile the Cyphal specification with texer DockerHub container
     - name: Run texer container
-      uses: docker://uavcan/texer:ubuntu-18.04
+      uses: docker://ghcr.io/opencyphal/texer:te22.4.1
       with:
         entrypoint: /bin/bash
-        args: -c "pip install -U setuptools && pip install -r requirements.txt && ./compile.sh"
+        args: >
+          -c "
+          git config --global --add safe.directory '*'    &&
+          pip install -U setuptools                       &&
+          pip install -r requirements.txt                 &&
+          ./compile.sh
+          "
 
-    # Upload artifact
     - name: Upload pdf as an artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: Cyphal Specification
         path: specification/Cyphal_Specification.pdf
+        if-no-files-found: error
+
+    - name: Upload diagnostic snapshot
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: workspace-${{github.job}}
+        path: '*'
+        retention-days: 3
