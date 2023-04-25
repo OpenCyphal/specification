@@ -257,11 +257,13 @@ in this version of the DSDL specification, but this may change in the future.
 \subsection{Reserved comment forms}\label{sec:dsdl_reserved_comment}
 
 Line comments that match the following regular expression are reserved for vendor-specific language extensions:
-\verb|^#\[.+\].*|
+\verb|^\s*#\[.+\]\s*$|
 
 \begin{remark}
     \begin{minted}{python}
-        #[canadensis(enum_start)] all of this line is part of the reserved form.
+        # The following line matches the reserved form:
+        #[canadensis(enum)]
         # After the newline this comment is now a regular DSDL comment.
+        #[canadensis(enum)] This is not reserved because it contains extra text after the bracket
     \end{minted}
 \end{remark}
