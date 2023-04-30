@@ -1,0 +1,319 @@
+\section{Cyphal/UDP}\label{sec:transport_can}
+
+\hyphenation{Cyphal/UDP}  % Disable hyphenation.
+
+\subsection{Overview}
+
+This section specifies a concrete transport based on the UDP/IPv4 protocol\footnote{%
+    Support for IPv6 may appear in future versions of this specification.
+}, as specified in IETF RFC~768.
+\textbf{
+    As of this version, the Cyphal/UDP specification remains experimental.
+    Breaking changes affecting wire compatibility are possible.
+}
+
+Cyphal/UDP is intended for low-latency, high-throughput intravehicular Ethernet networks with complex topologies,
+which may be switched, multi-drop, or mixed.
+A network utilizing Cyphal/UDP can be built with standards-compliant commercial off-the-shelf
+networking equipment and software.
+
+Cyphal/UDP relies exclusively on IP multicast traffic defined in IETF RFC~1112 for all communication\footnote{%
+    For rationale, refer to \url{https://forum.opencyphal.org/t/1765}.
+}.
+The entirety of the session specifier (section~\ref{sec:transport_session_specifier})
+is reified through the multicast group address.
+The transfer-ID, transfer priority, and the multi-frame transfer reassembly metadata are allocated in the
+Cyphal-specific fixed-size UDP datagram header.
+In this transport, a UDP datagram represents a single Cyphal transport frame.
+All UDP datagrams are addressed to the same, fixed, destination port,
+while the source port and the source address bear no relevance for the protocol and thus can be arbitrary.
+
+\begin{CyphalSimpleTable}{Cyphal/UDP transport capabilities\label{table:transport_can_capabilities}}{|l X l|}
+    Parameter & Value & References \\
+
+    Maximum node-ID value &
+    65534 (16 bits wide). &
+    \ref{sec:basic} \\
+
+    Transfer-ID mode &
+    Monotonic, 64 bits wide. &
+    \ref{sec:transport_transfer_id} \\
+
+    Number of transfer priority levels &
+    8 (no additional levels). &
+    \ref{sec:transport_transfer_priority} \\
+
+    Largest single-frame transfer payload &
+    % 484 bytes = 508 bytes minus 24 bytes for the Cyphal/UDP header.
+    % 65483 bytes = 65507 bytes minus 24 bytes for the Cyphal/UDP header.
+    Implementation-defined, but not less than 484~bytes and not greater than 65483~bytes. &
+    \ref{sec:transport_transfer_payload} \\
+
+    Anonymous transfers &
+    Available. &
+    \ref{sec:transport_route_specifier} \\
+\end{CyphalSimpleTable}
+
+\subsection{UDP/IP endpoints and routing}
+
+Transmission of a Cyphal/UDP transport frame is performed by sending a suitably constructed UDP datagram
+to the destination IP multicast group address computed from the session specifier
+as shown in figure~\ref{fig:transport_udp_multicast_group_address}
+with the fixed destination port number \textbf{9382}.
+
+\begin{figure}[H]
+    \centering
+    $$
+    \overbrace{
+        \underbrace{
+            \texttt{\huge{1110}}
+        }_{\substack{\text{RFC~1112} \\ \text{multicast} \\ \text{prefix}}}%
+        \underbrace{
+            \texttt{\huge{1111}}
+        }_{\substack{\text{RFC~2365} \\ \text{administrative} \\ \text{scope}}}%
+    }^{\text{Most significant octet}}%
+    \texttt{\huge{.}}% ----------------------------------------
+    \overbrace{
+        \underbrace{
+            \texttt{\huge{0}}
+        }_{\substack{\text{RFC~2365} \\ \text{reserved} \\ \text{range}}}%
+        \underbrace{
+            \texttt{\huge{0}}
+        }_{\substack{\text{address} \\ \text{version}}}%
+        \underbrace{
+            \texttt{\huge{00000}}
+        }_{\substack{\text{reserved} \\ \text{keep zero}}}%
+        \underbrace{
+            \texttt{\huge{Z}}
+        }_{\substack{\text{service,} \\ \text{not} \\ \text{message}}}%
+    }^{\text{3rd octet}}%
+    \texttt{\huge{.}}% ----------------------------------------
+    \underbrace{
+        \overbrace{\texttt{\huge{XXXXXXXX}}}^{\text{2nd octet}}
+        \texttt{\huge{.}}
+        \overbrace{\texttt{\huge{XXXXXXXX}}}^{\text{Least significant octet}}
+    }_{\substack{\text{\textbf{if Z:} destination node-ID} \\ \text{\textbf{else:} subject-ID}}}%
+    $$
+    Numbers given in base-2.
+    \caption{IP multicast group address structure\label{fig:transport_udp_multicast_group_address}}
+\end{figure}
+
+\begin{CyphalSimpleTable}[wide]{
+    IP multicast group address bit fields\label{table:transport_udp_multicast_group_address}
+}{|l l l l X|}
+    Field & Offset & Width & Value & Description \\
+
+    RFC~1112 multicast prefix &
+    28 & 4 & $1110_2$ &
+    \\
+
+    RFC~2365 scope &
+    24 & 4 & $1111_2$ &
+    Selects the administratively scoped range 239.0.0.0/8 per RFC~2365
+    to avoid collisions with well-known multicast groups. \\
+
+    RFC~2365 reserved range &
+    23 & 1 & $0_2$ &
+    Selects the ad-hoc defined range 239.0.0.0/9 per RFC~2365. \\
+
+    Cyphal/UDP address version &
+    22 & 1 & $0_2$ &
+    Deconflicts this layout with future revisions. \\
+
+    Reserved &
+    17 & 5 & $00000_2$ &
+    May be used for domain-ID segregation in future versions. \\
+
+    Z: service, not message &
+    16 & 1 & any &
+    Set for service transfers, cleared for message transfers. \\
+
+    X if Z: destination node-ID &
+    0 & 16 & $[0, 65534]$ &
+    The destination node-ID of the current service transfer. \\
+
+    X if not Z: subject-ID &
+    0 & 16 & $[0, 8191]$ &
+    The subject-ID of the current message transfer. \\
+\end{CyphalSimpleTable}
+
+A subscriber to certain Cyphal subjects will join the IP multicast groups corresponding to said subjects.
+Likewise, a node that provides at least one RPC-service will join the IP multicast group corresponding to
+its own node-ID\footnote{Observe that multicast groups are not differentiated by service-ID.}.
+
+The IP address of a node bears no relevance for the protocol ---
+multiple nodes may share the same IP address; likewise, a node may have more than one IP address.
+Nodes on a Cyphal/UDP network are identified exclusively by their node-ID value.
+The set of valid node-ID values for Cyphal/UDP is $[0, 65534]$.
+Value 65535 is reserved to represent both the broadcast and anonymous node-ID, depending on context.
+
+Sources of Cyphal/UDP traffic should set the packet TTL to 16 or higher\footnote{%
+    RFC~1112 prescribes a default TTL of 1,
+    but this is not sufficient for most applications Cyphal/UDP is intended for.
+}.
+
+The DSCP\footnote{RFC~2474} field of outgoing IP packets
+should be populated based on the Cyphal transfer priority level (section~\ref{sec:transport_transfer_priority})
+such that the maximum Cyphal priority level corresponds to class selector CS7
+and the minimum Cyphal priority level corresponds to class selector CS0,
+with the intermediate values mapped following the same principle.
+
+\begin{remark}
+    \begin{CyphalSimpleTable}{
+        Recommended DSCP class selector values\label{table:transport_udp_priority}
+    }{|l l l l|}
+        Cyphal priority & DSCP class selector & IP precedence value & IP precedence name      \\
+        Exceptional     & CS7                 & 7                     & network control       \\
+        Immediate       & CS6                 & 6                     & internetwork control  \\
+        Fast            & CS5                 & 5                     & critical              \\
+        High            & CS4                 & 4                     & flash override        \\
+        Nominal         & CS3                 & 3                     & flash                 \\
+        Low             & CS2                 & 2                     & immediate             \\
+        Slow            & CS1                 & 1                     & priority              \\
+        Optional        & CS0                 & 0                     & routine               \\
+    \end{CyphalSimpleTable}
+
+    The implementation of suitable network policies is outside the scope of this document.
+    RFC~4594 provides a starting point for the design of such policies.
+\end{remark}
+
+\begin{remark}
+    Freezing (at least) the 9 most significant bits of the multicast group address ensures that
+    the variability is confined to the 23 least significant bits of the address only,
+    which is desirable because the IPv4 Ethernet MAC layer does not differentiate beyond the
+    23 least significant bits of the multicast group address.
+    That is, addresses that differ only in the 9 MSb collide at the MAC layer,
+    which is unacceptable in a real-time system; see RFC~1112 section 6.4.
+    Without this limitation, an engineer designing a network might inadvertently create a configuration
+    that causes MAC-layer collisions which may be difficult to detect.
+\end{remark}
+
+\begin{remark}
+    Per RFC~1112, in order to emit multicast traffic,
+    a limited level-1 implementation without the full support of IGMP and multicast-specific packet handling policies
+    is sufficient.
+    Thus, trivial nodes that are only required to publish messages on the network may be implemented
+    without the need for a full IGMP stack.
+
+    The reliance on IP multicasting exclusively allows baremetal implementations to omit ARP support.
+\end{remark}
+
+\begin{remark}
+    Due to the dynamic nature of the IGMP protocol,
+    a newly configured subscriber may not immediately receive data from the subject ---
+    a brief subscription initialization delay may occur
+    because the underlying IGMP stack needs to inform the router about its interest
+    in the specified multicast group by sending an IGMP membership report first.
+    Certain high-integrity applications may choose to rely on static switch configurations
+    to eliminate the subscription initialization delay.
+\end{remark}
+
+\subsection{UDP datagram payload format}
+
+The layout of the Cyphal/UDP datagram payload header is shown in the following snippet in DSDL notation.
+The payload header is followed by the payload data, which is opaque to the protocol.
+
+\begin{samepage}
+\begin{minted}{python}
+    uint4 version
+    # The version of the Cyphal/UDP protocol. This document specifies version 1.
+    # Packets with an unknown version number must be ignored.
+
+    void4
+
+    uint3 priority
+    # The values are assigned from 0 (HIGHEST priority) to 7 (LOWEST priority).
+    # The numerical priority identifiers are chosen to be consistent with Cyphal/CAN.
+
+    void5
+
+    uint16 source_node_id
+    # The node-ID of the source node.
+    # Value 65535 represents anonymous transfers.
+
+    uint16 destination_node_id
+    # The node-ID of the destination node.
+    # Value 65535 represents broadcast transfers.
+
+    uint15 data_specifier
+    # If this is a service request transfer, this value equals the service-ID.
+    # If this is a service response transfer, this value equals 16384 + service-ID.
+    # If this is a message transfer, this value equals the subject-ID.
+
+    bool service_not_message
+    # If true, this is a service transfer. If false, this is a message transfer.
+
+    @assert _offset_ == {64}
+    uint64 transfer_id
+    # The monotonic transfer-ID value of the current transfer.
+
+    uint31 frame_index
+    # Zero for a single-frame transfer and for the first frame of a multi-frame transfer.
+    # Incremented by one for each subsequent frame of a multi-frame transfer.
+
+    bool end_of_transfer
+    # True if this is the last frame of a multi-frame transfer.
+
+    uint16 user_data
+    # Opaque application-specific data with user-defined semantics.
+    # Generic implementations should emit zero and ignore this field upon reception.
+
+    uint8[2] header_crc16_big_endian
+    # CRC-16/CCITT-FALSE of all of the preceding fields represented in the big endian byte order.
+    #   - Initial value:  0xFFFF
+    #   - Polynomial:     0x1021
+    #   - Reverse:        No
+    #   - Output XOR:     0
+    #   - Residue:        0
+
+    @assert _offset_ / 8 == {24}
+    @sealed     # The payload data follows.
+\end{minted}
+\end{samepage}
+
+\subsection{Transfer CRC}
+
+\begin{samepage}
+\begin{minted}{cpp}
+#include <array>
+#include <cstdint>
+
+/// Size-optimized implementation of CRC32-C (Castagnoli) in C++.
+class CRC32C final
+{
+public:
+    static constexpr std::size_t Size = 4;
+
+    void update(const std::uint8_t b) noexcept
+    {
+        value_ ^= static_cast<std::uint32_t>(b);
+        for (auto i = 0U; i < BitsPerByte; i++)
+        {
+            value_ = ((value_ & 1U) != 0) ? ((value_ >> 1U) ^ ReflectedPoly) : (value_ >> 1U);
+        }
+    }
+
+    [[nodiscard]] auto get() const noexcept { return value_ ^ Xor; }
+
+    [[nodiscard]] auto getBytes() const noexcept -> std::array<std::uint8_t, Size>
+    {
+        const auto x = get();
+        return {
+            static_cast<std::uint8_t>(x >> (BitsPerByte * 0U)),
+            static_cast<std::uint8_t>(x >> (BitsPerByte * 1U)),
+            static_cast<std::uint8_t>(x >> (BitsPerByte * 2U)),
+            static_cast<std::uint8_t>(x >> (BitsPerByte * 3U)),
+        };
+    }
+
+    [[nodiscard]] auto isResidueCorrect() const noexcept { return value_ == Residue; }
+
+private:
+    static constexpr std::uint32_t Xor           = 0xFFFF'FFFFUL;
+    static constexpr std::uint32_t ReflectedPoly = 0x82F6'3B78UL;
+    static constexpr std::uint32_t Residue       = 0xB798'B438UL;
+
+    std::uint32_t value_ = Xor;
+};
+\end{minted}
+\end{samepage}
