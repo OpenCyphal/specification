@@ -44,9 +44,9 @@ while the source port and the source address bear no relevance for the protocol 
     \ref{sec:transport_transfer_priority} \\
 
     Largest single-frame transfer payload &
-    % 484 bytes = 508 bytes minus 24 bytes for the Cyphal/UDP header.
-    % 65483 bytes = 65507 bytes minus 24 bytes for the Cyphal/UDP header.
-    Implementation-defined, but not less than 484~bytes and not greater than 65483~bytes. &
+    % 480 bytes = 508 bytes minus 24 bytes for the Cyphal/UDP header minus 4 bytes for the transfer CRC.
+    % 65479 bytes = 65507 bytes minus 24 bytes for the Cyphal/UDP header minus 4 bytes for the transfer CRC.
+    Implementation-defined, but not less than 480~bytes and not greater than 65479~bytes. &
     \ref{sec:transport_transfer_payload} \\
 
     Anonymous transfers &
@@ -58,6 +58,7 @@ while the source port and the source address bear no relevance for the protocol 
 
 Transmission of a Cyphal/UDP transport frame is performed by sending a suitably constructed UDP datagram
 to the destination IP multicast group address computed from the session specifier
+(section~\ref{sec:transport_session_specifier})
 as shown in figure~\ref{fig:transport_udp_multicast_group_address}
 with the fixed destination port number \textbf{9382}.
 
@@ -143,7 +144,12 @@ its own node-ID\footnote{Observe that multicast groups are not differentiated by
 
 The IP address of a node bears no relevance for the protocol ---
 multiple nodes may share the same IP address; likewise, a node may have more than one IP address.
-Nodes on a Cyphal/UDP network are identified exclusively by their node-ID value.
+Nodes on a Cyphal/UDP network are identified exclusively by their node-ID value\footnote{%
+    A node that is registered on an IP network (e.g., via DHCP)
+    still needs to obtain a node-ID value to participate in a Cyphal/UDP network.
+    This may be done either through manual assignment or by using the plug-and-play node-ID allocation service
+    (section~\ref{sec:application_functions_pnp}).
+}.
 The set of valid node-ID values for Cyphal/UDP is $[0, 65534]$.
 Value 65535 is reserved to represent both the broadcast and anonymous node-ID, depending on context.
 
@@ -292,7 +298,7 @@ refer to section~\ref{sec:appendix_crc16ccitt_false} for further information.
 \begin{remark}
     Certain states provided in the header duplicate information that is already available in the IP header
     or the multicast group address.
-    This is done for reasons of unification of the header format with other standard transport layer implementations,
+    This is done for reasons of unification of the header format with other standard transport layer definitions,
     and to simplify the access to the transfer parameters that otherwise would be hard to reach above the
     network layer, such as the DSCP value.
     The latter consideration is particularly important for forwarding nodes.
@@ -319,3 +325,13 @@ An implementation receiving a transfer should verify the correctness of its tran
     unless the transfer CRC field has spilled over to the next frame
     (in which case the frame would contain only the transfer CRC itself or the tail thereof).
 \end{remark}
+
+\subsection{Maximum transmission unit}
+
+In this section, the maximum transmission unit (MTU) is defined as the maximum size of a UDP/IP datagram payload.
+
+This specification does not restrict the MTU of the underlying transport.
+It is recommended, however, to avoid MTU values less than 508~bytes to allow reduced (simplified) implementations
+of the protocol that do not require large transfer payloads to omit support for multi-frame transfers.
+The MTU of 508 bytes allows applications to exchange up to $508 - 24 - 4 = 480$ bytes of payload
+in a single-frame transfer.
