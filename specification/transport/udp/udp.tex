@@ -189,6 +189,11 @@ with the intermediate values mapped following the same principle.
 \end{remark}
 
 \begin{remark}
+    For example, the multicast group address for subject 42 is 239.0.0.42.
+    The multicast group address for a service transfer with the destination node-ID of 42 is 239.1.0.42.
+\end{remark}
+
+\begin{remark}
     Per RFC~1112, in order to emit multicast traffic,
     a limited level-1 implementation without the full support of IGMP and multicast-specific packet handling policies
     is sufficient.
@@ -210,13 +215,26 @@ with the intermediate values mapped following the same principle.
 
 \subsection{UDP datagram payload format}
 
-The layout of the Cyphal/UDP datagram payload header is shown in the following snippet in DSDL notation.
+The layout of the Cyphal/UDP datagram payload header is shown in the following snippet in DSDL notation
+(section~\ref{sec:dsdl}).
 The payload header is followed by the payload data, which is opaque to the protocol.
 
 \begin{samepage}
 \begin{minted}{python}
+# This 24-byte header can be aliased as a C structure with each field being naturally aligned:
+#
+#       uint8_t     version;
+#       uint8_t     priority;
+#       uint16_t    source_node_id;
+#       uint16_t    destination_node_id;
+#       uint16_t    data_specifier_snm;
+#       uint64_t    transfer_id;
+#       uint32_t    frame_index_eot;
+#       uint16_t    user_data;
+#       uint8_t[2]  header_crc16_big_endian;
+
 uint4 version
-# The version of the Cyphal/UDP protocol. This document specifies version 1.
+# The version of the header format. This document specifies version 1.
 # Packets with an unknown version number must be ignored.
 
 void4
@@ -224,6 +242,7 @@ void4
 uint3 priority
 # The values are assigned from 0 (HIGHEST priority) to 7 (LOWEST priority).
 # The numerical priority identifiers are chosen to be consistent with Cyphal/CAN.
+# Notice that this is the opposite of the priority ordering in the IP DSCP field.
 
 void5
 
@@ -245,7 +264,7 @@ bool service_not_message
 
 @assert _offset_ == {64}
 uint64 transfer_id
-# The monotonic transfer-ID value of the current transfer.
+# The monotonic transfer-ID value of the current transfer (never overflows).
 
 uint31 frame_index
 # Zero for a single-frame transfer and for the first frame of a multi-frame transfer.
@@ -259,9 +278,44 @@ uint16 user_data
 # Generic implementations should emit zero and ignore this field upon reception.
 
 uint8[2] header_crc16_big_endian
-# CRC-16/CCITT-FALSE of all of the preceding fields represented in the big endian byte order.
+# CRC-16/CCITT-FALSE of the preceding serialized header data in the big endian byte order.
+# Application of the CRC function to the entire header shall yield zero, otherwise the header is malformed.
 
 @assert _offset_ / 8 == {24}
 @sealed     # The payload data follows.
 \end{minted}
 \end{samepage}
+
+The header CRC function is \textbf{CRC-16/CCITT-FALSE};
+refer to section~\ref{sec:appendix_crc16ccitt_false} for further information.
+
+\begin{remark}
+    Certain states provided in the header duplicate information that is already available in the IP header
+    or the multicast group address.
+    This is done for reasons of unification of the header format with other standard transport layer implementations,
+    and to simplify the access to the transfer parameters that otherwise would be hard to reach above the
+    network layer, such as the DSCP value.
+    The latter consideration is particularly important for forwarding nodes.
+\end{remark}
+
+\subsection{Transfer payload}
+
+After the transfer payload is constructed but before it is scheduled for transmission over the network,
+it is appended with the transfer CRC field.
+The transfer CRC function is \textbf{CRC-32C} (section~\ref{sec:appendix_crc32c}),
+and its value is serialized in the little-endian byte order.
+The transfer CRC function is applied to the entire transfer payload and only transfer payload.
+
+The transfer CRC is provided for all transfers,
+including single-frame transfers and transfers with an empty payload\footnote{%
+    This provides end-to-end integrity protection for the transfer payload.
+}.
+An implementation receiving a transfer should verify the correctness of its transfer CRC.
+
+\begin{remark}
+    From the perspective of the multi-frame segmentation logic, the transfer CRC field is part of the transfer payload.
+    From the definition of the header format it follows that the transfer CRC can only be found at the end of
+    the packet if the \verb|end_of_transfer| bit is set,
+    unless the transfer CRC field has spilled over to the next frame
+    (in which case the frame would contain only the transfer CRC itself or the tail thereof).
+\end{remark}
