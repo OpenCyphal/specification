@@ -5,19 +5,24 @@
 This algorithm is also known as CRC-16/AUTOSAR or CRC-16/IBM-3740.
 Not to be confused with CRC-16/KERMIT.
 
-Width 16 bits,
-polynomial $\mathrm{1021}_{16}$,
-initial value $\mathrm{FFFF}_{16}$,
-not reflected,
-no output XOR.
-The native byte order is big endian.
+This algorithm has the following parameters:
+\begin{itemize}
+    \item width: 16 bits;
+    \item polynomial: $\mathrm{1021}_{16}$;
+    \item initial value: $\mathrm{FFFF}_{16}$;
+    \item input not reflected;
+    \item output not reflected;
+    \item no output XOR;
+    \item the native byte order is big endian.
+\end{itemize}
 
-The value for an input sequence $\left(49, 50, \ldots, 56, 57\right)$ is $\mathrm{29B1}_{16}$.
+The value for the input sequence $\left(49, 50, \ldots, 56, 57\right)$ is $\mathrm{29B1}_{16}$.
 
 \subsection{C++, bitwise}
 
 \begin{samepage}
 \begin{minted}{cpp}
+#include <array>
 #include <cstdint>
 #include <cstddef>
 
@@ -49,6 +54,12 @@ public:
     }
 
     [[nodiscard]] std::uint16_t get() const { return value_; }
+
+    [[nodiscard]] std::array<std::uint8_t, 2> getBytes() const noexcept
+    {
+        const auto x = get();
+        return {static_cast<std::uint8_t>(x >> 8U), static_cast<std::uint8_t>(x & 0xFFU)};
+    }
 
 private:
     std::uint16_t value_ = 0xFFFFU;
@@ -123,15 +134,19 @@ class CRC16CCITT:
 
 This algorithm is also known as CRC-32/ISCSI, CRC-32/CASTAGNOLI, CRC-32/BASE91-C, or CRC-32/INTERLAKEN.
 
-Width 32 bits,
-polynomial $\mathrm{1EDC6F41}_{16}$,
-initial value $\mathrm{FFFFFFFF}_{16}$,
-input reflected, output reflected,
-output XOR $\mathrm{FFFFFFFF}_{16}$,
-residue $\mathrm{B798B438}_{16}$.
-The native byte order is little endian.
+This algorithm has the following parameters:
+\begin{itemize}
+    \item width: 32 bits;
+    \item polynomial: $\mathrm{1EDC6F41}_{16}$;
+    \item initial value: $\mathrm{FFFFFFFF}_{16}$;
+    \item input reflected;
+    \item output reflected;
+    \item output XOR: $\mathrm{FFFFFFFF}_{16}$;
+    \item residue: $\mathrm{B798B438}_{16}$ before output XOR, $\mathrm{48674BC7}_{16}$ after output XOR;
+    \item the native byte order is little endian.
+\end{itemize}
 
-The value for an input sequence $\left(49, 50, \ldots, 56, 57\right)$ is $\mathrm{E3069283}_{16}$.
+The value for the input sequence $\left(49, 50, \ldots, 56, 57\right)$ is $\mathrm{E3069283}_{16}$.
 
 \subsection{C++, bitwise}
 
@@ -139,6 +154,7 @@ The value for an input sequence $\left(49, 50, \ldots, 56, 57\right)$ is $\mathr
 \begin{minted}{cpp}
 #include <array>
 #include <cstdint>
+#include <cstddef>
 
 class CRC32C final
 {
