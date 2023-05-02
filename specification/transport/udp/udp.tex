@@ -261,9 +261,9 @@ uint16 destination_node_id
 # Value 65535 represents broadcast transfers.
 
 uint15 data_specifier
+# If this is a message transfer, this value equals the subject-ID.
 # If this is a service request transfer, this value equals the service-ID.
 # If this is a service response transfer, this value equals 16384 + service-ID.
-# If this is a message transfer, this value equals the subject-ID.
 
 bool service_not_message
 # If true, this is a service transfer. If false, this is a message transfer.
@@ -277,7 +277,7 @@ uint31 frame_index
 # Incremented by one for each subsequent frame of a multi-frame transfer.
 
 bool end_of_transfer
-# True if this is the last frame of a multi-frame transfer.
+# True if this is the last frame of a multi-frame transfer, or a single-frame transfer.
 
 uint16 user_data
 # Opaque application-specific data with user-defined semantics.
