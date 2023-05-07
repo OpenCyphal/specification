@@ -1,4 +1,4 @@
-\section{Cyphal/UDP}\label{sec:transport_udp}
+\section{Cyphal/UDP (experimental)}\label{sec:transport_udp}
 
 \hyphenation{Cyphal/UDP}  % Disable hyphenation.
 
@@ -60,7 +60,11 @@ Transmission of a Cyphal/UDP transport frame is performed by sending a suitably 
 to the destination IP multicast group address computed from the session specifier
 (section~\ref{sec:transport_session_specifier})
 as shown in figure~\ref{fig:transport_udp_multicast_group_address}
-with the fixed destination port number \textbf{9382}.
+with the fixed destination port number \textbf{9382}\footnote{%
+    % Update this footnote when the EXPERIMENTAL status is lifted.
+    The port number may change if/when the protocol is registered with IANA,
+    unless it is stabilized in its current form.
+}.
 
 \begin{figure}[H]
     \centering
@@ -93,7 +97,7 @@ with the fixed destination port number \textbf{9382}.
         \overbrace{\texttt{\huge{XXXXXXXX}}}^{\text{2nd octet}}
         \texttt{\huge{.}}
         \overbrace{\texttt{\huge{XXXXXXXX}}}^{\text{Least significant octet}}
-    }_{\substack{\text{\textbf{if Z:} destination node-ID} \\ \text{\textbf{else:} subject-ID}}}%
+    }_{\substack{\text{\textbf{if Z:} destination node-ID} \\ \text{\textbf{else:} subject-ID + reserved}}}%
     $$
     Numbers given in base-2.
     \caption{IP multicast group address structure\label{fig:transport_udp_multicast_group_address}}
@@ -114,11 +118,11 @@ with the fixed destination port number \textbf{9382}.
     to avoid collisions with well-known multicast groups. \\
 
     RFC~2365 reserved range &
-    23 & 1 & $0_2$ &
+    23 & 1 & $0$ &
     Selects the ad-hoc defined range 239.0.0.0/9 per RFC~2365. \\
 
     Cyphal/UDP address version &
-    22 & 1 & $0_2$ &
+    22 & 1 & $0$ &
     Deconflicts this layout with future revisions. \\
 
     Reserved &
@@ -133,8 +137,12 @@ with the fixed destination port number \textbf{9382}.
     0 & 16 & $[0, 65534]$ &
     The destination node-ID of the current service transfer. \\
 
+    X if not Z: reserved &
+    13 & 3 & $0$ &
+    May be used to enlarge the subject-ID field in future versions. \\
+
     X if not Z: subject-ID &
-    0 & 16 & $[0, 8191]$ &
+    0 & 13 & any &
     The subject-ID of the current message transfer. \\
 \end{CyphalSimpleTable}
 
@@ -155,7 +163,7 @@ Value 65535 is reserved to represent both the broadcast and anonymous node-ID, d
 
 Sources of Cyphal/UDP traffic should set the packet TTL to 16 or higher\footnote{%
     RFC~1112 prescribes a default TTL of 1,
-    but this is not sufficient for most applications Cyphal/UDP is intended for.
+    but this is not sufficient as Cyphal/UDP networks may often exceed the diameter of 1 hop.
 }.
 
 The DSCP\footnote{RFC~2474} field of outgoing IP packets
