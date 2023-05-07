@@ -339,7 +339,7 @@ An implementation receiving a transfer should verify the correctness of its tran
 In this section, the maximum transmission unit (MTU) is defined as the maximum size of a UDP/IP datagram payload.
 
 This specification does not restrict the MTU of the underlying transport.
-It is recommended, however, to avoid MTU values less than 508~bytes to allow reduced (simplified) implementations
-of the protocol that do not require large transfer payloads to omit support for multi-frame transfers.
-The MTU of 508 bytes allows applications to exchange up to $508 - 24 - 4 = 480$ bytes of payload
-in a single-frame transfer.
+It is recommended, however, to avoid MTU values less than 508~bytes,
+allowing applications to exchange up to $508 - 24 - 4 = 480$ bytes of payload in a single-frame transfer.
+Limiting the MTU at this value allows nodes that do not transmit and/or receive transfers larger than 480~bytes
+to omit support for multi-frame transfer decomposition and/or reassembly.
