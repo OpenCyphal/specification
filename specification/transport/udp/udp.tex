@@ -146,9 +146,25 @@ with the fixed destination port number \textbf{9382}\footnote{%
     The subject-ID of the current message transfer. \\
 \end{CyphalSimpleTable}
 
-A subscriber to certain Cyphal subjects will join the IP multicast groups corresponding to said subjects.
+\begin{remark}
+    Freezing (at least) the 9 most significant bits of the multicast group address ensures that
+    the variability is confined to the 23 least significant bits of the address only,
+    which is desirable because the IPv4 Ethernet MAC layer does not differentiate beyond the
+    23 least significant bits of the multicast group address.
+    That is, addresses that differ only in the 9 MSb collide at the MAC layer,
+    which is unacceptable in a real-time system; see RFC~1112 section 6.4.
+    Without this limitation, an engineer designing a network might inadvertently create a configuration
+    that causes MAC-layer collisions which may be difficult to detect.
+\end{remark}
+
+A subscriber to certain Cyphal subjects will join the IP multicast groups corresponding to said subjects\footnote{%
+    For example, the multicast group address for subject 42 is 239.0.0.42.
+}.
 Likewise, a node that provides at least one RPC-service will join the IP multicast group corresponding to
-its own node-ID\footnote{Observe that multicast groups are not differentiated by service-ID.}.
+its own node-ID\footnote{%
+    For example, the multicast group address for a service transfer with the destination node-ID of 42 is 239.1.0.42.
+    Observe that multicast groups are not differentiated by service-ID.
+}.
 
 The IP address of a node bears no relevance for the protocol ---
 multiple nodes may share the same IP address; likewise, a node may have more than one IP address.
@@ -189,22 +205,6 @@ with the intermediate values mapped following the same principle.
 
     The implementation of suitable network policies is outside the scope of this document.
     RFC~4594 provides a starting point for the design of such policies.
-\end{remark}
-
-\begin{remark}
-    Freezing (at least) the 9 most significant bits of the multicast group address ensures that
-    the variability is confined to the 23 least significant bits of the address only,
-    which is desirable because the IPv4 Ethernet MAC layer does not differentiate beyond the
-    23 least significant bits of the multicast group address.
-    That is, addresses that differ only in the 9 MSb collide at the MAC layer,
-    which is unacceptable in a real-time system; see RFC~1112 section 6.4.
-    Without this limitation, an engineer designing a network might inadvertently create a configuration
-    that causes MAC-layer collisions which may be difficult to detect.
-\end{remark}
-
-\begin{remark}
-    For example, the multicast group address for subject 42 is 239.0.0.42.
-    The multicast group address for a service transfer with the destination node-ID of 42 is 239.1.0.42.
 \end{remark}
 
 \begin{remark}
