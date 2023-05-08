@@ -57,6 +57,8 @@ while the source port and the source address bear no relevance for the protocol 
 
 \subsection{UDP/IP endpoints and routing}
 
+\subsubsection{Endpoints}
+
 Transmission of a Cyphal/UDP transport frame is performed by sending a suitably constructed UDP datagram
 to the destination IP multicast group address computed from the session specifier
 (section~\ref{sec:transport_session_specifier})
@@ -178,36 +180,6 @@ Nodes on a Cyphal/UDP network are identified exclusively by their node-ID value\
 The set of valid node-ID values for Cyphal/UDP is $[0, 65534]$.
 Value 65535 is reserved to represent both the broadcast and anonymous node-ID, depending on context.
 
-Sources of Cyphal/UDP traffic should set the packet TTL to 16 or higher\footnote{%
-    RFC~1112 prescribes a default TTL of 1,
-    but this is not sufficient as Cyphal/UDP networks may often exceed the diameter of 1 hop.
-}.
-
-The DSCP\footnote{RFC~2474} field of outgoing IP packets
-should be populated based on the Cyphal transfer priority level (section~\ref{sec:transport_transfer_priority})
-such that the maximum Cyphal priority level corresponds to class selector CS7
-and the minimum Cyphal priority level corresponds to class selector CS0,
-with the intermediate values mapped following the same principle.
-
-\begin{remark}
-    \begin{CyphalSimpleTable}{
-        Recommended DSCP class selector values\label{table:transport_udp_priority}
-    }{|l l l l|}
-        Cyphal priority & DSCP class selector & IP precedence value & IP precedence name      \\
-        Exceptional     & CS7                 & 7                     & network control       \\
-        Immediate       & CS6                 & 6                     & internetwork control  \\
-        Fast            & CS5                 & 5                     & critical              \\
-        High            & CS4                 & 4                     & flash override        \\
-        Nominal         & CS3                 & 3                     & flash                 \\
-        Low             & CS2                 & 2                     & immediate             \\
-        Slow            & CS1                 & 1                     & priority              \\
-        Optional        & CS0                 & 0                     & routine               \\
-    \end{CyphalSimpleTable}
-
-    The implementation of suitable network policies is outside the scope of this document.
-    RFC~4594 provides a starting point for the design of such policies.
-\end{remark}
-
 \begin{remark}
     Per RFC~1112, in order to emit multicast traffic,
     a limited level-1 implementation without the full support of IGMP and multicast-specific packet handling policies
@@ -228,7 +200,47 @@ with the intermediate values mapped following the same principle.
     to eliminate the subscription initialization delay.
 \end{remark}
 
-\subsection{UDP datagram payload format}
+\subsubsection{TTL}
+
+Sources of Cyphal/UDP traffic should set the packet TTL to 16 or higher.
+
+\begin{remark}
+    RFC~1112 prescribes a default TTL of 1,
+    but this is not sufficient as Cyphal/UDP networks may often exceed the diameter of 1 hop.
+\end{remark}
+
+\subsubsection{QoS}
+
+The DSCP\footnote{RFC~2474} field of outgoing IP packets \emph{should}
+be populated based on the Cyphal transfer priority level (section~\ref{sec:transport_transfer_priority})
+as specified\footnote{%
+    The recommended DSCP mapping is derived from RFC~8837 and RFC~3662.
+    The implementation of suitable network policies is outside of the scope of this document.
+    RFC~4594 provides a starting point for the design of such policies.
+} in table \ref{table:transport_udp_priority}.
+Implementations \emph{should} provide a means to override the default DSCP mapping per node\footnote{
+    E.g., via configuration registers described in section~\ref{sec:application_functions_register}.
+}.
+All nodes in a Cyphal/UDP network \emph{shall} be configured with identical DSCP mapping
+that is consistent with the QoS policies implemented in the network\footnote{%
+    This requirement is intended to prevent inconsistent QoS treatment of Cyphal/UDP traffic and priority inversion.
+}.
+
+\begin{CyphalSimpleTable}{
+    Recommended mapping from Cyphal priority level to DSCP\label{table:transport_udp_priority}
+}{|l l l l|}
+    Cyphal priority & Header priority value (sec. \ref{sec:transport_udp_payload}) & DSCP class & DSCP value \\
+    Exceptional     & 0     & EF            & 46    \\
+    Immediate       & 1     & EF            & 46    \\
+    Fast            & 2     & EF            & 46    \\
+    High            & 3     & DF            & 0     \\
+    Nominal         & 4     & DF            & 0     \\
+    Low             & 5     & DF            & 0     \\
+    Slow            & 6     & DF            & 0     \\
+    Optional        & 7     & CS1           & 8     \\
+\end{CyphalSimpleTable}
+
+\subsection{UDP datagram payload format}\label{sec:transport_udp_payload}
 
 The layout of the Cyphal/UDP datagram payload header is shown in the following snippet in DSDL notation
 (section~\ref{sec:dsdl}).
@@ -257,7 +269,8 @@ void4
 uint3 priority
 # The values are assigned from 0 (HIGHEST priority) to 7 (LOWEST priority).
 # The numerical priority identifiers are chosen to be consistent with Cyphal/CAN.
-# Notice that this is the opposite of the priority ordering in the IP DSCP field.
+# The mapping from this priority value to the DSCP value should be configurable;
+# otherwise, see the recommended default mapping.
 
 void5
 
