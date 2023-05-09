@@ -357,3 +357,14 @@ It is recommended, however, to avoid MTU values less than 508~bytes,
 allowing applications to exchange up to $508 - 24 - 4 = 480$ bytes of payload in a single-frame transfer.
 Limiting the MTU at this value allows nodes that do not transmit and/or receive transfers larger than 480~bytes
 to omit support for multi-frame transfer decomposition and/or reassembly.
+
+Nodes emitting Cyphal/UDP traffic \emph{should} avoid IP fragmentation by
+limiting the size of the UDP payload accordingly\footnote{
+    Transfers larger than the MTU limit will be transmitted as multi-frame Cyphal transfers
+    (section~\ref{sec:transport_transfer_payload}).
+    The preference towards Cyphal framing over IP framing is to remove the limitation on the maximum transfer size
+    imposed by the UDP protocol and to permit preemption of long transfers by higher-priority transfers.
+    Further, the support for reassembly of large fragmented IP packets is not universal.
+    Therefore, constrained implementations may implement a compliant Cyphal/UDP stack without support for IP
+    fragmentation.
+}.
