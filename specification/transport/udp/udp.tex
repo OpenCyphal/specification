@@ -214,30 +214,30 @@ Sources of Cyphal/UDP traffic should set the packet TTL to 16 or higher.
 The DSCP\footnote{RFC~2474} field of outgoing IP packets \emph{should}
 be populated based on the Cyphal transfer priority level (section~\ref{sec:transport_transfer_priority})
 as specified\footnote{%
-    The recommended DSCP mapping is derived from RFC~8837 and RFC~3662.
+    The recommended DSCP mapping is derived from RFC~8837.
     The implementation of suitable network policies is outside of the scope of this document.
     RFC~4594 provides a starting point for the design of such policies.
 } in table \ref{table:transport_udp_priority}.
 Implementations \emph{should} provide a means to override the default DSCP mapping per node\footnote{
     E.g., via configuration registers described in section~\ref{sec:application_functions_register}.
-}.
-All nodes in a Cyphal/UDP network \emph{shall} be configured with identical DSCP mapping
-that is consistent with the QoS policies implemented in the network\footnote{%
+} by the system integrator (user).
+All nodes in a Cyphal/UDP network \emph{shall} be configured such that the applied DSCP mapping
+is consistent with the QoS policies implemented in the network\footnote{%
     This requirement is intended to prevent inconsistent QoS treatment of Cyphal/UDP traffic and priority inversion.
 }.
 
 \begin{CyphalSimpleTable}{
-    Recommended mapping from Cyphal priority level to DSCP\label{table:transport_udp_priority}
+    Default mapping from Cyphal priority level to DSCP\label{table:transport_udp_priority}
 }{|l l l l|}
     Cyphal priority & Header priority value (sec. \ref{sec:transport_udp_payload}) & DSCP class & DSCP value \\
-    Exceptional     & 0     & EF            & 46    \\
-    Immediate       & 1     & EF            & 46    \\
-    Fast            & 2     & EF            & 46    \\
+    Exceptional     & 0     & DF            & 0     \\
+    Immediate       & 1     & DF            & 0     \\
+    Fast            & 2     & DF            & 0     \\
     High            & 3     & DF            & 0     \\
     Nominal         & 4     & DF            & 0     \\
     Low             & 5     & DF            & 0     \\
     Slow            & 6     & DF            & 0     \\
-    Optional        & 7     & CS1           & 8     \\
+    Optional        & 7     & DF            & 0     \\
 \end{CyphalSimpleTable}
 
 \subsection{UDP datagram payload format}\label{sec:transport_udp_payload}
@@ -250,15 +250,15 @@ The payload header is followed by the payload data, which is opaque to the proto
 \begin{minted}{python}
 # This 24-byte header can be aliased as a C structure with each field being naturally aligned:
 #
-#       uint8_t     version;
-#       uint8_t     priority;
-#       uint16_t    source_node_id;
-#       uint16_t    destination_node_id;
-#       uint16_t    data_specifier_snm;
-#       uint64_t    transfer_id;
-#       uint32_t    frame_index_eot;
-#       uint16_t    user_data;
-#       uint8_t[2]  header_crc16_big_endian;
+#       uint8_t  version;
+#       uint8_t  priority;
+#       uint16_t source_node_id;
+#       uint16_t destination_node_id;
+#       uint16_t data_specifier_snm;
+#       uint64_t transfer_id;
+#       uint32_t frame_index_eot;
+#       uint16_t user_data;
+#       uint8_t  header_crc16_big_endian[2];
 
 uint4 version
 # The version of the header format. This document specifies version 1.
