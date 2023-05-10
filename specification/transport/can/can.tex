@@ -370,52 +370,7 @@ in the \emph{big-endian byte order} (most significant byte first)\footnote{%
     This is the native byte order for this CRC function.
 }.
 
-The CRC function is the standard CRC-16-CCITT:
-initial value $\mathrm{FFFF}_{16}$, polynomial $\mathrm{1021}_{16}$,
-not reversed, no output XOR, big endian.
-The value for an input sequence $\left(49, 50, \ldots, 56, 57\right)$ is $\mathrm{29B1}_{16}$.
-The following code snippet provides a basic implementation of the transfer CRC algorithm in C++
-(LUT-based alternatives exist).
-
-\begin{samepage}
-\begin{minted}{cpp}
-#include <cstdint>
-#include <cstddef>
-
-/// Cyphal/CAN transfer CRC function implementation. License: CC0, no copyright reserved.
-class CANTransferCRC
-{
-    std::uint16_t value_ = 0xFFFFU;
-
-public:
-    void add(const std::uint8_t byte)
-    {
-        value_ ^= static_cast<std::uint16_t>(byte) << 8U;
-        for (std::uint8_t bit = 8; bit > 0; --bit)
-        {
-            if ((value_ & 0x8000U) != 0)
-            {
-                value_ = (value_ << 1U) ^ 0x1021U;
-            }
-            else
-            {
-                value_ = value_ << 1U;
-            }
-        }
-    }
-
-    void add(const std::uint8_t* bytes, std::size_t length)
-    {
-        while (length-- > 0)
-        {
-            add(*bytes++);
-        }
-    }
-
-    [[nodiscard]] std::uint16_t get() const { return value_; }
-};
-\end{minted}
-\end{samepage}
+The transfer CRC function is \textbf{CRC-16/CCITT-FALSE} (section~\ref{sec:appendix_crc16ccitt_false}).
 
 \subsection{Examples}
 

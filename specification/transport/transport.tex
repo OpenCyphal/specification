@@ -14,6 +14,11 @@ some of the generic aspects may be pushed to the concrete sections
 if they are found to map poorly onto the newly supported protocols.
 Such changes are guaranteed to preserve full backward compatibility of the existing concrete transports.
 
+This chapter defines first-class transports only.
+For matters related to tunneling transport frames over other transports,
+refer to section~\ref{sec:application_functions_metatransport}.
+
 % Please keep \clearpage in front of every section to enforce clear separation!
 \clearpage\input{transport/abstract.tex}
 \clearpage\input{transport/can/can.tex}
+\clearpage\input{transport/udp/udp.tex}
