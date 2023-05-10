@@ -358,13 +358,33 @@ allowing applications to exchange up to $508 - 24 - 4 = 480$ bytes of payload in
 Limiting the MTU at this value allows nodes that do not transmit and/or receive transfers larger than 480~bytes
 to omit support for multi-frame transfer decomposition and/or reassembly.
 
-Nodes emitting Cyphal/UDP traffic \emph{should} avoid IP fragmentation by
+As Cyphal provides native means of multi-frame transfer decomposition and reassembly
+(section~\ref{sec:transport_transfer_payload}),
+nodes emitting Cyphal/UDP traffic \emph{shall not} rely on IP fragmentation by
 limiting the size of the UDP payload accordingly\footnote{
-    Transfers larger than the MTU limit will be transmitted as multi-frame Cyphal transfers
-    (section~\ref{sec:transport_transfer_payload}).
-    The preference towards Cyphal framing over IP framing is to remove the limitation on the maximum transfer size
-    imposed by the UDP protocol and to permit preemption of long transfers by higher-priority transfers.
-    Further, the support for reassembly of large fragmented IP packets is not universal.
-    Therefore, constrained implementations may implement a compliant Cyphal/UDP stack without support for IP
-    fragmentation.
+    This requirement is consistent with RFC~8085 and RFC~8900.
+    Transfers larger than the MTU limit will be transmitted as multi-frame Cyphal transfers.
+    The preference towards Cyphal fragmentation over IP fragmentation is to remove the limitation on the
+    maximum transfer size imposed by the UDP protocol and
+    to permit preemption of long transfers by higher-priority transfers.
 }.
+Support for IP fragmentation is optional for Cyphal/UDP receivers\footnote{%
+    Network equipment such as routers may perform IP fragmentation,
+    which is allowed as long as such behavior is opaque to the Cyphal/UDP end systems.
+}.
+
+\subsection{Real-time and resource-constrained systems}
+
+It is anticipated that real-time and/or resource-constrained systems may implement Cyphal/UDP
+based on custom UDP/IP and IGMP protocol stacks with a reduced feature set.
+In particular, such systems may not support IP fragmentation,
+ARP\footnote{Being multicast-based, Cyphal/UDP does not require ARP.},
+and ICMP.
+
+The networking equipment that such systems are connected to is recommended to not emit ICMP messages because:
+
+\begin{enumerate}
+    \item This increases the network load which can modify the timing of the system
+    and which may be considered an attack vector for some systems.
+    \item Cyphal/UDP nodes are not required to support ICMP and may therefore not be able to process ICMP messages.
+\end{enumerate}
