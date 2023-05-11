@@ -1,0 +1,229 @@
+\section{Cyphal/serial (experimental)}\label{sec:transport_serial}
+
+\hyphenation{Cyphal/serial}  % Disable hyphenation.
+
+\subsection{Overview}
+
+This section specifies a concrete transport that operates on top of raw byte-level communication channels,
+such as TCP/IP connections, SSL, UART, RS-232, RS-422, USB CDC ACM,
+and any similar communication links that allow exchange of unstructured byte streams.
+Cyphal/serial may also be used to store Cyphal frames in files.
+\textbf{%
+    As of this version, the Cyphal/serial specification remains experimental.
+    Breaking changes affecting wire compatibility are possible.
+}
+
+As Cyphal/serial is designed to operate over unstructured byte streams,
+it defines a custom framing protocol, custom frame header format, and a custom integrity checking mechanism.
+
+\begin{CyphalSimpleTable}{Cyphal/serial transport capabilities\label{table:transport_serial_capabilities}}{|l X l|}
+    Parameter & Value & References \\
+
+    Maximum node-ID value &
+    65534 (16 bits wide). &
+    \ref{sec:basic} \\
+
+    Transfer-ID mode &
+    Monotonic, 64 bits wide. &
+    \ref{sec:transport_transfer_id} \\
+
+    Number of transfer priority levels &
+    8 (no additional levels). &
+    \ref{sec:transport_transfer_priority} \\
+
+    Largest single-frame transfer payload &
+    Unlimited. &
+    \ref{sec:transport_transfer_payload} \\
+
+    Anonymous transfers &
+    Available. &
+    \ref{sec:transport_route_specifier} \\
+\end{CyphalSimpleTable}
+
+\subsection{Framing}
+
+Cyphal/serial uses the ``Consistent Overhead Byte Stuffing'' (COBS) encapsulation method\footnote{%
+    See ``Consistent Overhead Byte Stuffing'', Stuart Cheshire and Mary Baker.
+    The COBS overhead is 1 byte in every 254 bytes of encapsulated data, which is about 0.4\%.
+} with zero byte as the frame delimiter.
+Due to the nature of COBS, the frame delimiter will not appear in the frame payload.
+A frame delimiter may terminate a frame and/or indicate the start of a new frame.
+The number of frame delimiters between adjacent frames may exceed one.
+
+\begin{figure}[H]
+    \centering
+    $$
+    \texttt{\huge{...}}%
+    \underbrace{\texttt{\huge{0}}}_{\substack{\text{frame} \\ \text{delimiter}}}%
+    \underbrace{\texttt{\huge{<frame>}}}_{\substack{\text{COBS-encoded} \\ \text{frame contents}}}%
+    \underbrace{\texttt{\huge{0}}}_{\substack{\text{frame} \\ \text{delimiter}}}%
+    \underbrace{\texttt{\huge{<frame>}}}_{\substack{\text{COBS-encoded} \\ \text{frame contents}}}%
+    \underbrace{\texttt{\huge{0}}}_{\substack{\text{frame} \\ \text{delimiter}}}%
+    \texttt{\huge{...}}%
+    $$
+    \caption{COBS framing\label{fig:transport_serial_cobs}}
+\end{figure}
+
+A frame consists of two parts:
+the fixed-size header (section~\ref{sec:transport_serial_header})
+immediately followed by the payload (section~\ref{sec:transport_serial_payload}).
+The header contains a dedicated header-CRC field which allows implementations to detect frame corruption early.
+
+Neither the underlying medium nor the Cyphal/serial transport layer impose any restrictions on the maximum frame size,
+which allows all Cyphal/serial transfers to be single-frame transfers\footnote{%
+    Lack of multi-frame transfers simplifies implementations significantly.
+}.
+
+\subsection{Header}\label{sec:transport_serial_header}
+
+The layout of the Cyphal/serial header is shown in the following snippet in DSDL notation
+(section~\ref{sec:dsdl}).
+
+\begin{samepage}
+\begin{minted}{python}
+# This 24-byte header can be aliased as a C structure with each field being naturally aligned:
+#
+#       uint8_t  version;
+#       uint8_t  priority;
+#       uint16_t source_node_id;
+#       uint16_t destination_node_id;
+#       uint16_t data_specifier_snm;
+#       uint64_t transfer_id;
+#       uint32_t frame_index_eot;
+#       uint16_t user_data;
+#       uint8_t  header_crc16_big_endian[2];
+
+uint4 version
+# The version of the header format. This document specifies version 1.
+# Packets with an unknown version number must be ignored.
+
+void4
+
+uint3 priority
+# The values are assigned from 0 (HIGHEST priority) to 7 (LOWEST priority).
+# The numerical priority identifiers are chosen to be consistent with Cyphal/CAN.
+
+void5
+
+uint16 source_node_id
+# The node-ID of the source node.
+# Value 65535 represents anonymous transfers.
+
+uint16 destination_node_id
+# The node-ID of the destination node.
+# Value 65535 represents broadcast transfers.
+
+uint15 data_specifier
+# If this is a message transfer, this value equals the subject-ID.
+# If this is a service response transfer, this value equals the service-ID.
+# If this is a service request transfer, this value equals 16384 + service-ID.
+
+bool service_not_message
+# If true, this is a service transfer. If false, this is a message transfer.
+
+@assert _offset_ == {64}
+uint64 transfer_id
+# The monotonic transfer-ID value of the current transfer (never overflows).
+
+uint31 frame_index
+# Transmit zero. Drop frame if received non-zero.
+
+bool end_of_transfer
+# Transmit true. Drop frame if received false.
+
+uint16 user_data
+# Opaque application-specific data with user-defined semantics.
+# Generic implementations should emit zero and ignore this field upon reception.
+
+uint8[2] header_crc16_big_endian
+# CRC-16/CCITT-FALSE of the preceding serialized header data in the big endian byte order.
+# Application of the CRC function to the entire header shall yield zero, otherwise the header is malformed.
+
+@assert _offset_ / 8 == {24}
+@sealed     # The payload data follows.
+\end{minted}
+\end{samepage}
+
+\subsection{Payload}\label{sec:transport_serial_payload}
+
+The transfer payload is appended with a transfer CRC field.
+The transfer CRC function is \textbf{CRC-32C} (section~\ref{sec:appendix_crc32c}),
+and its value is serialized in the little-endian byte order.
+The transfer CRC function is applied to the entire transfer payload and only transfer payload (header not included).
+
+A node receiving a transfer should verify the correctness of its transfer CRC.
+
+\subsection{Examples}
+
+% $ ncat --broker --listen -p 50905 -vv
+%
+% $ nc localhost 50905 | xxd -g1
+%
+% $ export UAVCAN__SERIAL__IFACE='socket://127.0.0.1:50905'
+% $ export UAVCAN__NODE__ID=1234
+% $ y pub -N1 1234:uavcan.primitive.string '"012345678"'
+\begin{remark}
+    The snippet given below contains the hexadecimal dump of the following Cyphal/serial transfer:
+
+    \begin{description}
+        \item[Priority] nominal
+        \item[Transfer-ID] 0
+        \item[Transfer kind] message with the subject-ID 1234
+        \item[Source node-ID] 1234
+        \item[Header user data] 0
+        \item[Transfer payload] \verb|uavcan.primitive.String.1| containing string ``\verb|012345678|''
+    \end{description}
+
+    The payload is shown in segments for clarity:
+
+    \begin{itemize}
+        \item The first byte is the starting delimiter of the first frame.
+        \item The second byte is a COBS overhead byte (one for the entire transfer).
+        \item The following block of 24 bytes is the COBS-encoded header.
+        \item The third-to-last block is the COBS-encoded transfer payload,
+        containing the two bytes of the array length prefix followed by the string data.
+        \item The second-to-last block of four bytes is the COBS-encoded transfer-CRC.
+        \item The last byte is the ending frame delimiter.
+    \end{itemize}
+
+    \begin{verbatim}
+00
+09
+01 04 d2 04 ff ff d2 04 01 01 01 01 01 01 01 01 01 01 02 80 01 04 08 12
+09 0e 30 31 32 33 34 35 36 37 38
+84 a2 2d e2
+00
+    \end{verbatim}
+\end{remark}
+
+\begin{remark}
+    The snippet given below contains the hexadecimal dump of the following Cyphal/serial transfer:
+
+    \begin{description}
+        \item[Priority] nominal
+        \item[Transfer-ID] 0
+        \item[Transfer kind] message with the subject-ID 1234
+        \item[Source node-ID] 1234
+        \item[Header user data] 0
+        \item[Transfer payload] \verb|uavcan.primitive.Empty.1|
+    \end{description}
+
+    The payload is shown in segments for clarity:
+
+    \begin{itemize}
+        \item The first byte is the starting delimiter of the first frame.
+        \item The second byte is a COBS overhead byte (one for the entire transfer).
+        \item The following block of 24 bytes is the COBS-encoded header.
+        \item The second-to-last block of four bytes is the COBS-encoded transfer-CRC,
+        which is zero as the payload is empty.
+        \item The last byte is the ending frame delimiter.
+    \end{itemize}
+
+    \begin{verbatim}
+00
+09
+01 04 e1 10 ff ff d2 04 01 01 01 01 01 01 01 01 01 01 02 80 01 03 93 70
+01 01 01 01
+00
+    \end{verbatim}
+\end{remark}
