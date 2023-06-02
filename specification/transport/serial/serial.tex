@@ -43,7 +43,8 @@ it defines a custom framing protocol, custom frame header format, and a custom i
 \subsection{Framing}
 
 Cyphal/serial uses the ``Consistent Overhead Byte Stuffing'' (COBS) encapsulation method\footnote{%
-    See ``Consistent Overhead Byte Stuffing'', Stuart Cheshire and Mary Baker.
+    Stuart Cheshire and Mary Baker. 1999. Consistent overhead Byte stuffing.
+    IEEE/ACM Trans. Netw. 7, 2 (April 1999), 159--172. \mbox{\url{https://doi.org/10.1109/90.769765}}.
     The COBS overhead is 1 byte in every 254 bytes of encapsulated data, which is about 0.4\%.
 } with zero byte as the frame delimiter.
 Due to the nature of COBS, the frame delimiter will not appear in the frame payload.
