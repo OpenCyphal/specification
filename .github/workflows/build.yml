@@ -27,14 +27,14 @@ jobs:
           "
 
     - name: Upload pdf as an artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: Cyphal Specification
         path: specification/Cyphal_Specification.pdf
         if-no-files-found: error
 
     - name: Upload diagnostic snapshot
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: workspace-${{github.job}}
