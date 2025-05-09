@@ -80,6 +80,17 @@ The hierarchy of primitive types is documented below.
             The corresponding DSDL data type name pattern is ``\verb|uint[1-9]\d*|'',
             where the trailing integer represents the length of the
             serialized representation of the value, in bits, ranging from 1 to 64, inclusive.
+            \begin{itemize}
+                \item \textbf{UTF-8 octet.} This type is used as an element type of variable-length
+                arrays (section \ref{sec:dsdl_array_types}) containing UTF-8 encoded strings.
+                The DSDL name is ``\verb|utf8|''.
+                The only valid use of this type is as an element type of a variable-length array.
+
+                \item \textbf{Byte.} This type is used as an element type of fixed-length or variable-length
+                arrays (section \ref{sec:dsdl_array_types}) containing an arbitrary sequence of bytes.
+                The DSDSL name is ``\verb|byte|''.
+                The only valid use of this type is as an element type of an array.
+            \end{itemize}
         \end{itemize}
 
         \item \textbf{Floating point types} are used to approximately represent real values.
@@ -138,10 +149,6 @@ Cases that are marked as illegal are not permitted in DSDL definitions.
     Type category & Truncated mode & Saturated mode (default)
     \label{table:dsdl_cast_mode} \\
 
-    Boolean &
-    Illegal: boolean type with truncated cast mode is not allowed. &
-    Falsity if the value is zero or false, truth otherwise. \\
-
     Signed integer &
     Illegal: signed integer types with truncated cast mode are not allowed. &
     Nearest reachable value. \\
@@ -189,7 +196,7 @@ Note that the cast mode specifier is omitted intentionally.
 \immediate\write18{../render_list_of_void_and_primitive_types.py > ../latex.tmp}
 \immediate\input{../latex.tmp}
 
-\subsection{Array types}
+\subsection{Array types}\label{sec:dsdl_array_types}
 
 An array type represents an ordered collection of values.
 All values in the collection share the same type, which is referred to as \emph{array element type}.
