@@ -723,6 +723,13 @@ it can be computed at runtime on a per-session basis\footnote{%
 The parameters of such computation are to be chosen according to the requirements of the application,
 but they should always be documented.
 
+The transfer-ID timeout used with service response transfers should be zero\footnote{%
+    With a non-zero transfer-ID timeout, responses may be lost if the server responds to multiple requests
+    from the same client not in the order of their arrival.
+    There is no risk of response duplication because the client will retire the pending request entry
+    once its first response is received, ignoring subsequent duplicates.
+}.
+
 \begin{remark}
     Low transfer-ID timeout values increase the risk of undetected transfer duplication when such transfers
     are significantly delayed due to network congestion,
