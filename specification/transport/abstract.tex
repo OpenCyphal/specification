@@ -488,11 +488,7 @@ Those with narrower transfer-ID counters are said to have \emph{cyclic transfer-
 the number of unique transfer-ID values is referred to as \emph{transfer-ID modulo}.
 
 The initial value of a cyclic transfer-ID counter shall be zero.
-The initial value of a monotonic transfer-ID counter should be chosen randomly whenever a new transfer-ID counter
-is created, unless the execution environment does not provide a good source of true random numbers,
-in which case zero initialization can be used as the fallback solution\footnote{%
-    Refer to section \ref{sec:transport_transfer_reception} for the rationale behind random numbers.
-}.
+The initial value of a monotonic transfer-ID counter should be zero.
 Once a new transfer-ID counter is created,
 it should be kept at least as long as the node remains connected to the network.\footnote{%
     The number of unique session specifiers is bounded and can be determined statically per application,
@@ -695,26 +691,9 @@ shall be received at most once\footnote{%
     Unintentional duplications may be introduced by various artifacts of the transport network.
 }.
 
-For a given session specifier, a successfully reassembled transfer that is either:
-\begin{itemize}
-    \item temporally separated from any other successfully reassembled transfer under the same session specifier
-    by more than the transfer-ID timeout, or
-    \item has a transfer-ID value that is at least one million counts\footnote{%
-        The probability of randomly picking a 64-bit value that falls into a given million-count span
-        is approximately one in 18 trillion.
-    }
-    less than that of the last successfully reassembled transfer,
-\end{itemize}
-is considered unique regardless of its transfer-ID value.\footnote{%
-    A large leap backward indicates that the sender has lost the state of its transfer-ID counter
-    (e.g., due to power cycling); this is why random initialization is preferred for all nodes.
-    An exception is made for resource-constrained nodes implemented in small MCUs, which may not have access
-    to a good source of entropy to provide distinct transfer-ID values at every boot,
-    in which case zero initialization is acceptable.
-    A possible issue with constant initialization is that once a node is restarted, from the receiver's standpoint
-    it will appear that it is sending duplicate transfers, which will be rejected until the expiration of the
-    transfer-ID timeout.
-}
+For a given session specifier, a successfully reassembled transfer that is
+temporally separated from any other successfully reassembled transfer under the same session specifier
+by more than the transfer-ID timeout is considered unique regardless of its transfer-ID value.
 
 If the optimal transfer-ID timeout value for a given session cannot be known in advance,
 it can be computed at runtime on a per-session basis\footnote{%
