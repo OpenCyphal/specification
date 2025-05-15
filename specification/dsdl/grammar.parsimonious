@@ -47,18 +47,22 @@ type_scalar = type_versioned
 type_versioned         = identifier ("." identifier)* "." type_version_specifier
 type_version_specifier = literal_integer_decimal "." literal_integer_decimal
 
-type_primitive = type_primitive_truncated
+type_primitive = type_primitive_boolean
+               / type_primitive_byte
+               / type_primitive_utf8
+               / type_primitive_truncated
                / type_primitive_saturated
 
+type_primitive_boolean   = "bool"
+type_primitive_byte      = "byte"
+type_primitive_utf8      = "utf8"
 type_primitive_truncated =  "truncated" _   type_primitive_name
 type_primitive_saturated = ("saturated" _)? type_primitive_name     # Defaults to this.
 
-type_primitive_name = type_primitive_name_boolean
-                    / type_primitive_name_unsigned_integer
+type_primitive_name = type_primitive_name_unsigned_integer
                     / type_primitive_name_signed_integer
                     / type_primitive_name_floating_point
 
-type_primitive_name_boolean          = "bool"
 type_primitive_name_unsigned_integer = "uint"  type_bit_length_suffix
 type_primitive_name_signed_integer   = "int"   type_bit_length_suffix
 type_primitive_name_floating_point   = "float" type_bit_length_suffix
