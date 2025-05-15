@@ -373,6 +373,14 @@ Support for IP fragmentation is optional for Cyphal/UDP receivers\footnote{%
     which is allowed as long as such behavior is opaque to the Cyphal/UDP end systems.
 }.
 
+In multi-frame transfers, the payload size of all frames except the last one shall be the same.
+The payload size of the last frame shall be greater than zero and not greater than that of the preceding
+frames\footnote{%
+    The same-MTU constraint for all frames except the last is necessary to enable efficient reassembly of
+    multi-frame transfers with frames arriving out-of-order, including the case of frames interleaving between
+    adjacent transfers.
+}.
+
 \subsection{Real-time and resource-constrained systems}
 
 It is anticipated that real-time and/or resource-constrained systems may implement Cyphal/UDP
