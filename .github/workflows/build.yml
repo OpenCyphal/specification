@@ -49,6 +49,7 @@ jobs:
     environment:
       name: github-pages
     needs: build
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       pages: write
