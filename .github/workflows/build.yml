@@ -30,7 +30,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: Cyphal Specification
-        path: docs/Cyphal_Specification.pdf
+        path: specification/Cyphal_Specification.pdf
         if-no-files-found: error
 
     - name: Upload diagnostic snapshot
@@ -44,7 +44,7 @@ jobs:
     - name: Upload GitHub Pages artifact
       uses: actions/upload-pages-artifact@v3
       with:
-        path: docs/
+        path: specification/
   deploy:
     environment:
       name: github-pages
