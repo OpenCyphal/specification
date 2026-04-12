@@ -132,46 +132,12 @@ The capabilities of the protocol will never be reduced within a major version of
 
 \section{Management policy}
 
-The Cyphal maintainers are tasked with maintaining and advancing this specification and
-the set of public regulated data types\footnote{%
-    The related technical aspects are covered in chapters~\ref{sec:basic} and~\ref{sec:dsdl}.
-} based on their research and the input from adopters.
+The Cyphal maintainers are tasked with maintaining and advancing this specification
+based on their research and the input from adopters.
 The maintainers will be committed to ensuring long-term stability and backward compatibility of
 existing and new deployments.
 The maintainers will publish relevant announcements and solicit inputs from adopters
 via the discussion forum whenever a decision that may potentially affect existing deployments is being made.
-
-\section{Referenced sources}
-
-The Cyphal specification contains references to the following sources:
-
-\begin{itemize}
-    \item CiA 103 --- Intrinsically safe capable physical layer.
-    \item CiA 801 --- Application note --- Automatic bit rate detection.
-
-    \item IEEE 754 --- Standard for binary floating-point arithmetic.
-    \item IEEE Std 1003.1 --- IEEE Standard for Information Technology --
-          Portable Operating System Interface (POSIX) Base Specifications.
-
-    \item IETF RFC~768 --- User Datagram Protocol.
-    \item IETF RFC~791 --- Internet Protocol.
-    \item IETF RFC~1112 --- Host extensions for IP multicasting.
-    \item IETF RFC~2119 --- Key words for use in RFCs to Indicate Requirement Levels.
-    \item IETF RFC~2365 --- Administratively Scoped IP Multicast.
-    \item IETF RFC~2474 --- Definition of the Differentiated Services Field (DS Field) in the IPv4 and IPv6 Headers.
-    \item IETF RFC~8085 --- UDP Usage Guidelines.
-    \item IETF RFC~8900 --- IP Fragmentation Considered Fragile.
-    \item IETF RFC~8837 --- Differentiated Services Code Point (DSCP) Packet Markings for WebRTC QoS.
-
-    \item ISO 11898-1 --- Controller area network (CAN) --- Part 1: Data link layer and physical signaling.
-    \item ISO 11898-2 --- Controller area network (CAN) --- Part 2: High-speed medium access unit.
-    \item ISO/IEC 10646 --- Universal Coded Character Set (UCS).
-    \item ISO/IEC 14882 --- Programming Language C++.
-
-    \item \href{http://semver.org}{semver.org} --- Semantic versioning specification.
-
-    \item ``Consistent Overhead Byte Stuffing'', Stuart Cheshire and Mary Baker.
-\end{itemize}
 
 \section{Revision history}
 
@@ -189,7 +155,7 @@ The Cyphal specification contains references to the following sources:
 \begin{itemize}
     \item The maximum data type name length has been increased from 50 to 255 characters.
 
-    \item The default extent function has been removed (section \ref{sec:dsdl_composite_extent_and_sealing}).
+    \item The default extent function has been removed.
     The extent now has to be specified explicitly always unless the data type is sealed.
 
     \item The constraint on DSDL namespaces being defined in a single folder was removed. Namespaces can be hosted
@@ -211,12 +177,11 @@ The Cyphal specification contains references to the following sources:
     \item The subject-ID range reduced from $[0, 32767]$ down to $[0, 8191]$.
     This change may be reverted in a future edition of the standard, if found practical.
 
-    \item Added support for delimited serialization; introduced related concepts of \emph{extent} and \emph{sealing}
-    (section \ref{sec:dsdl_composite_extent_and_sealing}).
+    \item Added support for delimited serialization; introduced related concepts of \emph{extent} and \emph{sealing}.
     This change enables one to easily evolve networked services in a backward-compatible way.
 
     \item Enabled the automatic runtime adjustment of the transfer-ID timeout on a per-subject basis
-    as a function of the transfer reception rate (section \ref{sec:transport_transfer_reception}).
+    as a function of the transfer reception rate.
 \end{itemize}
 
 \subsection{v1.0-alpha -- Jan 2020}
