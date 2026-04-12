@@ -50,6 +50,8 @@ gossip shard, so the broadcast lane sees a slow but guaranteed sweep of all
 topics on the network (recommended $N = 10$).
 Between broadcast sweeps the topic's shard is used, which scales better on large
 networks because each node only joins a fraction of the shards.
+Appendix~\ref{sec:appendix_gossip_model} gives the analytical arrival-load
+model that motivates this topic-wise schedule.
 
 \paragraph{Urgent gossip} Whenever a topic's local subject-ID occupancy changes
 -- a new topic is created, an incoming gossip forces a re-allocation, or a
@@ -96,8 +98,9 @@ that some other node is already covering the same information:
 \subsection{Randomized delay windows}\label{sec:session_gossip_delays}
 
 The urgent window $W_u$ and the startup window $W_s$ are both tunable. The
-recommended orders of magnitude below are derived from the analytic model in
-\texttt{model/gossip\_propagation.ipynb} of the reference implementation.
+recommended orders of magnitude below are derived from the mean-field model
+in appendix~\ref{sec:appendix_gossip_delays}, which also gives a numerical
+example for the typical local-network latency.
 
 Let $\delta_{\max}$ be the worst-case propagation and processing delay for a
 gossip between two nodes on the network.
@@ -106,7 +109,8 @@ gossip between two nodes on the network.
     \item[Urgent window $W_u$] Controls the amount of jitter inserted before an
     urgent gossip. If $m_u$ nodes independently schedule an urgent repair for
     the same event, the expected number of redundant urgent emissions is
-    approximately $(m_u - 1) \cdot \delta_{\max} / W_u$.
+    approximately $(m_u - 1) \cdot \delta_{\max} / W_u$ (see
+    appendix~\ref{sec:appendix_gossip_delays_urgent}).
     In typical deployments $m_u$ is small because a given collision or
     divergence is observed by only a few nodes; setting
     $W_u \approx \delta_{\max}$ is usually sufficient.
@@ -114,8 +118,9 @@ gossip between two nodes on the network.
     \item[Startup window $W_s$] Controls the amount of jitter inserted when a
     node comes online and schedules its first round of gossip.
     Wider windows reduce the probability of simultaneous emissions from many
-    startups but saturate quickly; recommended range is
-    $[\delta_{\max},\ 10 \cdot \delta_{\max}]$.
+    startups but saturate quickly (see
+    appendix~\ref{sec:appendix_gossip_delays_startup});
+    recommended range is $[\delta_{\max},\ 10 \cdot \delta_{\max}]$.
 \end{description}
 
 On a typical local network with $\delta_{\max}$ on the order of tens of
