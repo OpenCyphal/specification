@@ -124,6 +124,7 @@ pipeline; a matched rule also discards any pin suffix the user may have
 supplied. The pin on a rule's \texttt{to} string, if present, is honoured
 instead.
 
+{\footnotesize
 \begin{CyphalSimpleTable}[wide]{Name resolution with remap}{|l l l l l r X|}
     Name                 & From           & To                & Namespace & Home    & Pin    & Remark \\
     \texttt{foo/bar}     & \texttt{foo/bar} & \texttt{zoo}     & \texttt{ns} & \texttt{me} & --   & Relative remap; resolved name is \texttt{ns/zoo}. \\
@@ -132,6 +133,7 @@ instead.
     \texttt{foo/bar}     & \texttt{foo/bar} & \texttt{/zoo}    & \texttt{ns} & \texttt{me} & --   & Absolute remap; namespace is ignored; resolved name is \texttt{zoo}. \\
     \texttt{foo/bar}     & \texttt{foo/bar} & \texttt{\textasciitilde/zoo} & \texttt{ns} & \texttt{me} & -- & Homeful remap; the tilde expands to \texttt{me}; resolved name is \texttt{me/zoo}. \\
 \end{CyphalSimpleTable}
+}
 
 The following inputs cause resolution to fail:
 
