@@ -275,17 +275,48 @@ which are unaware of the session layer.
 
 When receiving a 13-bit-format frame on a subscribed pinned subject, the receiver shall reconstruct a
 session-layer header consistent with the matching pinned topic and prepend it to the received payload
-before forwarding the message to the session layer. The reconstructed header shall declare the message as
-best-effort and shall carry a message tag drawn from a monotonically increasing per-subscription counter,
-so that session-layer duplicate suppression continues to function.
-The reconstructed message shall be otherwise indistinguishable from an equivalent message originated by
-a v1.1 node on the same pinned topic.
+before forwarding the message to the session layer. The reconstructed message shall be otherwise
+indistinguishable from an equivalent message originated by a v1.1 node on the same pinned topic.
 
 \begin{remark}
     This rule confines every v1.1-specific feature to the 16-bit format, which v1.0 receivers unconditionally
     discard at the bit~7 check. A message reaching a v1.0 receiver is therefore always in a form that the
     receiver can parse: a plain application payload on a pinned subject-ID.
 \end{remark}
+
+\subsubsection{Session header reconstruction}\label{sec:transport_can_v10_header_reconstruction}
+
+The reconstructed header shall be a session-layer message header
+whose fields are populated as listed in table~\ref{table:transport_can_v10_header_reconstruction},
+with $S$ denoting the pinned subject-ID of the received frame. All other header fields shall take their
+default values for a best-effort message. The resulting message shall be otherwise indistinguishable from
+an equivalent message originated by a v1.1 node on the same pinned topic.
+
+\begin{CyphalSimpleTable}{Session header field values for reconstructed 13-bit message transfers}{|l X|}
+    \label{table:transport_can_v10_header_reconstruction}
+    Field               & Value \\
+
+    Header type         & Message, best-effort. \\
+
+    Log-age             & $-1$, signalling that no causality information is available. \\
+
+    Eviction counter    & The canonical pinned-topic encoding of the subject-ID $S$. \\
+
+    Topic hash          & $\mathrm{rapidhash}(D(S))$, where $D(S)$ is the ASCII decimal representation of $S$
+                          without leading zeros (e.g.\ $S=42$ yields the two-byte string \texttt{"42"};
+                          $S=0$ yields the one-byte string \texttt{"0"}), and $\mathrm{rapidhash}$ is the 64-bit
+                          rapidhash function invoked with the default seed of zero. \\
+
+    Message tag         & A monotonically increasing per-subscription counter that is incremented once for every
+                          reconstructed message, so that session-layer duplicate suppression continues to function.
+                          The initial value is implementation-defined. \\
+\end{CyphalSimpleTable}
+
+A symmetric rule applies on the transmit side: a sender using the 13-bit format shall strip the session-layer
+header from the outgoing message and transmit only the remaining application payload.
+The session layer is expected to ensure that the stripped header corresponds to a best-effort message
+on a pinned topic, which is the only case in which the 13-bit format is used
+(section~\ref{sec:transport_can_format_selection}).
 
 \subsubsection{Unicast transfers}\label{sec:transport_can_unicast}
 
