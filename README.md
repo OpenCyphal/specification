@@ -74,6 +74,15 @@ For example, one could refer to a figure contained inside the chapter "Chapter" 
 The above rules are crucial to follow to keep cross-references usable.
 Without strict conventions in place, they quickly become unmanageable.
 
+To caption a `CyphalSimpleTable`, put the label inside the caption argument, NOT inside the table body:
+
+```tex
+\begin{CyphalSimpleTable}[wide]{Caption of the table\label{table:chapter_my_table}}{|l l X|}
+    Column A & Column B & Column C \\
+    ...
+\end{CyphalSimpleTable}
+```
+
 ### Source formatting
 
 - One level of nesting shall be indented with 4 spaces. Tabs shall not be used anywhere in the source.

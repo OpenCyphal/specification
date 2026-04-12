@@ -185,8 +185,10 @@ which allows a v1.1 network to coexist with v1.0 nodes on the same bus.
     \caption{CAN ID bit layout}\label{fig:transport_can_id_structure}
 \end{figure}
 
-\begin{CyphalSimpleTable}[wide]{CAN ID bit fields for 16-bit v1.1 message transfers}{|l l l X|}
-    \label{table:transport_can_id_fields_message_transfer_v11}
+\begin{CyphalSimpleTable}[wide]{%
+    CAN ID bit fields for 16-bit v1.1 message transfers%
+    \label{table:transport_can_id_fields_message_transfer_v11}%
+}{|l l l X|}
     Field               & Width & Valid values  & Description \\
 
     Transfer priority   & 3     & $[0, 7]$ (any)    & Section~\ref{sec:transport_transfer_priority}. \\
@@ -204,8 +206,10 @@ which allows a v1.1 network to coexist with v1.0 nodes on the same bus.
     Source node-ID      & 7     & $[0, 127]$ (any)  & Node-ID of the origin. \\
 \end{CyphalSimpleTable}
 
-\begin{CyphalSimpleTable}[wide]{CAN ID bit fields for 13-bit v1.0 message transfers}{|l l l X|}
-    \label{table:transport_can_id_fields_message_transfer_v10}
+\begin{CyphalSimpleTable}[wide]{%
+    CAN ID bit fields for 13-bit v1.0 message transfers%
+    \label{table:transport_can_id_fields_message_transfer_v10}%
+}{|l l l X|}
     Field               & Width & Valid values  & Description \\
 
     Transfer priority   & 3     & $[0, 7]$ (any)    & Section~\ref{sec:transport_transfer_priority}. \\
@@ -230,8 +234,10 @@ which allows a v1.1 network to coexist with v1.0 nodes on the same bus.
                                                       section~\ref{sec:transport_can_source_node_pseudo_id}. \\
 \end{CyphalSimpleTable}
 
-\begin{CyphalSimpleTable}[wide]{CAN ID bit fields for service transfers}{|l l l X|}
-    \label{table:transport_can_id_fields_service_transfer}
+\begin{CyphalSimpleTable}[wide]{%
+    CAN ID bit fields for service transfers%
+    \label{table:transport_can_id_fields_service_transfer}%
+}{|l l l X|}
     Field               & Width & Valid values  & Description \\
 
     Transfer priority   & 3     & $[0, 7]$ (any)    & Section~\ref{sec:transport_transfer_priority}. \\
@@ -289,8 +295,10 @@ with $S$ denoting the pinned subject-ID of the received frame. All other header 
 default values for a best-effort message. The resulting message shall be otherwise indistinguishable from
 an equivalent message originated by a v1.1 node on the same pinned topic.
 
-\begin{CyphalSimpleTable}{Session header field values for reconstructed 13-bit message transfers}{|l X|}
-    \label{table:transport_can_v10_header_reconstruction}
+\begin{CyphalSimpleTable}{%
+    Session header field values for reconstructed 13-bit message transfers%
+    \label{table:transport_can_v10_header_reconstruction}%
+}{|l X|}
     Field               & Value \\
 
     Header type         & Message, best-effort. \\
