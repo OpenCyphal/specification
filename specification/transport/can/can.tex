@@ -6,6 +6,25 @@ This section specifies a concrete transport based on ISO 11898 CAN bus.
 Throughout this section, ``CAN'' implies both Classic CAN 2.0 and CAN FD, unless specifically noted otherwise.
 CAN FD should be considered the primary transport protocol.
 
+\subsection{Definitions}
+
+\begin{description}
+    \item[Node-ID] A 7-bit numerical identifier of a node, in the range $[0, 127]$.
+    Nodes on the same Cyphal/CAN network shall have distinct node-IDs.
+
+    \item[Subject-ID] A 16-bit numerical identifier of a publish-subscribe subject, in the range $[0, 65535]$.
+    Cyphal/CAN v1.0 supported only the 13-bit subject-ID range $[0, 8191]$.
+
+    \item[Service-ID] A 9-bit numerical identifier of a remote procedure call service, in the range $[0, 511]$.
+    Cyphal v1.1 only uses service-ID 511 for unicast exchanges; the remaining IDs are only useful for interaction
+    with pre-v1.1 nodes.
+
+    \item[Transfer-ID] A cyclic counter taken modulo 32 that distinguishes consecutive transfers originated by
+    the same source node on the same subject or service. Used for duplicate suppression and for ordering the
+    frames of a multi-frame transfer. The sender increments it once per transfer; the receiver applies a timeout
+    to bound its state.
+\end{description}
+
 \subsection{CAN ID field}
 
 Cyphal/CAN transport frames are CAN 2.0B frames.
@@ -18,11 +37,18 @@ do not make use of CAN 2.0B frames\footnote{For example, CANOpen or CANaerospace
 However, future revisions of Cyphal/CAN may utilize CAN 2.0A as well,
 so backward compatibility with other high-level CAN bus protocols is not guaranteed.
 
-Cyphal/CAN utilizes two different CAN ID bit layouts for message transfers and service transfers.
-The bit layouts are summarized on figure~\ref{fig:transport_can_id_structure}.
-Tables~\ref{table:transport_can_id_fields_message_transfer} and~\ref{table:transport_can_id_fields_service_transfer}
-summarize the purpose of each field and their permitted values
-for message transfers and service transfers, respectively.
+Cyphal/CAN defines three CAN ID bit layouts, summarized on figure~\ref{fig:transport_can_id_structure}:
+the \textbf{v1.1 message transfer} format with a 16-bit subject-ID;
+the \textbf{v1.0 message transfer} format with a 13-bit subject-ID, retained for wire compatibility with
+Cyphal/CAN v1.0 nodes; and the \textbf{service transfer} format, shared by both versions.
+The two message formats are discriminated by the value of CAN ID bit~7:
+v1.0 messages have bit~7 cleared, while v1.1 messages have bit~7 set.
+A v1.0 receiver silently discards v1.1 message frames because they fail the v1.0 reserved-bit check at bit~7,
+which allows a v1.1 network to coexist with legacy v1.0 nodes on the same bus.
+Tables~\ref{table:transport_can_id_fields_message_transfer_v11},
+\ref{table:transport_can_id_fields_message_transfer_v10},
+and~\ref{table:transport_can_id_fields_service_transfer}
+summarize the fields of each layout.
 
 % Please do not remove the hard placement specifier [H], it is needed to keep elements ordered.
 \begin{figure}[H]
@@ -31,13 +57,54 @@ for message transfers and service transfers, respectively.
         \footnotesize
         \begin{tabular}{|l|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|} \hline
             %
-            % Message transfer
+            % v1.1 16-bit message transfer
             %
-            \multirow{2}{*}{\textbf{Message}} &
+            \multirow{2}{*}{\textbf{Message 16-bit}} &
+            \multicolumn{4}{c|}{Service, not message} &
+            \multicolumn{1}{c|}{\multirow{2}{*}{R}} &
+            \multicolumn{16}{c|}{\multirow{2}{*}{Subject-ID}} &
+            \multicolumn{1}{c|}{\multirow{2}{*}{V}} &
+            \multicolumn{7}{c|}{\multirow{2}{*}{Source node-ID}}
+            \\\cline{2-4}
+
+            &
+            \multicolumn{3}{c|}{Priority}
+            &
+            &
+            &
+            \multicolumn{16}{c|}{} &
+            &
+            \multicolumn{7}{c|}{}
+            \\
+
+            \textbf{Values} &
+            \multicolumn{3}{c|}{$[0, 7]$} &
+            $0$ &
+            $0$ &
+            \multicolumn{16}{c|}{$[0, 65535]$} &
+            $1$ &
+            \multicolumn{7}{c|}{$[0, 127]$}
+            \\\hline
+
+            \textbf{CAN ID bit} &
+            28 & 27 & 26 & 25 & 24 & 23 & 22 & 21 & 20 & 19 & 18 & 17 & 16 & 15 &
+            14 & 13 & 12 & 11 & 10 &  9 &  8 &  7 &  6 &  5 &  4 &  3 &  2 &  1 &  0
+            \\\hline
+
+            \textbf{CAN ID byte} &
+            \multicolumn{5}{c|}{3} & \multicolumn{8}{c|}{2} & \multicolumn{8}{c|}{1} & \multicolumn{8}{c|}{0}
+            \\\hline
+
+            \multicolumn{30}{c}{} \\ \hline % Table separator
+
+            %
+            % v1.0 13-bit message transfer
+            %
+            \multirow{2}{*}{\textbf{Message 13-bit}} &
             \multicolumn{4}{c|}{Service, not message} &
             \multicolumn{4}{c|}{Anonymous} &
             \multicolumn{13}{c|}{\multirow{2}{*}{Subject-ID}} &
-            \multicolumn{1}{c|}{\multirow{2}{*}{R}} &
+            \multicolumn{1}{c|}{\multirow{2}{*}{V}} &
             \multicolumn{7}{c|}{\multirow{2}{*}{Source node-ID}}
             \\\cline{2-4} \cline{7-9}
 
@@ -121,8 +188,27 @@ for message transfers and service transfers, respectively.
     \caption{CAN ID bit layout}\label{fig:transport_can_id_structure}
 \end{figure}
 
-\begin{CyphalSimpleTable}[wide]{CAN ID bit fields for message transfers}{|l l l X|}
-    \label{table:transport_can_id_fields_message_transfer}
+\begin{CyphalSimpleTable}[wide]{CAN ID bit fields for 16-bit v1.1 message transfers}{|l l l X|}
+    \label{table:transport_can_id_fields_message_transfer_v11}
+    Field               & Width & Valid values  & Description \\
+
+    Transfer priority   & 3     & $[0, 7]$ (any)    & Section~\ref{sec:transport_transfer_priority}. \\
+
+    Service, not message & 1    & $0$               & Always zero for message transfers. \\
+
+    Reserved bit 24     & 1     & $0$               & Discard frame if this field has a different value.
+                                                      Occupied the anonymous flag in Cyphal/CAN v1.0;
+                                                      anonymous transfers are not supported in v1.1. \\
+
+    Subject-ID          & 16    & $[0, 65535]$ (any) & Subject-ID of the current message transfer. \\
+
+    Version bit 7       & 1     & $1$                & Always one for v1.1 message transfers. \\
+
+    Source node-ID      & 7     & $[0, 127]$ (any)  & Node-ID of the origin. \\
+\end{CyphalSimpleTable}
+
+\begin{CyphalSimpleTable}[wide]{CAN ID bit fields for 13-bit v1.0 message transfers}{|l l l X|}
+    \label{table:transport_can_id_fields_message_transfer_v10}
     Field               & Width & Valid values  & Description \\
 
     Transfer priority   & 3     & $[0, 7]$ (any)    & Section~\ref{sec:transport_transfer_priority}. \\
@@ -134,22 +220,12 @@ for message transfers and service transfers, respectively.
 
     Reserved bit 23     & 1     & $0$               & Discard frame if this field has a different value. \\
 
-    % The asymmetric requirement to transmit only 1 and accept any value is due to the need to ensure compatibility
-    % with the implementations following the v1-alpha spec, where the width of the subject-ID field was 15 bit
-    % (two bits wider). We keep the most significant bits set to ensure the compatibility of the regulated subject-IDs
-    % between v1-alpha and v1-beta. Ensuring the compatibility of unregulated subject-IDs is far less important because
-    % generally, they are easily changeable.
-    %
-    % Such backward-compatible change renders these two bits unusable for the possible future expansion of the
-    % subject-ID field, but this is fine, because shall the expansion become imminent, we can always flip R7 from 0
-    % to 1, and thus pave the way for a completely new bit layout format with a wider subject-ID. Meanwhile, R21 and
-    % R22 can be leveraged for some additional optional features.
     Reserved bit 22     & 1     & $1$, any          & Transmit $1$; ignore (do not check) when receiving. \\
     Reserved bit 21     & 1     & $1$, any          & Transmit $1$; ignore (do not check) when receiving. \\
 
     Subject-ID          & 13    & $[0, 8191]$ (any) & Subject-ID of the current message transfer. \\
 
-    Reserved bit 7      & 1     & $0$               & Discard frame if this field has a different value. \\
+    Version bit 7       & 1     & $0$                & Always zero for v1.0 legacy message transfers. \\
 
     Source node-ID      & 7     & $[0, 127]$ (any)  & Node-ID of the origin.
                                                       For anonymous transfers, this field contains a pseudo-ID instead,
