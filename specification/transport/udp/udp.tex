@@ -1,0 +1,212 @@
+\section{Cyphal/UDP}\label{sec:transport_udp}
+
+\hyphenation{Cyphal/UDP}  % Disable hyphenation.
+
+\subsection{Overview}
+
+This section specifies a concrete transport based on the UDP/IPv4 protocol\footnote{%
+    Support for IPv6 may appear in a future revision of this specification.
+} as specified in IETF RFC~768.
+Cyphal/UDP is the recommended transport for intravehicular Ethernet networks with complex topologies,
+which may be switched, multi-drop, or mixed, and can be built with standards-compliant commercial
+off-the-shelf networking equipment and software.
+
+A UDP datagram represents a single Cyphal transport frame.
+The maximum subject-ID supported by Cyphal/UDP is $2^{23}-1 = 8388607$, which matches the addressable space
+of the IPv4 multicast MAC layer; see section~\ref{sec:transport_udp_endpoints} for details.
+The maximum transfer payload size is $2^{32}-1$ bytes.
+Implementations shall provide a UDP/IPv4 stack with IGMP v2 (or later) and passive ARP support.
+
+A Cyphal/UDP node is identified on the network by a $64$-bit \emph{node UID}, which shall be globally unique.
+The UID enables a node to freely change its IP address or migrate between network interfaces at runtime.
+A common choice is an EUI-64 identifier, optionally drawn randomly per startup for short-lived software nodes.
+
+\subsection{Datagram addressing}\label{sec:transport_udp_endpoints}
+
+\subsubsection{Multicast}
+
+Multicast transfers carry one Cyphal subject each.
+A subject with subject-ID $s$ shall be mapped to the IPv4 multicast group
+$239.0.0.0 \;|\; (s \;\&\; \text{0x7FFFFF})$\footnote{%
+    $|$ denotes bitwise OR, $\&$ bitwise AND.
+} on the reserved UDP destination port $9382$.
+The $9$ most significant bits of the multicast address are thus fixed at $11101111\,0_2$.
+
+\begin{remark}
+    Freezing the $9$ most significant bits of the multicast group address confines address variability to
+    the $23$ least significant bits. This is necessary because the IPv4 Ethernet MAC layer does not
+    differentiate beyond the $23$ least significant bits of the multicast group address
+    (RFC~1112 section~6.4): addresses that differ only in the $9$ most significant bits alias at the MAC
+    layer, which is unacceptable in a real-time system.
+    Without this constraint, an engineer designing a network might inadvertently create a configuration
+    that causes MAC-layer collisions that are difficult to detect.
+\end{remark}
+
+Sources of Cyphal/UDP multicast traffic \emph{should} set the IP packet TTL to $16$ or higher.
+
+\begin{remark}
+    RFC~1112 prescribes a default TTL of $1$, which is not sufficient because Cyphal/UDP networks may
+    exceed a diameter of one hop.
+\end{remark}
+
+\subsubsection{Unicast}
+
+Cyphal/UDP does not reserve a dedicated endpoint for unicast delivery.
+A unicast transfer shall be addressed to the recipient's UDP/IP endpoint as observed on an earlier
+datagram originated by that recipient on the same interface.
+A receiving node is expected to retain the $(\text{interface}, \text{source endpoint})$ observation for
+each remote UID in order to enable subsequent unicast replies.
+
+\begin{remark}
+    This convention allows Cyphal/UDP nodes to change their IP addresses and even migrate between
+    network interfaces dynamically, provided they continue to publish on subjects
+    (section~\ref{sec:transport_subject_id_ranges}) so that their peers can rediscover them.
+\end{remark}
+
+\subsection{QoS}\label{sec:transport_udp_qos}
+
+The DSCP\footnote{RFC~2474} field of outgoing IP packets \emph{should} be populated based on the Cyphal
+transfer priority level of the corresponding transfer.
+Implementations \emph{should} provide a means for the integrator to configure the mapping from Cyphal
+priority to DSCP per node.
+The integrator \emph{shall} ensure that the applied mapping is consistent with the QoS policies
+implemented in the network\footnote{%
+    This requirement is intended to prevent inconsistent QoS treatment of Cyphal/UDP traffic and priority
+    inversion. RFC~4594 provides a starting point for the design of network QoS policies;
+    RFC~8837 provides a useful reference for real-time traffic classes.
+}.
+
+In the absence of an integrator-provided mapping, a conforming implementation \emph{should} default to the
+conservative mapping shown in table~\ref{table:transport_udp_priority}, which places all Cyphal/UDP traffic
+into the Default Forwarding class. This default is safe in that it does not depend on any network QoS
+configuration; where QoS differentiation is desired, the integrator is expected to configure the mapping
+explicitly.
+
+\begin{CyphalSimpleTable}{
+    Default mapping from Cyphal priority level to DSCP\label{table:transport_udp_priority}
+}{|l l l l|}
+    Cyphal priority & Header priority value & DSCP class & DSCP value \\
+    Exceptional     & 0     & DF            & 0     \\
+    Immediate       & 1     & DF            & 0     \\
+    Fast            & 2     & DF            & 0     \\
+    High            & 3     & DF            & 0     \\
+    Nominal         & 4     & DF            & 0     \\
+    Low             & 5     & DF            & 0     \\
+    Slow            & 6     & DF            & 0     \\
+    Optional        & 7     & DF            & 0     \\
+\end{CyphalSimpleTable}
+
+\subsection{Datagram payload format}\label{sec:transport_udp_payload}
+
+Each UDP datagram payload begins with a fixed-size $32$-byte Cyphal/UDP header followed by the transport
+frame payload, which is opaque to the transport. The header layout is shown in the following snippet in
+pseudo-DSDL notation; multi-byte integers are little-endian.
+
+\begin{samepage}
+\begin{minted}{python}
+uint5  version                 # =2 in this version.
+uint3  priority                # 0=highest, 7=lowest.
+
+void5                          # Send zero, ignore on reception.
+uint3  incompatibility         # Send zero, drop frame if nonzero.
+
+uint48 transfer_id             # For multi-frame reassembly and deduplication.
+uint64 sender_uid              # The 64-bit UID of the originating node.
+
+uint32 frame_payload_offset    # Offset of this frame's payload within the transfer payload.
+uint32 transfer_payload_size   # Total transfer payload size, identical for every frame of the transfer.
+
+uint32 prefix_crc32c           # crc32c(transfer_payload[0 : frame_payload_offset + frame_payload_size])
+uint32 header_crc32c           # crc32c(first 28 bytes of this header)
+
+# Header size is 32 bytes; the transport frame payload follows and is opaque to the protocol.
+\end{minted}
+\end{samepage}
+
+All frames belonging to the same transfer shall carry identical values of \texttt{priority},
+\texttt{transfer\_id}, \texttt{sender\_uid}, and \texttt{transfer\_payload\_size}.
+A receiver shall discard any frame whose \texttt{version} field does not equal the expected value,
+and any frame whose \texttt{incompatibility} field is non-zero.
+Frames may arrive out-of-order and may interleave with neighboring transfers;
+implementations shall cope with both conditions.
+
+The CRC function is \textbf{CRC-32C (Castagnoli)}: polynomial $0x1EDC6F41$, initial value $0xFFFFFFFF$,
+input reflected, output reflected, final XOR $0xFFFFFFFF$.
+The \texttt{header\_crc32c} field protects the first $28$ bytes of the header and is verified
+independently on every received frame, allowing malformed frames to be rejected without parsing the body.
+The \texttt{prefix\_crc32c} field holds a running CRC computed over the accumulated transfer payload bytes
+from offset zero up to and including the current frame's payload. On single-frame transfers
+(\texttt{frame\_payload\_offset} equal to zero and \texttt{frame\_payload\_size} equal to
+\texttt{transfer\_payload\_size}) it therefore doubles as the end-to-end transfer integrity check;
+on multi-frame transfers, the receiver uses it to validate the reassembled transfer as each frame is
+admitted and to detect errors early.
+
+\subsection{Maximum transmission unit}\label{sec:transport_udp_mtu}
+
+The maximum transmission unit (MTU) is defined as the maximum size of a UDP/IP datagram payload,
+inclusive of the $32$-byte Cyphal/UDP header.
+
+Because Cyphal provides native segmentation and reassembly (section~\ref{sec:transport}),
+nodes emitting Cyphal/UDP traffic \emph{shall not} rely on IP fragmentation;
+implementations shall limit the size of the UDP payload accordingly\footnote{%
+    This requirement is consistent with RFC~8085 and RFC~8900. Transfers larger than the MTU limit shall
+    be emitted as multi-frame transfers. The preference for Cyphal segmentation over IP fragmentation
+    removes the $\sim$65~KiB transfer size ceiling imposed by the UDP protocol and permits preemption of
+    long transfers by higher-priority traffic.
+}.
+Support for IP fragmentation is optional for receivers.
+Intermediate network equipment may perform IP fragmentation as long as the behavior is opaque to the
+Cyphal/UDP end systems.
+
+In multi-frame transfers, all frames except the last shall carry the same amount of frame payload.
+The last frame shall carry a non-zero amount of frame payload not greater than that of the preceding
+frames\footnote{%
+    This constraint enables efficient reassembly of multi-frame transfers with frames arriving
+    out-of-order, including the case of frame interleaving between adjacent transfers.
+}.
+
+\subsection{Transfer-ID initialization}\label{sec:transport_udp_transfer_id}
+
+The sender shall assign a unique $48$-bit \texttt{transfer\_id} to every transfer it emits and shall
+increment the counter once per emitted transfer.
+The initial value of the counter \emph{shall} be drawn randomly at each node startup such that it is
+unlikely to coincide with any transfer-ID value recently used by the same sender UID.
+A uniformly-distributed $48$-bit random draw provides sufficient entropy for this purpose with
+overwhelming probability.
+
+Random initialization obviates the need for a transfer-ID timeout at the receiver: because sender UIDs
+are globally unique and the transfer-ID counter does not wrap within the effective lifetime of the
+protocol, stale transfers from an earlier epoch do not collide with fresh ones.
+This simplifies the receive pipeline, but it places a correctness requirement on the quality of the
+random source used to seed the counter.
+
+The random source used to seed the transfer-ID counter \emph{shall} produce an initial state that is
+distinct across reboots in quick succession, and \emph{should} mix the seed with the local node UID for
+additional entropy.
+A hardware true-random generator is preferred.
+In its absence, a well-seeded pseudorandom generator is acceptable; suitable seed sources for embedded
+systems without a TRNG include:
+
+\begin{itemize}
+    \item A counter held in battery-backed memory or a \texttt{.noinit} RAM section that survives resets.
+    \item A hash of uninitialized SRAM contents sampled at startup.
+    \item Sampled ADC or clock noise.
+    \item The current value of an RTC combined with a persistent counter.
+\end{itemize}
+
+A single well-seeded random draw at startup is sufficient; the counter itself need not come from a
+cryptographic source once initialized.
+
+\subsection{Real-time and resource-constrained systems}
+
+Real-time or resource-constrained systems may implement Cyphal/UDP using a custom UDP/IP and IGMP stack
+with a reduced feature set; in particular, they may omit support for IP fragmentation and ICMP.
+
+Networking equipment connected to such systems is \emph{recommended} to suppress ICMP emission, because:
+
+\begin{enumerate}
+    \item ICMP traffic increases network load and may perturb the timing of the system; in some
+    deployments it can also be considered an attack vector.
+    \item Cyphal/UDP nodes are not required to support ICMP and may therefore be unable to process
+    incoming ICMP messages.
+\end{enumerate}
