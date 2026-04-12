@@ -2,7 +2,26 @@
 
 \section{Function}
 
-TODO: DEFINE THE CORE TRANSPORT CONTRACT PER cy.
+A Cyphal \emph{transport} provides unreliable, unordered, deduplicated delivery of integrity-checked messages
+between Cyphal nodes. A message is either delivered intact or not delivered at all; the transport performs
+neither retransmission nor ordering recovery. Reliable delivery, ordering, and session semantics, where required,
+are provided by higher layers on top of this minimal contract.
+
+A transport shall provide two delivery modes:
+\begin{description}
+    \item[Multicast] Delivery to the group of subscribers on a \emph{subject}, identified by a numerical
+    \emph{subject-ID}\footnote{In IP networks this analogous to multicast groups.}.
+    \item[Unicast] Delivery to a single \emph{remote node}, identified by its \emph{node-ID}.
+\end{description}
+
+Messages may be of arbitrary size not larger than 4 gibibytes.
+A transport shall perform segmentation and reassembly transparently to the higher layers,
+so that a received message is always delivered as a single unit.
+A transport may offer redundant interfaces for fault tolerance, with transparent failover,
+which is invisible to the higher layers.
+
+Participant discovery is provided implicitly as a side effect of joining the broadcast subject defined in
+section~\ref{sec:transport_subject_id_ranges}; no separate discovery protocol is required.
 
 \section{Definitions}
 
@@ -149,6 +168,30 @@ An exception to the above rule applies if the payload of the transfer is a funct
 the identity of the transport instance that carries the transfer\footnote{%
     Specific examples include time synchronization algorithms or diagnostic probes.
 }.
+
+\subsection{Subject-ID ranges}\label{sec:transport_subject_id_ranges}
+
+Subject-ID values range from zero up to a transport-specific maximum and are partitioned as follows:
+
+\begin{description}
+    \item[{$[0,\, 8191]$ -- pinned subjects}] Statically-assigned subject-IDs.
+    This range is the only one used by Cyphal/CAN v1.0 and is retained as the primary path for interoperation
+    with v1.0 nodes.
+
+    \item[{$[8192,\, 8191{+}M]$ -- auto-allocated subjects}] Subject-IDs assigned dynamically by the session layer,
+    where $M$ is a transport-specific prime \emph{modulus} satisfying $M \bmod 4 = 3$.
+
+    \item[Maximum value -- broadcast subject] Used by the session layer for low-rate broadcast traffic such as
+    topic allocation gossip and service discovery scouts.
+
+    \item[Remaining values -- gossip shards] Subject-IDs strictly between $(8191{+}M)$ and the broadcast subject
+    are used as sharded subjects for background gossip propagation.
+\end{description}
+
+On the broadcast subject and on the gossip shard subjects, the transport is permitted to relax two requirements:
+(a) deduplication is not mandatory, and (b) support for messages exceeding a single transport frame is not required.
+The session layer tolerates occasional duplication on these subjects and constrains its own protocol messages
+to fit within a single transport frame.
 
 % Please keep \clearpage in front of every section to enforce clear separation!
 \clearpage\input{transport/can/can.tex}
