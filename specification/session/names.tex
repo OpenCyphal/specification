@@ -1,0 +1,337 @@
+\section{Topic names}\label{sec:session_names}
+
+A \emph{topic name} is a string of printable ASCII characters used by the application
+to identify a publish-subscribe channel.
+The session layer carries names only in gossip and scout messages; every other
+message identifies topics by their 64-bit hash (section~\ref{sec:session_identity}).
+
+\subsection{Character set and normalization}
+
+A valid name consists of characters in the ASCII range $[33, 126]$; the space
+character (ASCII $32$) and all control characters are excluded.
+Names are case-sensitive.
+The forward-slash character \texttt{/} (ASCII $47$) acts as the \emph{separator}
+between name segments.
+
+A \emph{normalized} name contains no leading separator, no trailing separator, and
+no consecutive separators. Names are normalized before hashing and before being sent
+on the wire. The maximum length of a normalized name is 200 bytes.
+
+\subsection{Pattern tokens}
+
+Subscribers may register under pattern names that contain the following special
+tokens; publishers may not. A publisher whose resolved name contains any pattern
+token shall be rejected by the session layer.
+
+\begin{description}
+    \item[\texttt{*} (ASCII $42$)] Matches exactly one name segment.
+    For example, the pattern \texttt{sensors/*/data} matches \texttt{sensors/imu/data}
+    and \texttt{sensors/gps/data} but not \texttt{sensors/imu/raw/data}.
+
+    \item[\texttt{>} (ASCII $62$)] Matches zero or more trailing segments.
+    Must appear as the last token in the pattern.
+    For example, the pattern \texttt{sensors/>} matches \texttt{sensors},
+    \texttt{sensors/imu}, and \texttt{sensors/imu/raw/data}.
+\end{description}
+
+Pattern tokens are not permitted in intermediate positions outside of these forms;
+for example, \texttt{sen*ors} is a literal name, not a pattern.
+
+\subsection{Pin suffix}
+
+A name may be pinned to a specific subject-ID using the suffix
+\texttt{\#\textit{NNN}}, where \texttt{\#} is ASCII $35$ and \textit{NNN} is a
+decimal number in the range $[0, 8191]$ without leading zeros.
+Pinning is permitted only on verbatim names; a pattern name shall not carry a
+pin suffix.
+The pin suffix is stripped from the name before hashing and normalization, so a
+pinned topic and its verbatim counterpart share the same topic hash but request a
+different subject-ID (section~\ref{sec:session_identity}).
+
+\subsection{Home and namespace expansion}
+
+A name may begin with the \emph{home} token \texttt{\textasciitilde} (tilde,
+ASCII $126$), which is replaced at resolution time with the node's home name.
+A name beginning with \texttt{/} is \emph{absolute} and is used as-is, ignoring
+the namespace prefix. All other names are relative and are prefixed with the
+node's namespace at resolution time.
+
+\subsection{Remapping}
+
+A node may carry a \emph{remap table} of \texttt{\textit{from}}$\to$\texttt{\textit{to}}
+pairs that rewrite names before namespace and home expansion.
+A matching rule replaces the input name with its \texttt{\textit{to}} string and then
+feeds the result into the rest of the resolution pipeline.
+If the matched rule's \texttt{\textit{to}} string carries a pin suffix, that pin is
+honoured; any pin supplied in the user's original name is discarded.
+Software implementations should accept the remap table from the environment variables
+\texttt{CYPHAL\_NAMESPACE} and \texttt{CYPHAL\_REMAP} to allow integrators to adjust
+names without modifying the application.
+
+\subsection{Resolution pipeline}
+
+The following pipeline is normative. Given a user-supplied name, a node resolves it
+as follows, in order:
+
+\begin{enumerate}
+    \item \textbf{Remap} the input name through the remap table, if any.
+    \item \textbf{Expand} the home token \texttt{\textasciitilde} if present, or
+    prefix the namespace if the name is relative and the absolute form is not used.
+    \item \textbf{Extract} any pin suffix, recording the pinned subject-ID separately.
+    \item \textbf{Normalize} the remaining name by collapsing consecutive separators
+    and trimming leading and trailing separators.
+\end{enumerate}
+
+The result is the normalized resolved name (used for hashing and for inclusion in
+gossip and scout messages) together with the optional pinned subject-ID.
+Resolution fails if the normalized name is empty, exceeds 200 bytes, or contains a
+character outside the permitted set.
+
+\begin{remark}
+    The intended usage pattern is that applications hardcode verbatim names and let
+    integrators introduce patterns and pinning through the remap table at deployment
+    time. This keeps the application code free of site-specific routing decisions.
+\end{remark}
+
+\subsection{Resolution examples}
+
+The following examples illustrate the resolution pipeline when no remap table
+is installed. \texttt{NAMESPACE} and \texttt{HOME} are per-node configuration;
+\texttt{RESOLVED} is the normalized name that appears on the wire;
+\texttt{PIN} is the pinned subject-ID, if any;
+\texttt{VERBATIM?} is \emph{yes} if the resolved name has no pattern tokens.
+
+\begin{CyphalSimpleTable}[wide]{Name resolution without remap}{|l l l l r l|}
+    Name                   & Namespace   & Home    & Resolved           & Pin    & Verbatim? \\
+    \texttt{foo/bar}       & \texttt{ns1}   & \texttt{me} & \texttt{ns1/foo/bar}       & --       & yes \\
+    \texttt{\textasciitilde/foo/bar} & \texttt{ns1} & \texttt{me} & \texttt{me/foo/bar} & -- & yes \\
+    \texttt{/foo//bar/}    & \texttt{ns1}   & \texttt{me} & \texttt{foo/bar}           & --       & yes \\
+    \texttt{foo/bar/}      & \texttt{\textasciitilde/ns1} & \texttt{me} & \texttt{me/ns1/foo/bar} & -- & yes \\
+    \texttt{foo\#123}      & \texttt{ns1\#456} & \texttt{me} & \texttt{ns1/foo}         & $123$    & yes \\
+    \texttt{foo/\#123}     & \texttt{ns1\#456} & \texttt{me} & \texttt{ns1/foo}         & $123$    & yes \\
+    \texttt{*/foo}         & \texttt{ns1}   & \texttt{me} & \texttt{ns1/*/foo}         & --       & no  \\
+    \texttt{\textasciitilde/*/foo/} & \texttt{ns1} & \texttt{me} & \texttt{me/*/foo}    & --       & no  \\
+    \texttt{/\textasciitilde/*/foo/} & \texttt{ns1} & \texttt{me} & \texttt{\textasciitilde/*/foo} & -- & no \\
+\end{CyphalSimpleTable}
+
+Note in the last row that an absolute name beginning with \texttt{/}
+short-circuits home expansion, so the tilde is preserved as a literal
+character in the resolved name.
+
+Next, a remap table is installed. A matched remap rule replaces the user-supplied
+name with the rule's \texttt{to} string, which is then fed through the same
+pipeline; a matched rule also discards any pin suffix the user may have
+supplied. The pin on a rule's \texttt{to} string, if present, is honoured
+instead.
+
+\begin{CyphalSimpleTable}[wide]{Name resolution with remap}{|l l l l l r X|}
+    Name                 & From           & To                & Namespace & Home    & Pin    & Remark \\
+    \texttt{foo/bar}     & \texttt{foo/bar} & \texttt{zoo}     & \texttt{ns} & \texttt{me} & --   & Relative remap; resolved name is \texttt{ns/zoo}. \\
+    \texttt{foo/bar}     & \texttt{foo/bar} & \texttt{zoo\#123} & \texttt{ns} & \texttt{me} & $123$ & Pinned relative remap; resolved name is \texttt{ns/zoo}. \\
+    \texttt{foo/bar\#456} & \texttt{foo/bar} & \texttt{zoo}     & \texttt{ns} & \texttt{me} & --   & User pin discarded by the matched rule; resolved name is \texttt{ns/zoo}. \\
+    \texttt{foo/bar}     & \texttt{foo/bar} & \texttt{/zoo}    & \texttt{ns} & \texttt{me} & --   & Absolute remap; namespace is ignored; resolved name is \texttt{zoo}. \\
+    \texttt{foo/bar}     & \texttt{foo/bar} & \texttt{\textasciitilde/zoo} & \texttt{ns} & \texttt{me} & -- & Homeful remap; the tilde expands to \texttt{me}; resolved name is \texttt{me/zoo}. \\
+\end{CyphalSimpleTable}
+
+The following inputs cause resolution to fail:
+
+\begin{description}
+    \item[\texttt{"foo bar\textbackslash{}nbaz"}] Contains a space (ASCII $32$)
+    and a control character (ASCII $10$); non-printable and space characters
+    are not allowed.
+    \item[\texttt{"foo/*/bar\#123"}] A pattern name cannot be pinned; the
+    \texttt{\#} suffix is not permitted on names containing pattern tokens.
+    \item[\texttt{""} (empty)] An empty name is not allowed.
+    \item[\texttt{"\#1234"}] After the pin expression is stripped, the
+    remaining name is empty, which is not allowed.
+    \item[A name longer than 200 bytes after normalization] Rejected regardless
+    of how much buffer space is available.
+\end{description}
+
+\section{Topic identity and subject-ID mapping}\label{sec:session_identity}
+
+Every topic has a deterministic 64-bit \emph{topic hash} derived from its normalized
+resolved name and a transport-visible \emph{subject-ID} derived from the hash and
+its eviction counter.
+The mapping is purely arithmetic and uses no shared state other than the parameters
+normalized in this section; every node computes the same value from the same inputs.
+
+\subsection{The topic hash function}\label{sec:session_rapidhash}
+
+The topic hash is computed as $\mathrm{rapidhash}(\mathit{name},\ \mathit{seed}=0)$,
+where \textit{name} is the UTF-8 byte sequence of the normalized resolved name
+(no NUL terminator) and $\mathrm{rapidhash}$ is the 64-bit
+\textbf{rapidhash V3} function\footnote{%
+    rapidhash is a fast, high-quality, platform-independent hash function
+    developed by Nicolas De Carli and distributed under the MIT license at
+    \href{https://github.com/Nicoshev/rapidhash}{github.com/Nicoshev/rapidhash}.
+    It is derived from the wyhash algorithm by Wang Yi.
+    Cyphal v1.1 pins the V3 variant of rapidhash as its normative hash function;
+    the Python transcription below has been verified bit-identical to the
+    reference C implementation for every test vector in this section.
+} with the default secret specified below.
+
+The default secret consists of eight 64-bit constants:
+
+\begin{CyphalSimpleTable}{Default secret for the rapidhash V3 topic hash function}{|l l|}
+    Index   & Value (hexadecimal)      \\
+    0       & \texttt{0x2d358dccaa6c78a5} \\
+    1       & \texttt{0x8bb84b93962eacc9} \\
+    2       & \texttt{0x4b33a62ed433d4a3} \\
+    3       & \texttt{0x4d5a2da51de1aa47} \\
+    4       & \texttt{0xa0761d6478bd642f} \\
+    5       & \texttt{0xe7037ed1a0b428db} \\
+    6       & \texttt{0x90ed1765281c388c} \\
+    7       & \texttt{0xaaaaaaaaaaaaaaaa} \\
+\end{CyphalSimpleTable}
+
+Multi-byte integers within the hash function are read from the input in
+\emph{little-endian} byte order on every platform; big-endian implementations shall
+emulate this ordering. Wherever the resulting 64-bit hash integer appears in a
+session-layer header, it is serialized as little-endian.
+
+\begin{remark}
+    Multiple rapidhash variants exist in the wild
+    (V1, V2, V3, V3-micro, V3-nano, wyhash, \ldots) and they are not wire-compatible
+    with one another. Cyphal v1.1 pins down the full V3 variant only, with the
+    default seed and the default secret listed above.
+\end{remark}
+
+A normative Python transcription of the reference C implementation is given in
+appendix~\ref{sec:appendix_rapidhash}. It is bit-identical to the reference
+implementation on every platform and may be used directly to reproduce the
+test vectors below.
+
+The following test vectors are authoritative. An implementation that fails to
+reproduce any of them is not interoperable with the rest of the Cyphal network and
+cannot participate in the topic allocation protocol.
+
+\begin{CyphalSimpleTable}{Rapidhash V3 test vectors}{|l r l|}
+    Input (ASCII)                            & Length & \texttt{rapidhash(input)}  \\
+    \texttt{""} (empty)                      & 0      & \texttt{0x0338dc4be2cecdae} \\
+    \texttt{"a"}                             & 1      & \texttt{0x599f47df33a2e1eb} \\
+    \texttt{"abc"}                           & 3      & \texttt{0xcb475beafa9c0da2} \\
+    \texttt{"topic"}                         & 5      & \texttt{0x0164a16804e84989} \\
+    \texttt{"sensors/imu"}                   & 11     & \texttt{0xbb402fd6c693c60b} \\
+    \texttt{"sensors/engine/temperature"}    & 26     & \texttt{0x32d2c4bd5c5485e7} \\
+    \texttt{"head/camera/upper\_left"}       & 22     & \texttt{0x28f52efde90dec0a} \\
+    \texttt{"system/primary/sensor/0/data"}  & 28     & \texttt{0x57627b4b782b47af} \\
+    \texttt{"ins/0/data"}                    & 10     & \texttt{0xdf3339ab99373b98} \\
+    \texttt{"1234"}                          & 4      & \texttt{0xa5ae810dbac9be9b} \\
+    \texttt{"65535"}                         & 5      & \texttt{0x2c5a542e44fa7c20} \\
+    200 $\times$ \texttt{'x'}                & 200    & \texttt{0x25adb114ca9ea76a} \\
+\end{CyphalSimpleTable}
+
+\subsection{Subject-ID mapping}\label{sec:session_subject_id_mapping}
+
+The subject-ID assigned to a non-pinned topic is a function of its hash $h$, its
+eviction counter $e$, and the transport's subject-ID modulus $M$:
+\begin{equation*}
+    \mathit{subject\_id}(h, e) = 8192 + ((h + e \cdot e) \bmod M)
+\end{equation*}
+All arithmetic is performed on 64-bit unsigned integers with wraparound;
+implementations using signed types shall take care not to sign-extend the hash.
+The modulus $M$ is a prime satisfying $M \bmod 4 = 3$, chosen per
+section~\ref{sec:session_modulus}; its selection ensures that the
+$\{e^2 \bmod M : e \in \mathbb{N}\}$ sequence is a valid quadratic-probing
+sequence.
+
+A \emph{pinned} topic is one whose eviction counter lies in the reserved range
+$[\text{UINT32\_MAX}-8191,\ \text{UINT32\_MAX}]$.
+Its subject-ID is obtained by $\mathit{subject\_id} = \text{UINT32\_MAX} - e$,
+which lies in the pinned range $[0, 8191]$.
+Pinned topics otherwise behave as ordinary CRDT records and participate in
+arbitration on equal terms with non-pinned topics.
+
+\begin{remark}
+    The high-eviction encoding of pinned topics serves a second purpose: it acts as a
+    wrap-around guard for the eviction counter itself.
+    Under any pathological churn that drove a non-pinned topic's eviction counter
+    past $2^{32} - 8192$, the topic would enter the pinned range and be arrested at
+    subject-ID 8191 rather than overflowing the counter and disrupting consensus.
+    The 32-bit counter is wide enough that such growth is not reachable in practice:
+    at a sustained one eviction per second it takes over 136 years to overflow.
+\end{remark}
+
+\subsection{Subject-ID ranges}\label{sec:session_subject_id_ranges}
+
+The session layer partitions the entire subject-ID space exposed by the
+transport into four disjoint ranges, described in the table below.
+All values refer to the numerical subject-ID carried in the transport header;
+the topic $\to$ subject-ID mapping is defined in
+section~\ref{sec:session_subject_id_mapping}.
+
+\begin{CyphalSimpleTable}{Subject-ID space partition}{|l X|}
+    Range                          & Usage \\
+    $[0,\ 8191]$                   & Pinned topics. Retained as the primary path for interoperation with Cyphal/CAN v1.0 nodes, which only understand this range. \\
+    $[8192,\ 8191{+}M]$            & Auto-allocated topics. $M$ is a transport-specific prime modulus satisfying $M \bmod 4 = 3$, defined in section~\ref{sec:session_modulus}. \\
+    $(8191{+}M,\ B)$               & Gossip shard subjects used for background CRDT dissemination (section~\ref{sec:session_gossip}). \\
+    $B$                            & The \emph{broadcast subject}, used for broadcast gossip and for scout service discovery (section~\ref{sec:session_scout}). \\
+\end{CyphalSimpleTable}
+
+where $B = 2^{\lceil\log_2(8191 + M + 1)\rceil} - 1$ is the highest subject-ID
+representable in the transport's subject-ID width.
+Every node is expected to subscribe to the broadcast subject; the transport's
+implicit participant discovery mechanism (section~\ref{sec:transport}) is a
+side effect of that universal subscription.
+
+On the broadcast subject and on any gossip shard subject, the transport layer
+is permitted to relax two of the requirements stated in
+section~\ref{sec:transport}: deduplication of incoming transfers is not
+mandatory, and support for transfers exceeding a single transport frame is not
+required. The session layer tolerates occasional duplication on these
+subjects, and constrains its own protocol messages on them to fit within a
+single transport frame.
+
+\begin{remark}
+    The relaxation is important for scalability on resource-constrained
+    transports. Deduplication state on the broadcast subject would otherwise
+    grow linearly with the number of peers, which is hostile to small nodes;
+    multi-frame reassembly buffers on the gossip shards would impose a
+    per-shard memory cost that a large network cannot afford.
+\end{remark}
+
+\subsection{Subject-ID modulus}\label{sec:session_modulus}
+
+The modulus $M$ depends on the width of the subject-ID field supported by the
+transport. It shall be prime, satisfy $M \bmod 4 = 3$, and be the largest such
+prime not exceeding $(\text{transport maximum subject-ID}) - 8191$.
+The following values are normative:
+
+\begin{CyphalSimpleTable}{Subject-ID moduli for supported transport widths}{|l l r X|}
+    Name    & Width   & Modulus $M$     & Notes                                                             \\
+    16-bit  & 16 bits & $57203$         & Usable on all Cyphal transports, including Cyphal/CAN.             \\
+    23-bit  & 23 bits & $8378431$       & Usable on Cyphal/UDP; not compatible with Cyphal/CAN.              \\
+    32-bit  & 32 bits & $4294954663$    & Reserved for future 32-bit transports; not compatible with the above. \\
+\end{CyphalSimpleTable}
+
+All nodes on the same logical Cyphal network shall use the same modulus.
+In a heterogeneously redundant deployment where different transports are used in
+parallel, the smallest applicable modulus shall be chosen so that every subject-ID
+is representable on every member transport.
+
+For the 16-bit modulus the derived subject-ID ranges are $[0, 8191]$ for pinned
+topics, $[8192, 65394]$ for auto-allocated topics, $[65395, 65534]$ for the
+140 gossip shards, and $65535$ for the broadcast subject.
+For the 23-bit modulus the ranges are $[0, 8191]$, $[8192, 8386622]$,
+$[8386623, 8388606]$ ($1984$ gossip shards), and $8388607$ respectively.
+
+The following test vectors lock down the mapping formula for typical inputs.
+The evictions column traces the first three entries of the quadratic-probing
+sequence $(e = 0, 1, 2)$; subsequent entries step by $5, 7, 9, \ldots$.
+
+\begin{CyphalSimpleTable}{Subject-ID test vectors}{|l l r r r|}
+    Name               & Hash                 & $e$ & $M=57203$ & $M=8378431$ \\
+    \texttt{""}        & \texttt{0x0338dc4be2cecdae} & 0 & $21600$  & $6520572$ \\
+    \texttt{""}        & \texttt{0x0338dc4be2cecdae} & 1 & $21601$  & $6520573$ \\
+    \texttt{""}        & \texttt{0x0338dc4be2cecdae} & 2 & $21604$  & $6520576$ \\
+    \texttt{"topic"}   & \texttt{0x0164a16804e84989} & 0 & $38082$  & $1049799$ \\
+    \texttt{"topic"}   & \texttt{0x0164a16804e84989} & 1 & $38083$  & $1049800$ \\
+    \texttt{"topic"}   & \texttt{0x0164a16804e84989} & 2 & $38086$  & $1049803$ \\
+    \texttt{"sensors/imu"} & \texttt{0xbb402fd6c693c60b} & 0 & $54214$ & $8263034$ \\
+    \texttt{"sensors/imu"} & \texttt{0xbb402fd6c693c60b} & 1 & $54215$ & $8263035$ \\
+    \texttt{"sensors/imu"} & \texttt{0xbb402fd6c693c60b} & 2 & $54218$ & $8263038$ \\
+    \texttt{"ins/0/data"} & \texttt{0xdf3339ab99373b98} & 0 & $28748$ & $8266023$ \\
+    \texttt{"ins/0/data"} & \texttt{0xdf3339ab99373b98} & 1 & $28749$ & $8266024$ \\
+    \texttt{"ins/0/data"} & \texttt{0xdf3339ab99373b98} & 2 & $28752$ & $8266027$ \\
+\end{CyphalSimpleTable}

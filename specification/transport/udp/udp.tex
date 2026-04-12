@@ -17,9 +17,15 @@ of the IPv4 multicast MAC layer; see section~\ref{sec:transport_udp_endpoints} f
 The maximum transfer payload size is $2^{32}-1$ bytes.
 Implementations shall provide a UDP/IPv4 stack with IGMP v2 (or later) and passive ARP support.
 
-A Cyphal/UDP node is identified on the network by a $64$-bit \emph{node UID}, which shall be globally unique.
+A Cyphal/UDP node is identified on the network by a $64$-bit \emph{node UID}, which should be globally unique.
 The UID enables a node to freely change its IP address or migrate between network interfaces at runtime.
-A common choice is an EUI-64 identifier, optionally drawn randomly per startup for short-lived software nodes.
+A common choice is an EUI-64\footnote{%
+    Refer to ``Guidelines for Use of Extended Unique Identifier (EUI), Organizationally Unique Identifier (OUI),
+    and Company ID (CID)'', published by IEEE.
+} identifier, optionally drawn randomly per startup for short-lived software nodes,
+or hashed down from a larger unique identifier for hardware nodes\footnote{%
+    A random EUI-64 offers 62 bits of variability, resulting in a negligible collision risk.
+}.
 
 \subsection{Datagram addressing}\label{sec:transport_udp_endpoints}
 
@@ -60,7 +66,7 @@ each remote UID in order to enable subsequent unicast replies.
 \begin{remark}
     This convention allows Cyphal/UDP nodes to change their IP addresses and even migrate between
     network interfaces dynamically, provided they continue to publish on subjects
-    (section~\ref{sec:transport_subject_id_ranges}) so that their peers can rediscover them.
+    (section~\ref{sec:session_subject_id_ranges}) so that their peers can rediscover them.
 \end{remark}
 
 \subsection{QoS}\label{sec:transport_udp_qos}
@@ -98,9 +104,8 @@ explicitly.
 
 \subsection{Datagram payload format}\label{sec:transport_udp_payload}
 
-Each UDP datagram payload begins with a fixed-size $32$-byte Cyphal/UDP header followed by the transport
-frame payload, which is opaque to the transport. The header layout is shown in the following snippet in
-pseudo-DSDL notation; multi-byte integers are little-endian.
+Each UDP datagram payload begins with a fixed-size 32-byte Cyphal/UDP header followed by the transport
+frame payload, which is opaque to the transport. The header layout is shown in the following snippet in DSDL notation.
 
 \begin{samepage}
 \begin{minted}{python}
@@ -119,7 +124,7 @@ uint32 transfer_payload_size   # Total transfer payload size, identical for ever
 uint32 prefix_crc32c           # crc32c(transfer_payload[0 : frame_payload_offset + frame_payload_size])
 uint32 header_crc32c           # crc32c(first 28 bytes of this header)
 
-# Header size is 32 bytes; the transport frame payload follows and is opaque to the protocol.
+@sealed  # Header size is 32 bytes; the transport frame payload follows and is opaque to the protocol.
 \end{minted}
 \end{samepage}
 
@@ -188,7 +193,8 @@ In its absence, a well-seeded pseudorandom generator is acceptable; suitable see
 systems without a TRNG include:
 
 \begin{itemize}
-    \item A counter held in battery-backed memory or a \texttt{.noinit} RAM section that survives resets.
+    \item A counter held in battery-backed memory or a \texttt{.noinit} RAM section that survives resets
+    or brief periods of power loss (at least partially).
     \item A hash of uninitialized SRAM contents sampled at startup.
     \item Sampled ADC or clock noise.
     \item The current value of an RTC combined with a persistent counter.
@@ -201,7 +207,6 @@ cryptographic source once initialized.
 
 Real-time or resource-constrained systems may implement Cyphal/UDP using a custom UDP/IP and IGMP stack
 with a reduced feature set; in particular, they may omit support for IP fragmentation and ICMP.
-
 Networking equipment connected to such systems is \emph{recommended} to suppress ICMP emission, because:
 
 \begin{enumerate}

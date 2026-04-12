@@ -1,0 +1,88 @@
+\chapter{Rapidhash reference implementation}\label{sec:appendix_rapidhash}
+
+This appendix gives the normative Python transcription of the rapidhash V3
+topic hash function pinned by Cyphal v1.1
+(section~\ref{sec:session_rapidhash}). It is bit-identical to the reference
+C implementation on every platform and may be used directly to reproduce
+the test vectors in section~\ref{sec:session_rapidhash}.
+The C implementation is distributed under the MIT license by Nicolas De
+Carli and is derived from the wyhash algorithm by Wang Yi.
+All arithmetic is modulo $2^{64}$; intermediate results must be masked to
+64 bits where the Python semantics do not do so automatically.
+
+\begin{minted}[fontsize=\scriptsize]{python}
+MASK64 = (1 << 64) - 1
+SECRET = [ 0x2d358dccaa6c78a5, 0x8bb84b93962eacc9, 0x4b33a62ed433d4a3, 0x4d5a2da51de1aa47,
+           0xa0761d6478bd642f, 0xe7037ed1a0b428db, 0x90ed1765281c388c, 0xaaaaaaaaaaaaaaaa]
+
+def _read64(b, o): return int.from_bytes(b[o:o+8], "little")
+def _read32(b, o): return int.from_bytes(b[o:o+4], "little")
+
+def _mum(a, b):
+    r = (a * b) & ((1 << 128) - 1)
+    return (r & MASK64, (r >> 64) & MASK64)
+
+def _mix(a, b):
+    lo, hi = _mum(a, b)
+    return lo ^ hi
+
+def rapidhash(key: bytes, seed: int = 0) -> int:
+    p, n = key, len(key)
+    seed ^= _mix(seed ^ SECRET[2], SECRET[1])
+    seed &= MASK64
+    a = b = 0
+    i = n
+    if n <= 16:
+        if n >= 4:
+            seed ^= n
+            if n >= 8:
+                a = _read64(p, 0)
+                b = _read64(p, n - 8)
+            else:
+                a = _read32(p, 0)
+                b = _read32(p, n - 4)
+        elif n > 0:
+            a = (p[0] << 45) | p[n - 1]
+            b = p[n >> 1]
+    else:
+        off = 0
+        if i > 112:
+            see1 = see2 = see3 = see4 = see5 = see6 = seed
+            while True:
+                seed = _mix(_read64(p, off)      ^ SECRET[0], _read64(p, off +  8) ^ seed)
+                see1 = _mix(_read64(p, off + 16) ^ SECRET[1], _read64(p, off + 24) ^ see1)
+                see2 = _mix(_read64(p, off + 32) ^ SECRET[2], _read64(p, off + 40) ^ see2)
+                see3 = _mix(_read64(p, off + 48) ^ SECRET[3], _read64(p, off + 56) ^ see3)
+                see4 = _mix(_read64(p, off + 64) ^ SECRET[4], _read64(p, off + 72) ^ see4)
+                see5 = _mix(_read64(p, off + 80) ^ SECRET[5], _read64(p, off + 88) ^ see5)
+                see6 = _mix(_read64(p, off + 96) ^ SECRET[6], _read64(p, off +104) ^ see6)
+                off += 112
+                i   -= 112
+                if i <= 112:
+                    break
+            seed ^= see1
+            see2 ^= see3
+            see4 ^= see5
+            seed ^= see6
+            see2 ^= see4
+            seed ^= see2
+            seed &= MASK64
+        if i > 16:
+            seed = _mix(_read64(p, off) ^ SECRET[2], _read64(p, off +  8) ^ seed)
+            if i > 32:
+                seed = _mix(_read64(p, off + 16) ^ SECRET[2], _read64(p, off + 24) ^ seed)
+                if i > 48:
+                    seed = _mix(_read64(p, off + 32) ^ SECRET[1], _read64(p, off + 40) ^ seed)
+                    if i > 64:
+                        seed = _mix(_read64(p, off + 48) ^ SECRET[1], _read64(p, off + 56) ^ seed)
+                        if i > 80:
+                            seed = _mix(_read64(p, off + 64) ^ SECRET[2], _read64(p, off + 72) ^ seed)
+                            if i > 96:
+                                seed = _mix(_read64(p, off + 80) ^ SECRET[1], _read64(p, off + 88) ^ seed)
+        a = _read64(p, off + i - 16) ^ i
+        b = _read64(p, off + i - 8)
+    a ^= SECRET[1]
+    b ^= seed
+    lo, hi = _mum(a, b)
+    return _mix(lo ^ SECRET[7], hi ^ SECRET[1] ^ i)
+\end{minted}

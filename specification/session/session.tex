@@ -1,0 +1,118 @@
+\chapter{Session layer}\label{sec:session}
+
+The Cyphal session layer provides the named publish-subscribe abstractions that
+applications use directly.
+It sits above the transport layer (chapter~\ref{sec:transport}), treating it as a narrow,
+unreliable, deduplicated, unordered message courier that carries multicast and unicast
+transfers between nodes.
+Every feature that requires more than that contract -- naming, subject-ID allocation,
+reliable delivery, remote procedure calls, streaming, service discovery -- is
+constructed by the session layer from a small number of session-layer headers and
+state machines described in this chapter.
+
+\section{Function and position in the stack}\label{sec:session_function}
+
+The session layer provides, on top of the transport contract defined in
+section~\ref{sec:transport} and summarized below:
+
+\begin{itemize}
+    \item A \emph{named topic} abstraction with decentralized subject-ID allocation,
+    replacing the static subject-ID tables used by Cyphal v1.0.
+    \item Reliable one-way message delivery with acknowledgements and retransmission.
+    \item Remote procedure calls with optional response streaming, built as a pattern on
+    top of ordinary pub-sub transfers rather than as a separate service-ID construct.
+    \item Pattern-based subscriptions that double as a service discovery mechanism.
+    \item A gossip-based consensus protocol that keeps every node's view of the
+    topic-to-subject-ID map consistent with every other node's view.
+\end{itemize}
+
+The transport layer is required only to provide unreliable, deduplicated, unordered
+delivery of integrity-checked messages; segmentation and reassembly of large payloads;
+and participant discovery as a side effect of joining the broadcast subject.
+These requirements are stated in full in section~\ref{sec:transport};
+the session layer does not depend on anything else.
+
+\begin{remark}
+    A consequence of this division is that the session layer is portable across
+    transports without modification.
+    A new Cyphal transport is made interoperable with the rest of the ecosystem by
+    providing the transport contract only; every session-layer behavior described in
+    this chapter is expected to work on top of it without change.
+\end{remark}
+
+\section{Model and core objects}\label{sec:session_model}
+
+The session layer operates on the following objects.
+Each object is described in terms of the state it carries and the wire messages it
+exchanges; no application programming interface is implied.
+
+\begin{description}
+    \item[Node] A participant in a Cyphal network.
+    A node owns a nonempty \emph{home name} that should be unique in the network,
+    a \emph{namespace} prefix used when resolving topic names,
+    and an optional \emph{remap table} that rewrites topic names at resolution time.
+    A node exposes publishers and subscribers and participates in the allocation
+    consensus protocol by exchanging gossip messages with other nodes.
+
+    \item[Topic] A named publish-subscribe channel.
+    A topic is identified on the wire by a 64-bit \emph{topic hash} and a
+    transport-visible \emph{subject-ID}; the mapping between them is maintained by
+    the allocation protocol described in section~\ref{sec:session_crdt}.
+    Locally, a topic carries a small CRDT state record $(\mathit{hash},\
+    \mathit{evictions},\ \mathit{age})$ whose semantics are defined in
+    section~\ref{sec:session_crdt}.
+
+    \item[Publisher and subscriber] Per-topic endpoints through which the application
+    emits and consumes messages. They are named here only because their wire
+    behavior differs (publishers emit messages, subscribers emit acknowledgements);
+    they are not otherwise observable to other nodes.
+    A single topic may have several local publishers and subscribers simultaneously.
+
+    \item[Future] A conceptual handle representing the progress of an asynchronous
+    operation -- a reliable publication waiting for an acknowledgement, a request
+    waiting for responses, or a subscriber waiting for an arrival.
+    Futures are used in this chapter only to describe observable state transitions
+    of the protocol; the wire format does not reference them.
+\end{description}
+
+\input{session/names.tex}
+\input{session/crdt.tex}
+\input{session/gossip.tex}
+\input{session/messages.tex}
+\input{session/rpc.tex}
+\input{session/parameters.tex}
+
+\section{Interoperation with Cyphal/CAN v1.0}\label{sec:session_v10_interop}
+
+Cyphal v1.1 nodes interoperate with Cyphal/CAN v1.0 nodes on the same bus.
+The mechanism is transport-level rather than session-level: a v1.1 node sending a
+best-effort message on a pinned topic in the range $[0, 8191]$ strips its
+session-layer header and emits the payload as a legacy 13-bit frame, which v1.0 nodes
+parse without modification.
+See section~\ref{sec:transport_can_format_selection} and
+section~\ref{sec:transport_can_v10_header_reconstruction} for the normative details of
+format selection and header reconstruction.
+
+v1.1 gossip, scout, RPC, and reliable traffic are confined to the 16-bit CAN ID format,
+which v1.0 nodes silently discard at their bit~7 check.
+v1.0 nodes therefore see only the subset of v1.1 traffic that lies on pinned subject-IDs
+and is sent best-effort; everything else is invisible to them and does not affect them.
+
+Pattern subscriptions cannot discover v1.0-only topics because v1.0 nodes emit neither
+gossip nor scout messages. Applications that need to interact with v1.0 endpoints
+shall use verbatim pinned subscriptions on the corresponding subject-IDs.
+The session layer does not bridge v1.0 RPC: v1.0 service transfers use the
+service-ID mechanism of the transport layer, which the session layer does not observe.
+
+\section{Security and threat model}\label{sec:session_security}
+
+The session layer assumes that all nodes on a Cyphal network are trusted.
+The protocol is designed to remain correct under network faults, packet loss,
+reordering, partial partitioning, and resource starvation, but it is not designed to
+remain correct under adversarial behavior by a participating node.
+A malicious node that is permitted to emit messages on the network can influence
+topic allocation, inject gossip, or send acknowledgements on behalf of others.
+
+Security features -- authentication, encryption, authorization, signed pinning -- may
+be introduced as optional extensions once the core protocol has stabilized.
+They are not specified here.

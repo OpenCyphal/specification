@@ -1,0 +1,173 @@
+\chapter{Convergence proof for the allocation CRDT}\label{sec:appendix_proof}
+
+This appendix proves that the topic allocation CRDT described in
+section~\ref{sec:session_crdt} converges to a collision-free, non-divergent
+state in finite time, under the assumptions A1--A9 restated below.
+The proof applies both to the formal operators in
+appendix~\ref{sec:appendix_core_tla} (\texttt{AllocateTopic},
+\texttt{AcceptGossip}, \texttt{Converged}) and to the C implementation in
+\texttt{cy.c} (\texttt{topic\_allocate}, \texttt{on\_gossip\_known\_topic},
+\texttt{on\_gossip\_unknown\_topic}) under the stated assumptions.
+
+\section{Model}\label{sec:appendix_proof_model}
+
+Let:
+
+\begin{itemize}
+    \item $H$ be the finite set of active topic hashes, with $|H| = N$.
+    \item $U$ be the finite set of auto-assigned subject-IDs, with $|U| = M$.
+    \item $S : H \times \mathbb{N} \to U$ be the deterministic subject-ID
+    mapping function.
+    \item A topic record be a triple $(h, e, a)$ where $h \in H$,
+    $e \in \mathbb{N}$ is the eviction counter, and $a \in \mathbb{N}$ is
+    the age.
+    \item $\ell(a) = \lfloor \log_2 a \rfloor$ with $\ell(0) = -1$ be the
+    log-age function.
+\end{itemize}
+
+Two records are in \emph{collision} when they have different hashes but
+identical subject-IDs. Two records are in \emph{divergence} when they share
+a hash but carry different eviction counters. A state is \emph{converged}
+when it contains no collisions and no divergences.
+
+\section{Assumptions}\label{sec:appendix_proof_assumptions}
+
+Some of the following are structural properties of the mapping function and
+are satisfied by construction; others are deployment constraints that must
+be upheld by compliant implementations and system integrators.
+
+\begin{description}
+    \item[A1. Common deterministic mapping.] All nodes use the same
+    deterministic $S(h, e)$ and the same mapping parameters -- in particular,
+    the same modulus.
+
+    \item[A2. Hash identity.] Active topic names are hash-unique
+    (equivalently: equal hash means the same logical topic).
+    Hash collision probability is negligible and is ignored by the protocol.
+
+    \item[A3. Bounded escape property.] There exists $K \in \mathbb{N}_{>0}$
+    such that
+    \[
+        \forall h \in H,\ \forall x \in \mathbb{N},\ \forall B \subseteq U,\
+        |B| < K,\ \exists d \in \{0, \dots, K-1\} :
+        S(h,\ x + d) \notin B.
+    \]
+    In prose: from any current eviction value, a topic can escape any
+    blocked subject-ID set smaller than $K$ within at most $K$ probing
+    increments.
+
+    \item[A4. Capacity bound.] $N \le K$.
+
+    \item[A5. Gossip fairness.] Every live allocation entry is eventually
+    received and processed by every relevant node, infinitely often.
+
+    \item[A6. Progress fairness.] Each node keeps executing the protocol
+    loop -- no permanent local halt while the node is considered active.
+
+    \item[A7. Resource sufficiency.] Memory, stack, and scheduler resources
+    are sufficient for processing each local allocation cascade to
+    completion.
+
+    \item[A8. Eviction counter safety.] Eviction counters do not overflow
+    in reachable executions.
+
+    \item[A9. Stability window.] There exists a repair bound
+    $T_{\mathrm{repair}}$ and time windows of length greater than
+    $T_{\mathrm{repair}}$ during which the active topic set $H$ is
+    unchanged, the mapping parameters are unchanged, and pairwise
+    arbitration outcomes do not flip. Equivalently: arbitration-priority
+    flips driven by $\lfloor \log_2 a \rfloor$ increments occur much less
+    frequently than the gossip-plus-repair dynamics.
+\end{description}
+
+\section{Theorem 1: Convergence in one stability window}
+
+Under assumptions A1--A9, any execution restricted to a single stability
+window converges in finite time to a collision-free, non-divergent state.
+
+\subsection*{Lemma 1: Local allocation termination under bounded escape}
+
+Fix a node and a moving topic hash $h$ with current eviction $x$. Let $B$
+be the set of subject-IDs currently occupied by other local topics.
+If $|B| < K$, then by A3 there exists $d < K$ such that
+$S(h, x+d) \notin B$.
+\texttt{AllocateTopic} increments the moving topic's eviction counter by
+one each time it loses arbitration on its current candidate subject-ID.
+Therefore within at most $d$ losses the topic reaches a subject-ID not in
+$B$, and the insertion terminates.
+
+Local allocation terminates whenever $|B| < K$. By A4, $|B| \le N - 1 < K$,
+so allocation always terminates.
+
+\subsection*{Lemma 2: Divergence repair converges for each hash}
+
+Fix a hash $h$. \texttt{AcceptGossip} on the known-hash path compares the
+local and remote replicas using divergence arbitration and either keeps the
+local evictions (merging the age) or adopts the remote evictions and
+re-allocates.
+
+Under A5 and within a stable window (A9), every node repeatedly observes
+the same finite set of contenders for $h$ and eventually agrees on the same
+winning replica -- the same eviction value and a consistent merged
+log-age. Hence all divergences for $h$ disappear in finite time. Applying
+this reasoning independently to each $h \in H$, all divergences disappear
+in finite time.
+
+\subsection*{Lemma 3: Collision repair converges under stable priorities}
+
+In a stability window (A9), collision arbitration induces a fixed strict
+total order on the active hashes:
+\[
+    h_1 \succ h_2 \succ \dots \succ h_N.
+\]
+When $h_i$ collides with any $h_j$ where $j < i$, $h_i$ loses and is
+evicted; $h_j$ is unchanged. Higher-priority topics are therefore never
+displaced by lower-priority topics.
+
+Induction on the priority rank:
+\begin{itemize}
+    \item \textbf{Base $i = 1$.} $h_1$ cannot be displaced by anyone, so
+    once allocated it remains fixed.
+    \item \textbf{Inductive step.} Assume $h_1, \dots, h_{i-1}$ are fixed
+    at a subject-ID set $B_i$ with $|B_i| = i - 1 < K$ (by A4). By A3,
+    from the current eviction value $x_i$ topic $h_i$ has some $d_i < K$
+    with $S(h_i,\ x_i + d_i) \notin B_i$. Each loss against $B_i$
+    increments the eviction counter by one, so after at most $d_i$ losses
+    $h_i$ reaches a subject-ID outside $B_i$ and cannot be displaced by
+    any lower-priority topic.
+\end{itemize}
+
+Every $h_i$ stabilizes in finite time, so all collisions disappear.
+
+\subsection*{Conclusion}
+
+By Lemma~2 divergences vanish in finite time. By Lemma~3 collisions vanish
+in finite time. The state therefore becomes converged -- no collisions, no
+divergences -- in finite time.
+
+\section{Theorem 2: Convergence with occasional priority flips}
+
+Assume A1--A8 and that executions consist of stability windows as in A9,
+each longer than $T_{\mathrm{repair}}$. Then the network converges within
+each window; non-converged periods are transient and confined to window
+transitions (including the effects of in-flight stale gossip).
+
+\subsection*{Proof sketch}
+
+Apply Theorem~1 independently to each stability window. Window transitions
+may temporarily reintroduce conflicts, but by construction the next stable
+window is long enough to repair them before the following flip
+($\text{window length} > T_{\mathrm{repair}}$).
+
+\section{Instantiating A3/A4 for common probing laws}
+
+\paragraph{Linear probing} $S(h, e) = h + e \bmod M$ satisfies A3 with
+$K = M$. This is the instantiation used in the TLA\textsuperscript{+}
+model of appendix~\ref{sec:appendix_core_tla} for legibility.
+
+\paragraph{Quadratic probing} This is the instantiation used by the actual
+Cyphal v1.1 implementation (section~\ref{sec:session_subject_id_mapping}).
+The protocol relies on the deployment bound that the number of active
+non-pinned topics does not exceed the collision-free probing capacity;
+practically this is the half-ring bound $K \approx \lfloor M / 2 \rfloor + 1$
+and consequently $N \le \lfloor M / 2 \rfloor$.

@@ -1,0 +1,173 @@
+\section{RPC and streaming}\label{sec:session_rpc}
+
+The session layer builds remote procedure calls on top of ordinary pub-sub
+messages rather than introducing a separate service-ID abstraction. An RPC
+request is a normal reliable publication whose recipients may emit one or more
+unicast \emph{responses} back to the publisher. The number of responses per
+request is unrestricted; streaming responses are therefore a zero-cost
+extension of single-response RPC.
+
+\subsection{Breadcrumbs}
+
+When a subscriber receives a message, the transport supplies the unicast
+metadata needed to reach the originating node. The subscriber captures this
+information in a \emph{breadcrumb} consisting of:
+
+\begin{itemize}
+    \item \textit{remote\_id}: the network identifier of the original
+    publisher;
+    \item \textit{topic\_hash}: the hash of the topic the original message
+    was delivered on;
+    \item \textit{message\_tag}: the tag of the original message;
+    \item \textit{seqno}: a 48-bit counter, initialized to zero, that is
+    incremented by the subscriber once for each response it sends in reply
+    to this message;
+    \item \textit{unicast\_ctx}: the transport's unicast metadata for the
+    original publisher.
+\end{itemize}
+
+A breadcrumb is sufficient to emit any number of responses to the original
+publisher at a later time, without keeping the original message alive.
+
+\subsection{Responses}
+
+A response is carried by a \texttt{rsp\_be} or \texttt{rsp\_rel} transfer
+(section~\ref{sec:session_header_rsp}). The response header carries:
+
+\begin{itemize}
+    \item \textit{topic\_hash} and \textit{message\_tag}, copied from the
+    breadcrumb, which together identify the request;
+    \item \textit{seqno}, the 48-bit response sequence number;
+    \item \textit{response\_tag}, an arbitrary byte chosen by the responder
+    for acknowledgement correlation (reliable responses only).
+\end{itemize}
+
+Streaming is achieved simply by sending multiple responses to the same
+request, each with an incremented \textit{seqno}. The publisher observes a
+monotonic stream of responses per remote responder.
+
+\subsection{Reliable responses}
+
+A responder that wishes to detect whether the original publisher is still
+listening shall send its responses reliably (\texttt{rsp\_rel}). The
+publisher acknowledges a reliable response with either a \texttt{rsp\_ack}
+or a \texttt{rsp\_nack}:
+
+\begin{description}
+    \item[\texttt{rsp\_ack}] The publisher's application is still accepting
+    responses for this request. The responder may continue to stream.
+
+    \item[\texttt{rsp\_nack}] The publisher's application has closed the
+    request and will discard any further responses. The responder should
+    cease streaming promptly.
+\end{description}
+
+\subsection{Client-side deduplication and ordering}
+
+The publisher tracks, for each remote responder, a small bitmap of recently
+seen \textit{seqno} values and rejects duplicates within the bitmap window.
+Responses whose \textit{seqno} falls outside the window because they are too
+old are rejected.
+
+Ordering is not reconstructed by default: a response with a larger
+\textit{seqno} may be delivered before one with a smaller \textit{seqno}
+on the same stream. An application that requires strict ordering within a
+stream may implement a reorder buffer keyed on \textit{seqno}; pattern-based
+subscribers may opt into such a buffer via the subscriber's ordering
+configuration.
+
+\subsection{Liveness monitoring}
+
+The publisher may attach a \emph{liveness timeout} to a pending request.
+If no response has been received from \emph{any} remote for longer than the
+timeout, the publisher's observable state is moved into a \textsc{liveness}
+warning that alerts the application and is automatically cleared when the
+next response arrives. Liveness state is independent of the response queue:
+a pending response that has not yet been consumed does not inhibit the
+liveness warning, and clearing the warning does not drop the pending
+response.
+
+\subsection{Zombie requests}
+
+After the publisher's application has closed a request, the session layer
+may retain a small amount of state for the request briefly in order to
+correctly handle duplicates of reliable responses that arrive after the
+application has ceased to listen. A duplicate that arrives in this zombie
+window is acknowledged with the same positive or negative acknowledgement
+as the first time, without involving the application. The zombie window
+expires with the session lifetime (section~\ref{sec:session_parameters}).
+
+\begin{remark}
+    The zombie mechanism exists purely to absorb benign duplicates. It is
+    not a mechanism for deferring application cleanup or for re-dispatching
+    responses to a replacement handler.
+\end{remark}
+
+\section{Pattern subscriptions}\label{sec:session_patterns}
+
+Pattern subscriptions are indistinguishable from verbatim subscriptions on
+the wire. The distinction exists only in how the local node decides which
+topics to join.
+
+\subsection{Discovery}
+
+A node with a local pattern subscription discovers matching topics in two
+complementary ways:
+
+\begin{description}
+    \item[Passive discovery] A received gossip carries the topic name (see
+    section~\ref{sec:session_header_gossip}). If the received name matches a
+    local pattern, the node creates an \emph{implicit topic} for it and
+    attaches a subscriber. Passive discovery is automatic and requires no
+    additional traffic.
+
+    \item[Active discovery] A node that has just installed a new pattern
+    subscription may broadcast a scout message
+    (section~\ref{sec:session_scout}) with the pattern as the payload. Other
+    nodes respond with gossip messages for any of their topics that match,
+    which drives passive discovery.
+\end{description}
+
+\subsection{Substitutions}
+
+When a pattern matches a name, the pattern's wildcards $(\texttt{*},\ \texttt{>})$
+are paired with the segments they matched. The result is an ordered list of
+\emph{substitutions}, each recording the matched substring together with its
+ordinal position in the pattern.
+
+\begin{remark}
+    For example, the pattern \texttt{ins/*/data/>} matching the name
+    \texttt{ins/0/data/foo/456} yields three substitutions:
+    \verb|"0"|, \verb|"foo"|, and \verb|"456"|, at ordinals $0$, $1$, and $1$
+    respectively (the second and third substitutions share an ordinal
+    because they are both consumed by the trailing \texttt{>} token).
+\end{remark}
+
+The substitutions are computed once, when the pattern first matches the
+topic, and are made available to the receiving application alongside each
+arriving message. No string re-matching is performed per message.
+
+\subsection{Implicit topic lifecycle}
+
+An implicit topic behaves like any other topic for arbitration and message
+delivery, with two differences:
+
+\begin{itemize}
+    \item It does not emit gossip of its own. Its CRDT state is updated by
+    incoming gossip, by inline gossip from incoming application messages, or
+    by scout-triggered passive discovery.
+    \item It is automatically retired after the retention window elapses
+    without any activity (no messages, no gossips).
+\end{itemize}
+
+The retention window should be much longer than the worst-case periodic
+gossip interval so that a silent but alive topic is not prematurely
+retired. A recommended default is ten minutes; see
+section~\ref{sec:session_parameters}.
+
+\subsection{Publisher invariant}
+
+A publisher's topic name shall not contain any pattern tokens. A resolved
+publisher name that contains \texttt{*} or \texttt{>} is invalid and shall
+be rejected by the session layer at publisher creation time. This invariant
+ensures that every topic on the wire has a deterministic, unambiguous name.

@@ -4,13 +4,15 @@
 
 This section specifies a concrete transport based on ISO 11898 CAN bus.
 Throughout this section, ``CAN'' implies both Classic CAN 2.0 and CAN FD, unless specifically noted otherwise.
-CAN FD should be considered the primary transport protocol.
+CAN FD should be considered the primary transport protocol, Classic CAN being the legacy compatibility option.
 
 \subsection{Definitions}
 
 \begin{description}
     \item[Node-ID] A 7-bit numerical identifier of a node, in the range $[0, 127]$.
-    Nodes on the same Cyphal/CAN network shall have distinct node-IDs.
+    Nodes on the same Cyphal/CAN network shall have distinct node-IDs\footnote{%
+        Possibly allocated automatically through random assignment with occupancy monitoring.
+    }.
 
     \item[Subject-ID] A 16-bit numerical identifier of a publish-subscribe subject, in the range $[0, 65535]$.
     Cyphal/CAN v1.0 supported only the 13-bit subject-ID range $[0, 8191]$.
@@ -20,9 +22,8 @@ CAN FD should be considered the primary transport protocol.
     with pre-v1.1 nodes.
 
     \item[Transfer-ID] A cyclic counter taken modulo 32 that distinguishes consecutive transfers originated by
-    the same source node on the same subject or service. Used for duplicate suppression and for ordering the
-    frames of a multi-frame transfer. The sender increments it once per transfer; the receiver applies a timeout
-    to bound its state.
+    the same source node on the same subject or service. Used for duplicate suppression and for multi-frame transfer
+    reassembly. The sender increments it once per transfer; the receiver applies a timeout to bound its state.
 \end{description}
 
 \subsection{CAN ID field}
@@ -44,11 +45,7 @@ Cyphal/CAN v1.0 nodes; and the \textbf{service transfer} format, shared by both 
 The two message formats are discriminated by the value of CAN ID bit~7:
 v1.0 messages have bit~7 cleared, while v1.1 messages have bit~7 set.
 A v1.0 receiver silently discards v1.1 message frames because they fail the v1.0 reserved-bit check at bit~7,
-which allows a v1.1 network to coexist with legacy v1.0 nodes on the same bus.
-Tables~\ref{table:transport_can_id_fields_message_transfer_v11},
-\ref{table:transport_can_id_fields_message_transfer_v10},
-and~\ref{table:transport_can_id_fields_service_transfer}
-summarize the fields of each layout.
+which allows a v1.1 network to coexist with v1.0 nodes on the same bus.
 
 % Please do not remove the hard placement specifier [H], it is needed to keep elements ordered.
 \begin{figure}[H]
@@ -262,11 +259,11 @@ The v1.1 16-bit format carries a full session-layer message including its sessio
 the v1.0 legacy 13-bit format carries only the raw application payload without any session-layer wrapping,
 which is what makes it wire-compatible with Cyphal/CAN v1.0 nodes that predate the session layer.
 
-A sender shall use the v1.0 legacy 13-bit format for a message transfer if and only if both of the following hold:
+A sender shall use the v1.0 legacy 13-bit format for a message transfer if and only if all of the following hold:
 (a) the subject-ID lies in the pinned range $[0, 8191]$, and
 (b) the message is a best-effort publication.
 In all other cases -- auto-allocated subject-IDs, the broadcast subject, gossip shards, reliable messages,
-gossip messages, service discovery, and RPC -- the sender shall use the v1.1 16-bit format.
+gossip messages, service discovery, etc -- the sender shall use the v1.1 16-bit format.
 
 When transmitting on a pinned subject using the 13-bit format, the sender shall strip the session-layer
 header from the outgoing message before enqueuing the frame, so that only the raw application payload
@@ -275,7 +272,7 @@ which are unaware of the session layer.
 
 When receiving a 13-bit-format frame on a subscribed pinned subject, the receiver shall reconstruct a
 session-layer header consistent with the matching pinned topic and prepend it to the received payload
-before forwarding the message to the session layer. The reconstructed message shall be otherwise
+before forwarding the message to the session layer. The reconstructed message should be otherwise
 indistinguishable from an equivalent message originated by a v1.1 node on the same pinned topic.
 
 \begin{remark}
@@ -314,16 +311,19 @@ an equivalent message originated by a v1.1 node on the same pinned topic.
 
 A symmetric rule applies on the transmit side: a sender using the 13-bit format shall strip the session-layer
 header from the outgoing message and transmit only the remaining application payload.
-The session layer is expected to ensure that the stripped header corresponds to a best-effort message
-on a pinned topic, which is the only case in which the 13-bit format is used
-(section~\ref{sec:transport_can_format_selection}).
+
+\begin{remark}
+    One implication of this design is that best-effort messages over pinned topics on Cyphal/CAN
+    cannot be used to initiate RPC/streaming. This limitation may be eventually lifted by amending the
+    message tag reconstruction algorithm.
+\end{remark}
 
 \subsubsection{Unicast transfers}\label{sec:transport_can_unicast}
 
 Cyphal/CAN does not define a dedicated CAN ID layout for unicast delivery.
 A unicast transfer shall be represented as an RPC-service \emph{request} to the reserved service-ID $511$
 addressed to the destination node.
-The session layer treats service-ID $511$ as an opaque unicast channel;
+The session layer treats service-ID $511$\footnote{Unused in Cyphal v1.0.} as an opaque unicast channel;
 no service response is issued at the transport layer, and higher-layer reply semantics, if any,
 are carried in subsequent unicast requests in the opposite direction.
 
@@ -347,7 +347,6 @@ In multi-frame transfers, the value of the priority field shall be identical for
 
     \begin{enumerate}
         \item Message transfers (the primary method of data exchange in Cyphal networks).
-        \item Anonymous (message) transfers.
         \item Service response transfers (preempt requests).
         \item Service request transfers (responses take precedence over requests to make service calls more atomic
               and reduce the number of pending states in the system).
@@ -369,11 +368,20 @@ In multi-frame transfers, the value of the priority field shall be identical for
     \end{CyphalCompactTable}
 
     Since the value of transfer priority is required to be the same for all frames in a transfer,
-    it follows that the value of the CAN ID is guaranteed to be the same for all CAN frames of the transfer.
-    Given a constant transfer priority value, all CAN frames under a given session specifier will be equal.
+    it follows that the value of the CAN ID is the same for all CAN frames of the transfer.
 \end{remark}
 
 \subsubsection{Source node-ID field in anonymous transfers}\label{sec:transport_can_source_node_pseudo_id}
+
+\begin{remark}
+    Anonymous transfers are retained for compatibility with Cyphal/CAN v1.0; however, they are no longer recommended
+    for use in new deployments, and new implementations are not required to support them to claim compliance with
+    Cyphal/CAN v1.1.
+
+    Anonymous transfers were originally introduced to facilitate automatic node-ID allocation;
+    the current recommendation is to rely on other methods of node-ID assignment,
+    such as explicit manual assignment, random probing with occupancy monitoring, or other application-specific methods.
+\end{remark}
 
 The source node-ID field of anonymous transfers shall be initialized with a pseudorandom \emph{pseudo-ID} value.
 The source of the pseudorandom data used for the pseudo-ID shall aim to produce different values
@@ -509,19 +517,17 @@ The recommended default value is $2$ seconds.
 
 The timeout applies to the following session kinds:
 \begin{itemize}
-    \item Message (subject) sessions, in both the v1.1 16-bit and the v1.0 legacy 13-bit formats.
-    \item Service request sessions, including the unicast channel defined in
-    section~\ref{sec:transport_can_unicast}.
+    \item Message (subject) sessions, in both the v1.1 16-bit and the v1.0 13-bit formats.
+    \item Service request sessions, including the unicast channel defined in section~\ref{sec:transport_can_unicast}.
 \end{itemize}
 
 A transfer-ID timeout of \emph{zero} shall be used for service \emph{response} sessions.
-The transfer-ID of a service response is not generated by the server -- it is echoed from the request being
-answered. Because the transfer-ID field is only five bits wide, the client may legitimately re-use the same
+The transfer-ID of a service response is not generated by the server -- it is echoed from the request being answered.
+Because the transfer-ID field is only five bits wide, the client may legitimately re-use the same
 transfer-ID value for two different requests to the same server within a short interval as its counter wraps;
 with a nonzero timeout, the later matching response would be rejected as a duplicate of the earlier one.
 Setting the timeout to zero disables transport-level duplicate suppression on response sessions,
-leaving the receiving application to correlate responses with outstanding requests by other
-means\footnote{%
+leaving the receiving application to correlate responses with outstanding requests by other means\footnote{%
     See \href{https://github.com/OpenCyphal/libcanard/issues/247}{OpenCyphal/libcanard issue~247}
     for the original discussion.
 }.
@@ -631,6 +637,7 @@ The CAN controller driver software shall guarantee that CAN frames with identica
 will be transmitted in their order of appearance in the transmission queue\footnote{%
     This is because multi-frame transfers use identical CAN ID for all frames of the transfer,
     and Cyphal requires that all frames of a multi-frame transfer shall be transmitted in the correct order.
+    See related discussion in~\url{https://forum.opencyphal.org/t/1215}.
 }.
 
 \subsubsection{Transmission timestamping}
@@ -719,24 +726,17 @@ Implementations should take necessary precautions against the problem of inner p
     getFreeMailboxIndex(newFrame)
     {
         chosen_mailbox = -1     // By default, assume that no mailboxes are available
-
-        for i = 0...NumberOfTxMailboxes
-        {
-            if isTxMailboxFree(i)
-            {
+        for i = 0...NumberOfTxMailboxes {
+            if isTxMailboxFree(i) {
                 chosen_mailbox = i
                 // Note: cannot break here, shall check all other mailboxes as well.
-            }
-            else
-            {
-                if not isFramePriorityHigher(newFrame, getFrameFromTxMailbox(i))
-                {
+            } else {
+                if not isFramePriorityHigher(newFrame, getFrameFromTxMailbox(i)) {
                     chosen_mailbox = -1
                     break   // Denied - shall wait until this mailbox has finished transmitting
                 }
             }
         }
-
         return chosen_mailbox
     }
     \end{minted}
@@ -755,8 +755,8 @@ Implementations should take necessary precautions against the problem of inner p
     In the case of the list-based approach, every CAN frame detected on the bus is compared
     against the set of reference CAN ID values provided by the application;
     only those frames that are found in the reference set are accepted.
-    Due to the complex structure of the CAN ID field used by Cyphal,
-    usage of the list-based filtering method with this protocol is impractical.
+    Due to the structure of the CAN ID field used by Cyphal,
+    usage of the list-based filtering method is impractical.
 
     Most CAN controller vendors implement mask-based filters,
     where the behavior of each filter is defined by two parameters: the mask $M$ and the reference ID $R$.
@@ -768,40 +768,29 @@ Implementations should take necessary precautions against the problem of inner p
 
     Complex Cyphal applications are often required to operate with more distinct transfers than there are
     acceptance filters available in the hardware.
-    That creates the challenge of finding the optimal configuration of the available filters that meets the
-    following criteria:
-    \begin{itemize}
-        \item All CAN frames needed by the application are accepted.
-        \item The number of irrelevant frames (i.e., not used by the application) accepted from the bus is minimized.
-    \end{itemize}
+    That creates the challenge of finding the optimal configuration of the available filters such that
+    (a) all CAN frames needed by the application are accepted, and
+    (b) the number of irrelevant frames (i.e., not used by the application) accepted from the bus is minimized.
 
     The optimal configuration is a function of the number of available hardware filters,
     the set of distinct transfers needed by the application,
     and the expected frequency of occurrence of all possible distinct transfers on the bus.
     The latter is important because if there are to be irrelevant transfers,
     it makes sense to optimize the configuration so that the acceptance of less common irrelevant transfers
-    is preferred over the more common irrelevant transfers, as that reduces the processing load on the application.
+    is preferred over the more common irrelevant ones.
 
     The optimal configuration depends on the properties of the network the node is connected to.
-    In the absence of the information about the network,
+    In the absence of information about the network,
     or if the properties of the network are expected to change frequently,
     it is possible to resort to a quasi-optimal configuration which assumes that
     the occurrence of all possible irrelevant transfers is equally probable.
-    As such, the quasi-optimal configuration is a function of only the number of available hardware filters
-    and the set of distinct transfers needed by the application.
-
-    The quasi-optimal configuration can be easily found automatically.
-    Certain implementations of the Cyphal protocol stack include this functionality,
-    allowing the application to easily adjust the configuration of the hardware acceptance filters
-    using a very simple API.
-
-    A quasi-optimal hardware acceptance filter configuration algorithm is described below.
+    The quasi-optimal configuration is a function of only the number of available hardware filters
+    and the set of distinct transfers needed by the application, and it can be easily found automatically
+    as described below.
     The approach was first proposed by P. Kirienko and I. Sheremet in 2015.
 
     First, the bitwise \emph{filter merge} operation is defined on filter configurations $A$ and $B$.
-    The set of CAN frames accepted by the merged filter configuration is a superset of
-    those accepted by $A$ and $B$.
-    The definition is as follows:
+    The set of CAN frames accepted by the merged filter configuration is a superset of those accepted by $A$ and $B$.
     \begin{equation*}
     \begin{split}
         m_M(R_A, R_B, M_A, M_B) & = M_A \land M_B \land \neg (R_A \oplus R_B) \\
@@ -809,33 +798,20 @@ Implementations should take necessary precautions against the problem of inner p
     \end{split}
     \end{equation*}
 
-    The \emph{filter rank} is a function of the mask of the filter.
-    The rank of a filter is a unitless quantity that defines in relative terms how selective the filter
-    configuration is.
-    The rank of a filter is proportional to the likelihood that the filter will reject a random CAN ID.
-    In the context of hardware filtering, this quantity is conveniently representable via the number of bits set in
-    the filter mask parameter (also known as \emph{population count}):
-    \begin{equation*}
-    r(M) =
-    \begin{cases}
-        0                                   &\mid M < 1 \\
-        r(\lfloor\frac{M}{2}\rfloor)        &\mid M \bmod 2 = 0 \\
-        r(\lfloor\frac{M}{2}\rfloor) + 1    &\mid M \bmod 2 \neq 0 \\
-    \end{cases}
-    \end{equation*}
+    The \emph{filter rank} is a unitless quantity that defines in relative terms how selective the filter is,
+    proportional to the likelihood that the filter will reject a random CAN ID.
+    In the context of hardware filtering, this quantity is conveniently representable as the number of bits set in
+    the filter mask parameter, also known as \emph{population count}.
 
-    Having the low-level operations defined, we can proceed to define the whole algorithm.
+    Having the low-level operations defined, we can define the whole algorithm.
     First, construct the initial set of CAN acceptance filter configurations
     according to the requirements of the application.
     Then, as long as the number of configurations in the set exceeds the number of available
-    hardware acceptance filters, repeat the following:
+    hardware acceptance filters, repeat:
     \begin{enumerate}
         \item Find the pair $A$, $B$ of configurations in the set for which $r(m_M(R_A, R_B, M_A, M_B))$ is maximized.
         \item Remove $A$ and $B$ from the set of configurations.
         \item Add a new configuration $X$ to the set of configurations, where
         $M_X = m_M(R_A, R_B, M_A, M_B)$, and $R_X = m_R(R_A, R_B, M_A, M_B)$.
     \end{enumerate}
-
-    The algorithm reduces the number of filter configurations by one at each iteration,
-    until the number of available hardware filters is sufficient to accommodate the whole set of configurations.
 \end{remark}

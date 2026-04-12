@@ -53,52 +53,37 @@ All such code is distributed under the same license as this specification, unles
 
 A byte is a group of eight (8) bits.
 
-Textual patterns are specified using the standard
-POSIX Extended Regular Expression (ERE) syntax;
-the character set is ASCII and patterns are case sensitive, unless explicitly specified otherwise.
-
-Numbers are represented in base-10 by default.
-If a different base is used, it is specified after the number in the subscript\footnote{%
-    E.g., $\text{BADC0FFEE}_{16} = 50159747054$, $10101_2 = 21$.
-}.
-
 \section{Design principles}
 
 \begin{description}
+    \item[Simplicity] --- If anything can be removed, it probably should be. Cyphal targets a wide variety of systems,
+    from high-performance computers to extremely resource-constrained microcontrollers.
+    It will be cheap to implement, verify, and support in terms of engineering hours and computing power,
+    and advanced features can be implemented incrementally as needed.
+
     \item[Democratic network] --- There will be no master node.
-    All nodes in the network will have the same communication rights; there should be no single point of failure.
+    All nodes in the network will have the same communication rights and responsibilities;
+    there will be no single point of failure.
+
+    \item[Resource efficiency and determinism] --- Cyphal will add a very low overhead to the underlying
+    transport protocol, which will ensure high throughput and low latency, rendering the protocol well-suited
+    for hard real-time applications.
+
+    \item[High-level communication abstractions] --- The protocol will support conventional publish/subscribe
+    and remote procedure call communication semantics that engineers are accustomed to.
+    The protocol is agnostic of the data serialization/representation format used.
 
     \item[Facilitation of functional safety] --- A system designer relying on Cyphal will have the necessary
     guarantees and tools at their disposal to analyze the system and ensure its correct behavior.
 
-    \item[High-level communication abstractions] --- The protocol will support publish/subscribe and remote procedure
-    call communication semantics. The protocol is agnostic of the data serialization/representation format used.
-
     \item[Facilitation of cross-vendor interoperability] --- Cyphal will be a common foundation that
     different vendors can build upon to maximize interoperability of their equipment.
-
-    \item[Atomic data abstractions] --- Nodes shall be provided with a simple way of exchanging large
-    data structures that exceed the capacity of a single transport frame\footnote{%
-        A \emph{transport frame} is an atomic transmission unit defined by the underlying transport protocol.
-        For example, a UDP datagram.
-    }.
-    Cyphal should perform automatic data decomposition and reassembly at the protocol level,
-    hiding the related complexity from the application.
-
-    \item[High throughput, low latency, determinism] --- Cyphal will add a very low overhead to the underlying
-    transport protocol, which will ensure high throughput and low latency, rendering the protocol well-suited
-    for hard real-time applications.
 
     \item[Support for redundant interfaces and redundant nodes] --- Cyphal shall be suitable for use in
     applications that require modular redundancy.
 
-    \item[Simple logic, low computational requirements] --- Cyphal targets a wide variety of embedded systems,
-    from high-performance on-board computers to extremely resource-constrained microcontrollers.
-    It will be inexpensive to support in terms of computing power and engineering hours,
-    and advanced features can be implemented incrementally as needed.
-
-    \item[Support for various transport protocols] --- Cyphal will be usable with different transports.
-    The standard shall be capable of accommodating other transport protocols in the future.
+    \item[Support for various transport protocols] --- Cyphal will be usable with different transports,
+    presenting a clear transport layer contract that is inexpensive to satisfy.
 
     \item[API-agnostic standard] --- Unlike some other networking standards, Cyphal will not attempt to describe
     the application program interface (API). Any details that do not affect the behavior of an implementation
@@ -110,8 +95,11 @@ If a different base is used, it is specified after the number in the subscript\f
 
 \section{Capabilities}
 
-The maximum number of nodes per logical network is dependent on the transport protocol in use,
-but it is guaranteed to be not less than 128.
+The protocol aspires to scale well from tiny deployments involving a few nodes and topics
+up to very large networks hosting multiple hundreds of nodes and topics.
+However, specific transport layer implementations may introduce their own scalability constraints\footnote{%
+    For example, Cyphal/CAN may not scale above a hundred nodes due to physical and logical limitations.
+}.
 
 Depending on the transport protocol, Cyphal supports at least eight distinct communication priority levels
 (section~\ref{sec:transport_transfer_priority}).
@@ -127,8 +115,6 @@ compliant nodes on a physical network (i.e. there are no, anticipated, compatibi
 connected to a virtual network where hardware constraints are not enforced nor emulated).
 Additional standards specifying physical-layer requirements, including connectors,
 may be required to utilize this standard in a vehicle system.
-
-The capabilities of the protocol will never be reduced within a major version of the specification but may be expanded.
 
 \section{Management policy}
 

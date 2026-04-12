@@ -1,0 +1,40 @@
+\section{Parameters and sizing}\label{sec:session_parameters}
+
+The following parameters govern the wire behaviour of the session layer. Values
+marked \emph{normative} are required for interoperability; values marked
+\emph{recommended} may be adjusted by compliant implementations as long as the
+CRDT invariants in section~\ref{sec:session_crdt} and the transport contract in
+section~\ref{sec:transport} remain satisfied. Nodes that use different
+recommended values remain interoperable with one another.
+
+{\footnotesize
+\begin{CyphalSimpleTable}[wide]{Session-layer parameters}{|l l l X|}
+    Parameter                          & Unit  & Value              & Notes \\
+    Session header size                & bytes & 24                 & Normative; section~\ref{sec:session_headers}. \\
+    Maximum topic name length          & bytes & 200                & Normative; UTF-8, after normalization. \\
+    Subject-ID modulus, 16-bit width   & --    & 57203              & Normative; section~\ref{sec:session_modulus}. \\
+    Subject-ID modulus, 23-bit width   & --    & 8378431            & Normative; section~\ref{sec:session_modulus}. \\
+    Subject-ID modulus, 32-bit width   & --    & 4294954663         & Normative; reserved for future 32-bit transports. \\
+    Eviction counter width             & bits  & 32                 & Normative; pinned range starts at $\text{UINT32\_MAX} - 8191 = \text{0xFFFFE000}$. \\
+    Message tag width                  & bits  & 64                 & Normative; random-initialized, permitted to wrap. \\
+    Response sequence number width     & bits  & 48                 & Normative; monotonic per request, starts at zero. \\
+    Log-age range                      & --    & $[-1,\ 35]$        & Normative; $-1$ encodes an age below one second. \\
+    Default gossip period              & s     & $\sim 5$           & Recommended; randomized by $\pm 1/8$ of the period. \\
+    Broadcast-to-shard ratio           & --    & $\sim 1 : 10$      & Recommended; one in $N$ periodic gossips goes on the broadcast subject. \\
+    Urgent gossip delay window $W_u$   & ms    & $\sim 10$          & Recommended; see section~\ref{sec:session_gossip_delays}. \\
+    Startup gossip delay window $W_s$  & ms    & tens to hundreds   & Recommended; see section~\ref{sec:session_gossip_delays}. \\
+    Reliable ACK baseline timeout      & ms    & $\sim 16$          & Recommended; retransmissions use exponential backoff. \\
+    Session lifetime (soft state)      & s     & $\sim 60$          & Recommended; association and deduplication entries expire after this. \\
+    Implicit topic retention window    & s     & $\sim 600$         & Recommended; inactive implicit topics are retired after this interval. \\
+    Association slack limit            & --    & $2$                & Recommended; consecutive missed acks before an association is forgotten. \\
+\end{CyphalSimpleTable}
+}
+
+Auxiliary material that does not fit in the main body of the chapter is
+collected in the appendices. Appendix~\ref{sec:appendix_eviction_solver}
+gives a constant-time diagnostic solver for recovering the eviction counter
+from a subject-ID. Appendix~\ref{sec:appendix_core_tla} reproduces the
+complete TLA\textsuperscript{+} model of the allocation CRDT that this
+chapter paraphrases; appendix~\ref{sec:appendix_proof} contains the
+convergence proof. Appendix~\ref{sec:appendix_rapidhash} contains the pinned
+rapidhash reference source.
