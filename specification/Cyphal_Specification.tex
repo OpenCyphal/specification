@@ -15,29 +15,7 @@
 
 \urlstyle{same}
 
-% This macro embeds the selected DSDL definition or the contents of a DSDL namespace into the document.
-% It accepts one mandatory argument which is either a full DSDL type name, e.g. uavcan.node.Heartbeat,
-% or a full type name glob expression, e.g., uavcan.node.*.
-\newcommand{\DSDL}[1]{%
-    % Clean up beforehand to ensure clean initial state.
-    \immediate\write18{rm -f ../*.tmp}%
-    % Invoke the target command and save the useful output into a file; ignore error output
-    \immediate\write18{../render_dsdl.py #1 > ../dsdl.tmp}%
-    % Now, if the above command has failed, the output file would be empty. We remove empty file to escalate error.
-    % Escalation is very important as it allows us to abort compilation on failure instead of generating invalid
-    % documents silently.
-    \immediate\write18{find .. -type f -name '*.tmp' -size 0 -delete}%
-    % Read the file. This command fails if the file was empty, which is exactly want we want.
-    \immediate\input{../dsdl.tmp}%
-    % Clean up afterwards to prevent accidental reuse if the command fails the next time we invoke it.
-    \immediate\write18{rm -f ../*.tmp}%
-}
-
-\newcommand{\DSDLReference}[1]{% We use detokenize to permit underscores
-    \mbox{\texttt{\detokenize{#1}}} (section~\ref{sec:dsdl:#1} on page~\pageref{sec:dsdl:#1})%
-}
-
-\title{Specification v1.0}
+\title{Specification v1.1 DRAFT}
 
 \hbadness=10000
 
@@ -56,18 +34,14 @@ next-generation intelligent vehicles: manned and unmanned aircraft, spacecraft, 
 Features:
 
 \begin{itemize}
-    \item Democratic network -- no bus master, no single point of failure.
+    \item Democratic network -- no central coordinator, no single point of failure.
     \item Publish/subscribe and request/response (RPC\footnote{Remote procedure call.}) com\-mu\-ni\-ca\-tion semantics.
     \item Efficient exchange of large data structures with automatic decomposition and reassembly.
     \item Lightweight, deterministic, easy to implement, and easy to validate.
     \item Suitable for deeply embedded, resource constrained, hard real-time systems.
     \item Supports dual and triply modular redundant transports.
-    \item Supports high-precision network-wide time syn\-chro\-ni\-za\-tion.
-    \item Provides rich data type and interface abstractions -- an interface description language is a core part of
-    the technology which allows deeply embedded sub-systems to interface with higher-level systems directly and
-    in a maintainable manner while enabling simulation and functional testing.
     \item The specification and high quality reference implementations in popular programming languages are free,
-    open source, and available for commercial use under the permissive MIT license.
+    open source, and available for commercial use under permissive licenses.
 \end{itemize}
 
 \BeginRightColumn
@@ -107,13 +81,12 @@ even if such author has been made aware of the possibility of such damages.
 \end{titlepage}
 
 \tableofcontents
-\clearpage\onecolumn\listoftables
-\clearpage\onecolumn\listoffigures
+\listoftables
+\listoffigures
 
 \mainmatter
 
 \input{introduction/introduction.tex}
-\input{basic/basic.tex}
 \input{transport/transport.tex}
 
 \end{document}

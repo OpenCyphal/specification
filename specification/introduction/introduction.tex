@@ -11,10 +11,6 @@ for aerospace and robotic applications via robust vehicle bus networks.
 It is created to address the challenge of deterministic on-board data exchange between systems and components
 of next-generation intelligent vehicles: manned and unmanned aircraft, spacecraft, robots, and cars.
 
-Cyphal can be approximated as a highly deterministic decentralized object request broker
-with a specialized interface description language and a highly efficient data serialization format
-suitable for use in real-time safety-critical systems with optional modular redundancy.
-
 ``Cyphal'' is an invented word; a portmanteau of ``cyber'' and ``hyphal''.
 The former references cyber-physical systems,
 which is a generalization of the type of system this new protocol is optimized for.
@@ -34,9 +30,6 @@ No authorization or approval of any kind is necessary for its implementation, di
 The development and maintenance of the Cyphal specification is governed through the public discussion forum,
 software repositories, and other resources available via the official website at
 \href{http://opencyphal.org}{opencyphal.org}.
-
-Engineers seeking to leverage Cyphal should also consult with the \emph{Cyphal Guide} --
-a separate textbook available via the official website.
 
 \section{Document conventions}
 
@@ -64,18 +57,10 @@ Textual patterns are specified using the standard
 POSIX Extended Regular Expression (ERE) syntax;
 the character set is ASCII and patterns are case sensitive, unless explicitly specified otherwise.
 
-Type parameterization expressions use subscript notation,
-where the parameter is specified in the subscript enclosed in angle brackets:
-$\texttt{type}_\texttt{<parameter>}$.
-
 Numbers are represented in base-10 by default.
 If a different base is used, it is specified after the number in the subscript\footnote{%
     E.g., $\text{BADC0FFEE}_{16} = 50159747054$, $10101_2 = 21$.
 }.
-
-DSDL definition examples provided in the document are illustrative and may be incomplete or invalid.
-This is to ensure that the examples are not cluttered by irrelevant details.
-For example, \verb|@extent| or \verb|@sealed| directives may be omitted if not relevant.
 
 \section{Design principles}
 
@@ -87,22 +72,15 @@ For example, \verb|@extent| or \verb|@sealed| directives may be omitted if not r
     guarantees and tools at their disposal to analyze the system and ensure its correct behavior.
 
     \item[High-level communication abstractions] --- The protocol will support publish/subscribe and remote procedure
-    call communication semantics with statically defined and statically verified data types (schema).
-    The data types used for communication will be defined in a clear, platform-agnostic way
-    that can be easily understood by machines, including humans.  % I hope you are ok with this, my dear fellow robots.
+    call communication semantics. The protocol is agnostic of the data serialization/representation format used.
 
     \item[Facilitation of cross-vendor interoperability] --- Cyphal will be a common foundation that
     different vendors can build upon to maximize interoperability of their equipment.
-    Cyphal will provide a generic set of standard application-agnostic communication data types.
-
-    \item[Well-defined generic high-level functions] --- Cyphal will define standard services
-    and messages for common high-level functions, such as network discovery, node configuration,
-    node software update, node status monitoring, network-wide time synchronization, plug-and-play node support, etc.
 
     \item[Atomic data abstractions] --- Nodes shall be provided with a simple way of exchanging large
     data structures that exceed the capacity of a single transport frame\footnote{%
         A \emph{transport frame} is an atomic transmission unit defined by the underlying transport protocol.
-        For example, a CAN frame.
+        For example, a UDP datagram.
     }.
     Cyphal should perform automatic data decomposition and reassembly at the protocol level,
     hiding the related complexity from the application.
@@ -119,10 +97,6 @@ For example, \verb|@extent| or \verb|@sealed| directives may be omitted if not r
     It will be inexpensive to support in terms of computing power and engineering hours,
     and advanced features can be implemented incrementally as needed.
 
-    \item[Rich data type and interface abstractions] --- An interface description language will be a core part of
-    the technology which will allow deeply embedded sub-systems to interface with higher-level systems directly and
-    in a maintainable manner while enabling simulation and functional testing.
-
     \item[Support for various transport protocols] --- Cyphal will be usable with different transports.
     The standard shall be capable of accommodating other transport protocols in the future.
 
@@ -131,8 +105,7 @@ For example, \verb|@extent| or \verb|@sealed| directives may be omitted if not r
     observable by other participants of the network will be outside of the scope of this specification.
 
     \item[Open specification and reference implementations] --- The Cyphal specification will always be open and
-    free to use for everyone; the reference implementations will be distributed under the terms of
-    the permissive MIT License or released into the public domain.
+    free to use for everyone; the reference implementations will be distributed under permissive licenses.
 \end{description}
 
 \section{Capabilities}
@@ -140,27 +113,12 @@ For example, \verb|@extent| or \verb|@sealed| directives may be omitted if not r
 The maximum number of nodes per logical network is dependent on the transport protocol in use,
 but it is guaranteed to be not less than 128.
 
-Cyphal supports an unlimited number of composite data types,
-which can be defined by the specification (such definitions are called \emph{standard data types})
-or by others for private use or for public release
-(in which case they are said to be \emph{application-specific} or \emph{vendor-specific}; these terms are equivalent).
-There can be up to 256 major versions of a data type, and up to 256 minor versions per major version.
-
-Cyphal supports 8192 message subject identifiers for publish/subscribe exchanges and
-512 service identifiers for remote procedure call exchanges.
-A small subset of these identifiers is reserved for the core standard and for publicly released vendor-specific types
-(chapter~\ref{sec:application}).
-
 Depending on the transport protocol, Cyphal supports at least eight distinct communication priority levels
 (section~\ref{sec:transport_transfer_priority}).
 
-The list of transport protocols supported by Cyphal is provided in chapter~\ref{sec:transport}.
+The list of transport protocols officially supported by Cyphal is provided in chapter~\ref{sec:transport}.
 Non-redundant, doubly-redundant and triply-redundant transports are supported.
-Additional transport layers may be added in future revisions of the protocol.
-
-Application-level capabilities of the protocol (such as time synchronization, file transfer,
-node software update, diagnostics, schemaless named registers, diagnostics, plug-and-play node insertion, etc.)
-are listed in section~\ref{sec:application_functions}.
+Additional transport layers may be added in future revisions.
 
 The core specification does not define nor explicitly limit any physical layers for a given transport; however,
 properties required by Cyphal may imply or impose constraints and/or minimum performance requirements on physical
@@ -183,19 +141,10 @@ existing and new deployments.
 The maintainers will publish relevant announcements and solicit inputs from adopters
 via the discussion forum whenever a decision that may potentially affect existing deployments is being made.
 
-The set of standard data types is a subset of public regulated data types and is an integral part of the specification;
-however, there is only a very small subset of required standard data types needed to implement the protocol.
-A larger set of optional data types are defined to create a standardized data exchange environment
-supporting the interoperability of COTS\footnote{Commercial off-the-shelf equipment.}
-equipment manufactured by different vendors.
-Adopters are invited to take part in the advancement and maintenance of the public regulated data types
-under the management and coordination of the Cyphal maintainers.
-
 \section{Referenced sources}
 
 The Cyphal specification contains references to the following sources:
 
-% Please keep the list sorted alphabetically.
 \begin{itemize}
     \item CiA 103 --- Intrinsically safe capable physical layer.
     \item CiA 801 --- Application note --- Automatic bit rate detection.
@@ -221,13 +170,19 @@ The Cyphal specification contains references to the following sources:
 
     \item \href{http://semver.org}{semver.org} --- Semantic versioning specification.
 
-    \item ``A Passive Solution to the Sensor Synchronization Problem'', Edwin Olson.
-    \item ``Implementing a Distributed High-Resolution Real-Time Clock using the CAN-Bus'', M. Gergeleit and H. Streich.
-    \item ``In Search of an Understandable Consensus Algorithm (Extended Version)'', Diego Ongaro and John Ousterhout.
     \item ``Consistent Overhead Byte Stuffing'', Stuart Cheshire and Mary Baker.
 \end{itemize}
 
 \section{Revision history}
+
+\subsection{v1.1-alpha -- DRAFT}
+
+\begin{itemize}
+    \item Extracted the DSDL specification into a separate document.
+    \item Introduced named topics and the session layer, along with the distributed consensus algorithm.
+    \item Stabilized the experimental Cyphal/UDP transport.
+    \item Added a new 16-bit subject-ID CAN ID format to Cyphal/CAN.
+\end{itemize}
 
 \subsection{v1.0 -- May 2025}
 
