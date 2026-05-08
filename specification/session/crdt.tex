@@ -1,0 +1,239 @@
+\section{Topic allocation CRDT}\label{sec:session_crdt}
+
+The session layer maintains the topic-to-subject-ID mapping through a conflict-free
+replicated data type (CRDT) shared among all nodes by periodic gossip.
+Under the assumptions listed below, every node's local copy of the mapping converges
+to the same collision-free, non-divergent configuration within a bounded time after
+the last state-changing event.
+
+This section is normative for the arbitration semantics of the mapping.
+The primary source of truth is the TLA$^+$ model in \texttt{model/tlaplus/Core.tla}
+of the Cy reference implementation; the operators and theorems described here are
+a faithful transcription of that model, and the C reference implementation has been
+shown to match it under the stated assumptions.
+
+\subsection{Topic record}
+
+Each topic the node is aware of is represented by a triple
+\[
+    t = (\mathit{hash},\ \mathit{evictions},\ \mathit{age})
+\]
+where:
+
+\begin{description}
+    \item[\textit{hash}] is the 64-bit topic hash defined in
+    section~\ref{sec:session_rapidhash}.
+    \item[\textit{evictions}] is a 32-bit unsigned integer incremented each time the
+    topic loses arbitration on its current candidate subject-ID. It serves as a
+    Lamport clock. The reserved range at the top of the counter encodes pinned
+    topics as described in section~\ref{sec:session_subject_id_mapping}.
+    \item[\textit{age}] is a local real or logical clock counting roughly seconds
+    since the topic was first seen on the network. It is not transmitted directly
+    on the wire; gossip instead carries its base-2 logarithm (see below).
+\end{description}
+
+The subject-ID of a topic is the pure function
+$\mathit{subject\_id}(\mathit{hash}, \mathit{evictions})$ defined in
+section~\ref{sec:session_subject_id_mapping}.
+
+\subsection{Log-age}
+
+CRDT operators use the quantity
+\[
+    \mathit{lage}(t) = \lfloor \log_2(\mathit{age\_seconds}(t)) \rfloor,
+    \qquad \mathit{lage}(t) = -1 \text{ when } \mathit{age\_seconds}(t) = 0
+\]
+in place of the raw age.
+Taking the floor of the logarithm slows the arbitration-relevant clock as topics
+grow older, so that the CRDT is stable on long timescales even though the underlying
+age counter never stops advancing. The encoded range is $[-1,\ 35]$, where
+$\mathit{lage} = 35$ corresponds to approximately $2^{35}$ seconds, or over a
+thousand years.
+
+\begin{remark}
+    The naive approach of using the raw age in arbitration would make any two
+    quiescent nodes disagree on priorities every time a clock edge crosses an
+    integer second boundary, which breaks the CRDT's eventual consistency.
+    Reducing the comparison quantity to $\lfloor \log_2(\mathit{age}) \rfloor$
+    makes the set of points where priority can change sparse on quiescent states,
+    satisfying the stability assumption A9 below.
+\end{remark}
+
+Gossip messages carry a topic's $\mathit{lage}$ value rather than its age.
+On reception, a node merges the incoming $\mathit{lage}$ into its local age by
+adjusting the local age field so that
+\[
+    \mathit{local\_age} \leftarrow \max\left(\mathit{local\_age},\ 2^{\mathit{remote\_lage}}\right).
+\]
+This is a monotonic, idempotent join: repeated application is a no-op, and the
+result is independent of the order in which gossip messages are processed.
+
+\subsection{Arbitration}
+
+Two topics are in \emph{collision} when they have distinct hashes but map to the
+same subject-ID. Two records with the same hash but different eviction counters
+are in \emph{divergence}; these are different opinions about the same logical topic
+that must be reconciled.
+
+\begin{description}
+    \item[Collision arbitration] Older $\mathit{lage}$ wins. On a tie, the record
+    with the numerically lower hash wins.
+    \item[Divergence arbitration] Older $\mathit{lage}$ wins. On a tie, the record
+    with the higher eviction count wins, because a higher counter means the record
+    has observed more prior conflicts and is therefore more up to date.
+\end{description}
+
+These two predicates are defined as follows, verbatim from
+\texttt{model/tlaplus/Core.tla}. \texttt{Log2Floor(x)} is
+$\lfloor \log_2 x \rfloor$ with the special case $\mathrm{Log2Floor}(0) = -1$;
+\texttt{\#} is the TLA\textsuperscript{+} inequality operator, $\mathtt{=}$ is
+equality, $\mathtt{/\char`\\}$ is logical AND, and $\mathtt{\char`\\/}$ is
+logical OR.
+
+\begin{minted}{text}
+LeftWinsCollision(a, b) == IF   Log2Floor(a.age) # Log2Floor(b.age)
+                           THEN Log2Floor(a.age) > Log2Floor(b.age)
+                           ELSE a.hash < b.hash
+
+LeftWinsDivergence(a, b) == \/  Log2Floor(a.age) > Log2Floor(b.age)
+                            \/ (Log2Floor(a.age) = Log2Floor(b.age) /\ a.evictions > b.evictions)
+\end{minted}
+
+\subsection{AllocateTopic operator}
+
+\texttt{AllocateTopic} inserts a topic into the node's local topic set, resolving
+any resulting collision by cascading evictions through the hash space.
+The operator is recursive; termination follows from the bounded-escape property in
+assumption A3 below. The TLA\textsuperscript{+} definition below is verbatim
+from \texttt{model/tlaplus/Core.tla} and is reproduced in full in
+appendix~\ref{sec:appendix_core_tla}.
+
+\begin{minted}{text}
+RECURSIVE AllocateTopic(_, _)
+AllocateTopic(t, topics) ==
+    LET ts == RemoveTopic(t.hash, topics)
+        x == GetBySubjectID(SubjectID(t.hash, t.evictions), ts)
+        Evicted(z) == [hash |-> z.hash, evictions |-> 1 + z.evictions, age |-> z.age]
+    IN   IF x = Nothing             THEN {t} \cup ts
+    ELSE IF LeftWinsCollision(t, x) THEN AllocateTopic(Evicted(x), {t} \cup ts)
+    ELSE                                 AllocateTopic(Evicted(t), ts)
+\end{minted}
+
+The operator is invoked whenever a new local topic is created, whenever a gossip
+forces the local record for a topic to adopt new eviction values, and whenever
+a cascade from another topic displaces the current record.
+
+\subsection{AcceptGossip operator}
+
+\texttt{AcceptGossip} applies a received gossip message to the node's local topic
+set. The operator distinguishes two cases: the gossiped topic is known locally
+(its hash matches a local record) or it is not. The TLA\textsuperscript{+}
+definitions below are verbatim from \texttt{model/tlaplus/Core.tla}.
+\texttt{Nothing} denotes the absence of a matching record;
+\texttt{FloorToPow2(x)} returns $2^{\lfloor \log_2 x \rfloor}$ with the
+special case $\mathrm{FloorToPow2}(0) = 0$.
+
+\begin{minted}{text}
+AcceptGossip(remote, topics) ==
+    IF GetByHash(remote.hash, topics) # Nothing     \* If the topic exists locally
+    THEN AcceptGossip_Divergence(remote, topics)    \* Divergence resolver ensures collision-freedom
+    ELSE AcceptGossip_Collision(remote, topics)     \* We don't know this topic, just ensure collision-freedom
+
+AcceptGossip_Divergence(remote, topics) ==
+    LET hash == remote.hash
+        local == GetByHash(hash, topics)
+        \* The serialization protocol floors the remote age to pow2 before transmission.
+        new_age == Max({IF local # Nothing THEN local.age ELSE 0, FloorToPow2(remote.age)})
+    IN
+    IF local # Nothing THEN
+        IF local.evictions # remote.evictions /\ LeftWinsDivergence(remote, local)
+        THEN AllocateTopic([hash|->hash, evictions|->remote.evictions, age|->new_age], topics)
+        ELSE              {[hash|->hash, evictions|-> local.evictions, age|->new_age]} \cup RemoveTopic(hash, topics)
+    ELSE topics
+
+AcceptGossip_Collision(remote, topics) ==
+    LET local == GetBySubjectID(SubjectID(remote.hash, remote.evictions), topics)
+    IN IF local # Nothing /\ LeftWinsCollision(remote, local)
+    THEN AllocateTopic([hash |-> local.hash, evictions |-> local.evictions + 1, age |-> local.age], topics)
+    ELSE topics
+\end{minted}
+
+\begin{remark}[breakable]
+    A naive implementation could always run the collision resolver after the
+    divergence resolver, i.e.\ compute
+    \texttt{AcceptGossip\_Collision(remote, AcceptGossip\_Divergence(remote, topics))}.
+    This is correct but suboptimal: the local record may already win the
+    divergence arbitration against the remote, in which case the remote record
+    should be ignored entirely; running the collision resolver afterwards can make
+    a local record lose a collision to a stale remote record and trigger
+    unnecessary eviction-counter increments. The divergence-first rule above
+    avoids that outcome -- when the local record wins the divergence arbitration,
+    the collision pass is skipped because divergence resolution implicitly keeps
+    the local mapping collision-free.
+\end{remark}
+
+\subsection{Pinned topics}
+
+Pinned topics are ordinary CRDT records with their eviction counter pre-set to
+$\text{UINT32\_MAX} - \text{pinned\_subject\_id}$, as defined in
+section~\ref{sec:session_subject_id_mapping}.
+They participate in arbitration on the same terms as non-pinned topics: an older
+non-pinned topic can displace a younger pinned newcomer, and an older pinned topic
+can displace a younger conflicting pinned topic.
+Pinning is therefore a \emph{request}, not a guarantee.
+
+\subsection{Assumptions}
+
+The convergence guarantee of the allocation protocol rests on the following
+assumptions. Some are structural properties of the mapping function and are
+satisfied by construction; others are deployment constraints that compliant
+implementations and system integrators are required to uphold. The numbering is
+consistent with the accompanying proof in \texttt{model/proof.md}.
+
+\begin{description}
+    \item[A1. Common deterministic mapping] All nodes use the same subject-ID
+    mapping function and the same parameters -- in particular, the same modulus.
+    \item[A2. Hash identity] Active topic names are hash-unique. The probability of
+    a 64-bit hash collision is negligible and is ignored by the protocol.
+    \item[A3. Bounded escape] For any hash, any eviction value, and any blocked
+    subject-ID set smaller than the capacity bound $K$, there exists a small
+    increment within $K$ steps that places the topic at a subject-ID outside the
+    blocked set. For quadratic probing on a prime modulus $M$ with $M \bmod 4 = 3$
+    this holds with $K \approx \lfloor M / 2 \rfloor + 1$.
+    \item[A4. Capacity bound] The number of active non-pinned topics $N$ satisfies
+    $N \le K$.
+    \item[A5. Gossip fairness] Every live topic record is eventually received and
+    processed by every relevant node infinitely often.
+    \item[A6. Progress fairness] Each node keeps executing the protocol; resource
+    exhaustion or scheduling starvation does not halt a live node.
+    \item[A7. Resource sufficiency] Each node has enough memory and CPU to process
+    and complete the local cascade triggered by any single allocation step.
+    \item[A8. Eviction counter safety] Eviction counters do not overflow in
+    reachable executions.
+    \item[A9. Stability window] Stable windows longer than the worst-case repair
+    time $T_{\mathrm{repair}}$ exist, during which the active topic set and
+    pairwise arbitration priorities do not flip.
+\end{description}
+
+\subsection{Convergence}
+
+Under assumptions A1--A9, any execution restricted to a single stability window
+converges in finite time to a state that is free of collisions and divergences.
+The argument is given in full in \texttt{model/proof.md}; the key idea is that
+higher-priority topics are never displaced by lower-priority topics, so the
+arbitration induces a fixed total order during the window and each topic
+stabilizes by induction on its priority rank.
+
+When the stability window ends -- for example, because a long-lived topic's
+$\mathit{lage}$ steps up and flips a tie -- some transient churn may briefly
+reappear. Assumption A9 guarantees that the next stable window is long enough to
+repair the churn before the next flip, and the overall execution remains eventually
+consistent.
+
+\subsection{Capacity}
+
+For a quadratic probing sequence on a prime modulus $M$ with $M \bmod 4 = 3$ the
+collision-free probing capacity is approximately $\lfloor M / 2 \rfloor$
+(assumption A3). The number of active non-pinned topics should not exceed this
+bound; above it, the arbitration behaviour remains well-defined but convergence
+within a single stability window is no longer guaranteed.

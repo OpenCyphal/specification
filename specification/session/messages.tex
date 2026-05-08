@@ -1,0 +1,294 @@
+\section{Session headers and framing}\label{sec:session_headers}
+
+Every session-layer message begins with a fixed-size header of 24 bytes,
+followed by a type-specific payload. Multi-byte integer fields are encoded in
+little-endian byte order and are positioned to favour natural alignment on
+four- and eight-byte boundaries. The wire layouts below are given in DSDL
+notation.
+Fields marked \emph{incompatibility} shall be transmitted as
+zero, and any non-zero value on reception indicates a protocol revision the
+receiver does not understand: the receiver shall discard the message.
+
+\subsection{Header types}
+
+The first byte of every header is the header type. Types are allocated as
+follows; values 10 through 255 are reserved.
+
+{\footnotesize
+\begin{CyphalSimpleTable}[wide]{Session-layer header types}{|r l l X|}
+    Value & Name             & Direction                         & Purpose                                        \\
+    0     & \texttt{msg\_be}    & publisher $\to$ subscriber(s), multicast or unicast & Best-effort message publication.                \\
+    1     & \texttt{msg\_rel}   & publisher $\to$ subscriber(s), multicast or unicast & Reliable message publication, acknowledged.     \\
+    2     & \texttt{msg\_ack}   & subscriber $\to$ publisher, unicast              & Positive acknowledgement of a reliable message. \\
+    3     & \texttt{msg\_nack}  & subscriber $\to$ publisher, unicast              & Negative acknowledgement; no matching subscriber.\\
+    4     & \texttt{rsp\_be}    & responder $\to$ publisher, unicast               & Best-effort response to a received message.     \\
+    5     & \texttt{rsp\_rel}   & responder $\to$ publisher, unicast               & Reliable response, acknowledged.                \\
+    6     & \texttt{rsp\_ack}   & publisher $\to$ responder, unicast               & Positive acknowledgement of a reliable response.\\
+    7     & \texttt{rsp\_nack}  & publisher $\to$ responder, unicast               & Negative acknowledgement; application no longer listening. \\
+    8     & \texttt{gossip}     & any, multicast or unicast                        & Topic allocation CRDT gossip.                   \\
+    9     & \texttt{scout}      & any, broadcast                                   & Pattern service-discovery query.                \\
+\end{CyphalSimpleTable}
+}
+
+\subsection{Message headers}\label{sec:session_header_msg}
+
+The \texttt{msg\_be} and \texttt{msg\_rel} headers share the same layout. Each
+message carries not only the application payload but also the sender's
+current CRDT state for the topic, so that the message doubles as an inline
+gossip for its own topic (section~\ref{sec:session_gossip}).
+
+\begin{minted}{python}
+uint8   type             # 0 for msg_be, 1 for msg_rel.
+void8
+uint8   incompatibility
+int8    topic_log_age    # floor(log2(topic_age_seconds)) if topic_age_seconds > 0, else -1.
+uint32  evictions        # For pinned topics, 0xFFFFFFFF - subject_id.
+uint64  topic_hash       # Subject allocation collision detection and immediate consensus updates.
+uint64  tag              # Random-initialized, wraps around. Used for acknowledgement
+                         # correlation and, optionally, for ordering recovery per remote.
+# Payload follows.
+\end{minted}
+
+\subsection{Message acknowledgement headers}\label{sec:session_header_msg_ack}
+
+The \texttt{msg\_ack} and \texttt{msg\_nack} headers are sent in response to a
+\texttt{msg\_rel}; they carry no payload. The priority level of the
+acknowledgement shall match the priority level of the original message.
+
+\begin{minted}{python}
+uint8   type             # 2 for msg_ack, 3 for msg_nack.
+void24
+uint32  incompatibility
+uint64  topic_hash       # From the acknowledged message.
+uint64  tag              # From the acknowledged message.
+\end{minted}
+
+\subsection{Response headers}\label{sec:session_header_rsp}
+
+The \texttt{rsp\_be} and \texttt{rsp\_rel} headers carry a response to a
+message previously received by the responder. The \texttt{rsp\_ack} and
+\texttt{rsp\_nack} headers acknowledge a reliable response and carry no
+payload. All four share the same layout.
+
+\begin{minted}{python}
+uint8   type             # 4 for rsp_be, 5 for rsp_rel, 6 for rsp_ack, 7 for rsp_nack.
+uint8   tag              # Chosen by the responder arbitrarily for acknowledgement correlation.
+uint48  seqno            # Starts at zero for the first response to a given message and
+                         # increments by one per successive response, enabling streaming.
+uint64  topic_hash       # Topic hash of the published message this response pertains to.
+uint64  message_tag      # Tag of the published message this response pertains to.
+# Payload follows, except for rsp_ack and rsp_nack.
+\end{minted}
+
+\subsection{Gossip header}\label{sec:session_header_gossip}
+
+The \texttt{gossip} header carries one CRDT record
+(section~\ref{sec:session_crdt}) together with the topic's normalized
+resolved name. The message has no additional payload.
+
+\begin{minted}{python}
+uint8   type             # 8.
+void16
+int8    topic_log_age    # floor(log2(topic_age_seconds)) if topic_age_seconds > 0, else -1.
+uint32  incompatibility
+uint64  topic_hash
+uint32  topic_evictions  # For pinned topics, 0xFFFFFFFF - subject_id.
+void24                   # Reserved, may extend the eviction counter in a future revision.
+utf8[<=200] topic_name   # Length-prefixed (one byte prefix); normalized resolved name.
+# Total wire size is 24 bytes plus the length of the topic name.
+\end{minted}
+
+\subsection{Scout header}\label{sec:session_header_scout}
+
+The \texttt{scout} header carries a pattern string
+(section~\ref{sec:session_names}). The receiver matches the pattern against
+its local topics and, for each match, replies with a \texttt{gossip} message
+(section~\ref{sec:session_scout}).
+
+\begin{minted}{python}
+uint8   type             # 9.
+void24
+uint32  incompatibility
+uint64  incompatibility1
+void56
+utf8[<=200] pattern      # Length-prefixed (one byte prefix); pattern applied to normalized names.
+# Total wire size is 24 bytes plus the length of the pattern.
+\end{minted}
+
+\subsection{Message tags}\label{sec:session_tags}
+
+The 64-bit \texttt{tag} field carried in \texttt{msg\_be} and \texttt{msg\_rel}
+is a per-publisher counter that is randomly initialized when a publisher is
+created and is incremented by one for each message published on the topic.
+The random initialization ensures that a node rebooting mid-operation does not
+accidentally reuse tags that were emitted before the reboot; the counter is
+permitted to wrap around.
+
+The PRNG used for tag initialization shall have distinct state across quick
+reboots. Nodes without a true random-number generator should seed a pseudorandom
+generator by hashing the node's unique identifier with whatever entropy the
+platform makes available -- for example, analog-to-digital converter noise,
+real-time clock drift, or values stored in battery-backed memory.
+
+Tags are not used for duplicate suppression on best-effort messages, which rely
+on the transport layer's deduplication instead. They are used for duplicate
+suppression and acknowledgement correlation on reliable messages
+(section~\ref{sec:session_reliable}).
+
+\section{Best-effort message exchange}\label{sec:session_best_effort}
+
+A best-effort publication is a single \texttt{msg\_be} transfer. The publisher
+performs the following steps atomically:
+
+\begin{enumerate}
+    \item Assign the next tag from the publisher's sequence.
+    \item Serialize a \texttt{msg\_be} header whose inline CRDT fields carry
+    the topic's current $\mathit{lage}$, eviction counter, and hash.
+    \item Append the application payload.
+    \item Submit the message to the transport for delivery on the topic's
+    current subject-ID.
+\end{enumerate}
+
+The publisher retains no state after the submission returns.
+
+On reception of a \texttt{msg\_be} transfer, a subscriber shall:
+
+\begin{enumerate}
+    \item Validate that the header's \texttt{(topic\_hash, evictions)} pair
+    maps (via section~\ref{sec:session_subject_id_mapping}) to the subject-ID
+    on which the message arrived. A mismatch indicates a malfunctioning
+    sender; the message shall be discarded.
+    \item Apply the inline gossip to the local CRDT state as described in
+    section~\ref{sec:session_crdt}.
+    \item Deliver the application payload to every matching local subscriber,
+    if any.
+\end{enumerate}
+
+Best-effort messages do not require receive-side deduplication at the session
+layer, because the transport already deduplicates transfers and the publisher
+never retransmits.
+
+\section{Reliable message delivery}\label{sec:session_reliable}
+
+A reliable publication is carried by a \texttt{msg\_rel} transfer and is
+acknowledged by every intended recipient with a \texttt{msg\_ack}. The
+publisher retransmits until every known recipient has acknowledged or the
+deadline expires.
+
+\subsection{Associations}
+
+A publisher tracks its active recipients in an \emph{association set}. Each
+association records:
+
+\begin{description}
+    \item[\textit{remote\_id}] The network-wide identifier of the remote node.
+    \item[\textit{unicast\_ctx}] The transport-specific metadata needed to send
+    a unicast message back to the remote, as supplied by the transport layer
+    with each incoming acknowledgement.
+    \item[\textit{last\_seen}] Timestamp of the most recent acknowledgement
+    received from the remote.
+    \item[\textit{slack}] A miss counter incremented each time the remote
+    fails to acknowledge a reliable message within the deadline. The
+    association is forgotten when \textit{slack} exceeds a small limit
+    (recommended default: $2$).
+\end{description}
+
+Associations are created opportunistically on receipt of a positive
+acknowledgement for a reliable message, and are removed when they age out of
+the session lifetime (section~\ref{sec:session_parameters}) or when their
+slack counter exceeds the limit.
+
+\subsection{First publication}
+
+When a publisher sends its first reliable message on a topic it may have no
+associations at all. The first message is multicast on the topic's subject-ID
+and the publisher treats the arrival of \emph{any} positive acknowledgement as
+success; further acknowledgements arriving after the first continue to
+populate the association set in the background.
+
+\subsection{Retransmission policy}
+
+The publisher retransmits a reliable message using an exponential backoff
+schedule. The first retransmission is scheduled one \emph{ACK baseline
+timeout} after the initial attempt; each subsequent retransmission doubles the
+timeout. The final attempt is capped by the publication deadline supplied with
+the publication. Implementations may scale the ACK baseline timeout by the
+message's priority level, for example to give higher-priority publications
+tighter timeouts.
+
+Initial attempts are always multicast, since the publisher does not yet know
+which recipients are live. As acknowledgements arrive and unacknowledged
+recipients remain, the publisher may elect to unicast the remaining
+retransmissions directly to the holdouts using the transport unicast metadata
+recorded in the association entries. This multicast-to-unicast fallback is a
+heuristic chosen to reduce network and subscriber load; it is not required for
+interoperability.
+
+\subsection{Acknowledgements}
+
+A \texttt{msg\_ack} is sent by any subscriber that accepts a reliable message
+for processing. The acknowledgement is unicast back to the publisher at the
+priority of the original message, and references the message by its topic
+hash and tag.
+
+A \texttt{msg\_nack} is sent only in response to a reliable \emph{unicast}
+message for which the receiver has no matching subscriber. It tells the
+publisher to prune the association promptly so that further retransmissions
+are not wasted on a recipient that cannot accept the topic. \emph{Multicast}
+reliable messages do not generate NACKs, because subscription membership is
+implicit in the transport's multicast join state: a subscriber that is no
+longer interested simply stops participating in the multicast group.
+
+\begin{remark}
+    The asymmetry between unicast and multicast NACKs is intentional. For
+    multicast delivery, the publisher learns that a remote has left by
+    observing its absence from future acknowledgements; for unicast delivery,
+    no such implicit signal exists, so an explicit NACK is required.
+\end{remark}
+
+\subsection{Receive-side deduplication}
+
+A reliable message may be delivered more than once by the transport if an
+acknowledgement is lost and the publisher retransmits the same tag. The
+receiver eliminates such duplicates by keeping a per-remote cache keyed by
+\texttt{(remote\_id, tag)} and discarding any tag that has already been
+accepted. Dedup state is soft and is aged out after the session lifetime
+(section~\ref{sec:session_parameters}).
+
+\subsection{Observable states of a reliable publication}
+
+A reliable publication transitions through the following observable states,
+which are named here to describe protocol behaviour rather than any API:
+
+\begin{description}
+    \item[\textsc{pending}] The initial state; set when the first attempt is
+    submitted to the transport. The publication remains pending until a
+    terminal event occurs.
+    \item[\textsc{done, success}] Reached when at least one positive
+    acknowledgement has been received and all remaining associations have
+    either acknowledged or aged out of the publication's deadline.
+    \item[\textsc{done, delivery failure}] Reached when the publication
+    deadline expires without any positive acknowledgement.
+    \item[\textsc{done, explicit rejection}] Reached on receipt of a
+    \texttt{msg\_nack} for a unicast reliable message.
+    \item[\textsc{done, transient lag}] Reached when the publication
+    deadline is about to expire but the publisher cannot determine whether
+    the retransmission schedule actually delivered the message due to local
+    scheduler pressure. This state is informational: the application is
+    warned that reachability information for this publication is
+    incomplete.
+\end{description}
+
+\section{Deduplication and ordering}\label{sec:session_dedup}
+
+Session-layer deduplication applies to reliable messages only, as described in
+section~\ref{sec:session_reliable}. Best-effort messages are deduplicated by
+the transport and no additional session-layer work is required.
+
+A subscriber may optionally enable \emph{per-remote ordered delivery}.
+When enabled, the subscriber uses the monotonic per-publisher \texttt{tag}
+field to reconstruct the publication order within a bounded reorder window.
+Messages whose tag lies within the window are delivered in increasing tag
+order; messages whose tag lies outside the window because they arrived too
+late are dropped. Ordering is guaranteed per remote publisher only, not across
+remotes, because there is no global clock.

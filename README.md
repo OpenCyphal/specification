@@ -53,12 +53,6 @@ Avoid introduction of new acronyms unless you really must.
 It is better to say "transfer-ID" or "data type hash" rather than TID or DTH.
 Excessive reliance on acronyms may impede comprehension.
 
-### Rigging
-
-In order to refer to a DSDL definition, use macro `\DSDLReference{}`.
-To include a DSDL definition or a namespace index, use macro `\DSDL{}`.
-Refer to the existing usages for an example.
-
 ### Structure and cross-referencing
 
 Each chapter is located in a dedicated directory, whose name is a single lowercase word.
@@ -79,6 +73,15 @@ For example, one could refer to a figure contained inside the chapter "Chapter" 
 
 The above rules are crucial to follow to keep cross-references usable.
 Without strict conventions in place, they quickly become unmanageable.
+
+To caption a `CyphalSimpleTable`, put the label inside the caption argument, NOT inside the table body:
+
+```tex
+\begin{CyphalSimpleTable}[wide]{Caption of the table\label{table:chapter_my_table}}{|l l X|}
+    Column A & Column B & Column C \\
+    ...
+\end{CyphalSimpleTable}
+```
 
 ### Source formatting
 

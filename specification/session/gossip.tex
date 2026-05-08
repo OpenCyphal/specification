@@ -1,0 +1,157 @@
+\section{Gossip dissemination}\label{sec:session_gossip}
+
+Nodes keep their local CRDT states (section~\ref{sec:session_crdt}) aligned with
+each other by exchanging \emph{gossip} messages.
+A gossip carries a single topic record and is sent over one of four carriers
+described below.
+
+\subsection{Gossip carriers}
+
+\begin{description}
+    \item[Broadcast gossip] Multicast on the broadcast subject
+    (section~\ref{sec:session_subject_id_mapping}). Every node is expected to be
+    attached to this subject, so a broadcast gossip is eventually visible to every
+    participant; broadcast traffic is the primary mechanism for escaping
+    partitioned or newly-joined subsets. The broadcast subject is also used for
+    scout messages (section~\ref{sec:session_scout}).
+
+    \item[Sharded gossip] Multicast on a \emph{gossip shard} subject-ID.
+    A topic is assigned to the shard
+    \[
+        \mathit{shard\_index} = \mathit{hash} \bmod \mathit{gossip\_shard\_count}
+    \]
+    where $\mathit{gossip\_shard\_count}$ is the number of subject-IDs between
+    the auto-allocated range and the broadcast subject (see
+    section~\ref{sec:session_subject_id_mapping}). A node joins every gossip shard
+    that any of its local topics maps into, and no others.
+
+    \item[Inline gossip] A gossip state carried in the header of a
+    \texttt{msg\_be} or \texttt{msg\_rel} application message
+    (section~\ref{sec:session_headers}). Inline gossip is observed by every
+    subscriber of the topic and converges the CRDT state for that topic without
+    spending a separate message on it. Handling of inline gossip is recommended
+    but not required for correctness.
+
+    \item[Unicast gossip] A single gossip sent to a specific remote node,
+    used for scout responses and for targeted repair of a known divergence.
+\end{description}
+
+\subsection{Schedules}
+
+A node that holds at least one explicit topic emits gossip on three schedules:
+periodic, urgent, and inline. Implicit topics
+(section~\ref{sec:session_patterns}) do not emit gossip.
+
+\paragraph{Periodic gossip} Every explicit topic emits its current state at a
+randomized interval around a nominal period (recommended default: $5$ seconds,
+randomized by $\pm$ one eighth).
+Every $N$-th emission goes on the broadcast subject rather than the topic's
+gossip shard, so the broadcast lane sees a slow but guaranteed sweep of all
+topics on the network (recommended $N = 10$).
+Between broadcast sweeps the topic's shard is used, which scales better on large
+networks because each node only joins a fraction of the shards.
+Appendix~\ref{sec:appendix_gossip_model} gives the analytical arrival-load
+model that motivates this topic-wise schedule.
+
+\paragraph{Urgent gossip} Whenever a topic's local subject-ID occupancy changes
+-- a new topic is created, an incoming gossip forces a re-allocation, or a
+cascade evicts a record -- a broadcast gossip is scheduled with a small random
+delay $W_u$ (section~\ref{sec:session_gossip_delays}). If an equivalent or
+dominating gossip from another node arrives before the timer fires, the pending
+urgent gossip is suppressed.
+
+\paragraph{Inline gossip} A node that publishes a \texttt{msg\_be} or
+\texttt{msg\_rel} message piggybacks the current gossip state of the message's
+topic in the header. A receiver that elects to process inline gossip applies it
+to its local CRDT in the usual way; this is the fastest possible CRDT update on
+active topics because it consumes no additional network capacity.
+
+\subsection{Suppression rules}\label{sec:session_gossip_suppression}
+
+Gossip schedules are designed so that the network-wide rate of gossip traffic on
+any given topic stays roughly constant regardless of the number of nodes holding
+it. To that end, nodes apply two suppression rules when incoming gossip indicates
+that some other node is already covering the same information:
+
+\begin{itemize}
+    \item \textbf{Cancel a pending urgent gossip} when an incoming gossip arrives
+    on the broadcast subject whose arbitration priority dominates the state the
+    urgent gossip was intended to publish. The incoming broadcast already
+    carries the information forward, so repeating it would waste network
+    capacity.
+
+    \item \textbf{Slow down periodic gossip} when an incoming non-inline gossip
+    matches the local $\mathit{lage}$ and eviction counter for the same topic.
+    Another node is already covering the topic at the current cadence; the
+    local node can afford to reschedule its next emission with a longer
+    interval.
+\end{itemize}
+
+\begin{remark}
+    Inline gossip is deliberately excluded from the periodic slowdown rule.
+    Because inline gossip is piggybacked on application messages, its rate is
+    determined by the application's publication rate, not by the gossip
+    scheduler; allowing it to suppress periodic gossip would couple the CRDT
+    repair rate to the application traffic pattern.
+\end{remark}
+
+\subsection{Randomized delay windows}\label{sec:session_gossip_delays}
+
+The urgent window $W_u$ and the startup window $W_s$ are both tunable. The
+recommended orders of magnitude below are derived from the mean-field model
+in appendix~\ref{sec:appendix_gossip_delays}, which also gives a numerical
+example for the typical local-network latency.
+
+Let $\delta_{\max}$ be the worst-case propagation and processing delay for a
+gossip between two nodes on the network.
+
+\begin{description}
+    \item[Urgent window $W_u$] Controls the amount of jitter inserted before an
+    urgent gossip. If $m_u$ nodes independently schedule an urgent repair for
+    the same event, the expected number of redundant urgent emissions is
+    approximately $(m_u - 1) \cdot \delta_{\max} / W_u$ (see
+    appendix~\ref{sec:appendix_gossip_delays_urgent}).
+    In typical deployments $m_u$ is small because a given collision or
+    divergence is observed by only a few nodes; setting
+    $W_u \approx \delta_{\max}$ is usually sufficient.
+
+    \item[Startup window $W_s$] Controls the amount of jitter inserted when a
+    node comes online and schedules its first round of gossip.
+    Wider windows reduce the probability of simultaneous emissions from many
+    startups but saturate quickly (see
+    appendix~\ref{sec:appendix_gossip_delays_startup});
+    recommended range is $[\delta_{\max},\ 10 \cdot \delta_{\max}]$.
+\end{description}
+
+On a typical local network with $\delta_{\max}$ on the order of tens of
+milliseconds, choosing $W_u$ on the order of tens of milliseconds and $W_s$ on
+the order of tens to a few hundred milliseconds is sufficient.
+
+\subsection{Implicit topic retirement}
+
+An \emph{implicit} topic is one that a node holds only because a local pattern
+subscription (section~\ref{sec:session_patterns}) matched a remote gossip. An
+implicit topic does not emit gossip, and it is automatically retired once it has
+observed no messages and no gossip activity for the implicit-topic retention
+window. The recommended retention window is ten minutes; it should be much
+longer than the worst-case periodic gossip interval so that transient silence
+on an active topic does not cause premature retirement.
+
+\section{Scout}\label{sec:session_scout}
+
+The scout mechanism lets a node pull in topics that match a pattern without
+waiting for periodic gossip rotation. A scout is a session-layer message whose
+payload is a pattern string (section~\ref{sec:session_names}).
+
+A scout message is broadcast on the broadcast subject using the
+\texttt{scout} header (section~\ref{sec:session_headers}).
+Every node that receives the message checks its local topics against the
+pattern; for each match, the receiver replies with a \texttt{gossip} header
+describing the matched topic. Replies are typically unicast back to the
+originating node, using the unicast context provided by the transport with the
+incoming scout, but broadcasting is also permitted if that is easier for the
+responder.
+
+A scout with an empty pattern is reserved for a future extension -- a request
+for a network-wide health summary -- and shall be discarded by current
+implementations.

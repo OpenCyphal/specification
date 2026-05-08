@@ -1,0 +1,88 @@
+\chapter{Eviction counter recovery}\label{sec:appendix_eviction_solver}
+
+Given a topic hash, a subject-ID, and the subject-ID modulus, the eviction
+counter of a non-pinned topic can be reconstructed in constant time.
+This works because the subject-ID mapping
+(section~\ref{sec:session_subject_id_mapping})
+uses quadratic probing modulo a prime $M$ with $M \bmod 4 = 3$, which makes
+the probing sequence invertible via the closed-form square root
+$r = d^{(M+1)/4} \bmod M$ for quadratic residues $d$.
+
+The recovery is useful for diagnostic tools -- for example, to cross-check a
+running network against the mapping formula, or to display a topic's
+eviction history in a monitoring dashboard -- but it is not required for
+protocol participation. Any implementation that participates in the
+consensus protocol already has the eviction counter on hand.
+
+\begin{remark}
+    The solver below has been exhaustively brute-force verified for the
+    moduli $57203$, $131071$, and $8388607$.
+    Implementations that use it for diagnostics should treat a
+    \texttt{UINT32\_MAX} return value as \emph{the subject-ID was not
+    produced from the given hash by the mapping function}, which is a valid
+    outcome when the diagnostic tool is probing an unrelated subject.
+    The solver assumes that the eviction counter does not exceed
+    $\lfloor M / 2 \rfloor$; above that bound the probing sequence starts
+    to repeat and the recovery is no longer unique.
+\end{remark}
+
+\begin{minted}[fontsize=\scriptsize]{cpp}
+// Pavel Kirienko <pavel@opencyphal.org>, MIT license
+
+// a**e mod m
+static uint32_t pow_mod_u32(uint32_t a, uint32_t e, const uint32_t m)
+{
+    uint32_t r = 1 % m;
+    a %= m;
+    while (e) {
+        if (e & 1U) {
+            r = (uint32_t)(((uint64_t)r * (uint64_t)a) % m);
+        }
+        a = (uint32_t)(((uint64_t)a * (uint64_t)a) % m);
+        e >>= 1U;
+    }
+    return r;
+}
+
+// Legendre symbol: a^((p-1)/2) mod p is 1 for residues, p-1 for non-residues, 0 for a==0.
+static bool is_quadratic_residue_prime(const uint32_t a, const uint32_t p)
+{
+    return (a == 0) || (pow_mod_u32(a, (p - 1U) / 2U, p) == 1U);
+}
+
+// Derives evictions from a non-pinned subject-ID. For pinned subject-IDs returns 0.
+// Assumes subject_id_modulus is a prime with (subject_id_modulus % 4) == 3.
+// Returns UINT32_MAX if the subject-ID was obtained using distinct parameters.
+// If evictions > floor(modulus/2), the subject-ID sequence repeats, leading to non-unique solutions;
+// the solver assumes that evictions stay below that bound. Complexity is O(1).
+static uint32_t topic_evictions_from_subject_id(const uint64_t hash,
+                                                const uint32_t subject_id,
+                                                const uint32_t subject_id_modulus)
+{
+    const uint32_t p = subject_id_modulus;
+    assert((p > 3) && ((p & 3U) == 3U));
+    if (subject_id <= 8191U) {
+        return 0; // Pinned subject; eviction count is not meaningful here.
+    }
+    const uint32_t base = subject_id - 8192U;
+    if (base >= p) {
+        return UINT32_MAX;
+    }
+    const uint32_t delta = (uint32_t)(((uint64_t)base + (uint64_t)p - (hash % p)) % p);
+    if (!is_quadratic_residue_prime(delta, p)) {
+        return UINT32_MAX;
+    }
+    // sqrt(delta) mod p  (since p % 4 == 3):  r = delta^((p+1)/4) mod p
+    const uint32_t r1 = (delta == 0U) ? 0U : pow_mod_u32(delta, (p + 1U) / 4U, p);
+    const uint32_t r2 = (r1 == 0U) ? 0U : (p - r1);
+    uint32_t       best     = UINT32_MAX;
+    const uint32_t roots[2] = { r1, r2 };
+    for (unsigned i = 0; i < 2; i++) {
+        const uint64_t s = roots[i];
+        if ((s <= (p / 2U)) && (s < best)) {
+            best = (uint32_t)s;
+        }
+    }
+    return best;
+}
+\end{minted}

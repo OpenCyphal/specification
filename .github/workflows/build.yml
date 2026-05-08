@@ -20,9 +20,7 @@ jobs:
         entrypoint: /bin/bash
         args: >
           -c "
-          git config --global --add safe.directory '*'    &&
-          pip install -U setuptools                       &&
-          pip install -r requirements.txt                 &&
+          git config --global --add safe.directory '*' &&
           ./compile.sh
           "
 
